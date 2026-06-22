@@ -1013,8 +1013,14 @@
     function findMatchedTask(metadata, taskSet) {
       if (!taskSet) return null;
       return taskSet.tasks.find(t => {
-        return t.room.toLowerCase() === metadata.room.toLowerCase() && 
-               metadata.task.toLowerCase().includes(t.name.toLowerCase().split(' (')[0]);
+        const roomMatch = t.room.toLowerCase() === metadata.room.toLowerCase();
+        const taskNameClean = t.name.toLowerCase();
+        const metaTaskClean = metadata.task.toLowerCase();
+        // Try exact match first, then partial includes in either direction
+        const nameMatch = metaTaskClean === taskNameClean ||
+                          metaTaskClean.includes(taskNameClean) ||
+                          taskNameClean.includes(metaTaskClean.split(' (')[0]);
+        return roomMatch && nameMatch;
       });
     }
 

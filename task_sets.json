@@ -20,22 +20,11 @@
           "type": "single"
         },
         {
-          "name": "Divert Power (Stage 1)",
+          "name": "Divert Power",
           "room": "Electrical",
           "file": "tasks/divert_power.html",
-          "params": "?mode=divert",
-          "type": "multi_stage",
-          "sequence_id": "divert_security",
-          "step": 1
-        },
-        {
-          "name": "Accept Diverted Power (Stage 2)",
-          "room": "Security",
-          "file": "tasks/divert_power.html",
-          "params": "?mode=accept",
-          "type": "multi_stage",
-          "sequence_id": "divert_security",
-          "step": 2
+          "params": "",
+          "type": "single"
         },
         {
           "name": "Submit Scan",
@@ -66,22 +55,11 @@
           "type": "single"
         },
         {
-          "name": "Divert Power (Stage 1)",
+          "name": "Divert Power",
           "room": "Electrical",
           "file": "tasks/divert_power.html",
-          "params": "?mode=divert",
-          "type": "multi_stage",
-          "sequence_id": "divert_o2",
-          "step": 1
-        },
-        {
-          "name": "Accept Diverted Power (Stage 2)",
-          "room": "O2",
-          "file": "tasks/divert_power.html",
-          "params": "?mode=accept",
-          "type": "multi_stage",
-          "sequence_id": "divert_o2",
-          "step": 2
+          "params": "",
+          "type": "single"
         },
         {
           "name": "Unlock Manifolds",
@@ -98,47 +76,25 @@
       "description": "Aligns engine thrust manifolds and refueling storage.",
       "tasks": [
         {
-          "name": "Fuel Engines (Stage 1A)",
+          "name": "Fuel Engines",
           "room": "Storage",
           "file": "tasks/fuel_engines.html",
-          "params": "?mode=fill",
-          "type": "multi_stage",
-          "sequence_id": "fuel_upper_engine",
-          "step": 1
+          "params": "",
+          "type": "single"
         },
         {
-          "name": "Fuel Engines (Stage 1B)",
-          "room": "Upper Engine",
-          "file": "tasks/fuel_engines.html",
-          "params": "?mode=empty",
-          "type": "multi_stage",
-          "sequence_id": "fuel_upper_engine",
-          "step": 2
-        },
-        {
-          "name": "Align Engine Output (Stage 1)",
+          "name": "Align Engine Output",
           "room": "Upper Engine",
           "file": "tasks/align_engine.html",
           "params": "",
           "type": "single"
         },
         {
-          "name": "Divert Power (Stage 1)",
+          "name": "Divert Power",
           "room": "Electrical",
           "file": "tasks/divert_power.html",
-          "params": "?mode=divert",
-          "type": "multi_stage",
-          "sequence_id": "divert_navigation",
-          "step": 1
-        },
-        {
-          "name": "Accept Diverted Power (Stage 2)",
-          "room": "Navigation",
-          "file": "tasks/divert_power.html",
-          "params": "?mode=accept",
-          "type": "multi_stage",
-          "sequence_id": "divert_navigation",
-          "step": 2
+          "params": "",
+          "type": "single"
         },
         {
           "name": "Stabilize Steering",
@@ -162,40 +118,25 @@
           "type": "single"
         },
         {
-          "name": "Divert Power (Stage 1)",
+          "name": "Divert Power",
           "room": "Electrical",
           "file": "tasks/divert_power.html",
-          "params": "?mode=divert",
-          "type": "multi_stage",
-          "sequence_id": "divert_weapons",
-          "step": 1
+          "params": "",
+          "type": "single"
         },
         {
-          "name": "Accept Diverted Power (Stage 2)",
-          "room": "Weapons",
-          "file": "tasks/divert_power.html",
-          "params": "?mode=accept",
-          "type": "multi_stage",
-          "sequence_id": "divert_weapons",
-          "step": 2
-        },
-        {
-          "name": "Download Data (Stage 1)",
+          "name": "Download Data",
           "room": "Communications",
           "file": "tasks/download.html",
           "params": "",
-          "type": "multi_stage",
-          "sequence_id": "data_comms_admin",
-          "step": 1
+          "type": "single"
         },
         {
-          "name": "Upload Data (Stage 2)",
-          "room": "Admin",
-          "file": "tasks/download.html",
+          "name": "Fix Wiring",
+          "room": "Electrical",
+          "file": "tasks/wiring.html",
           "params": "",
-          "type": "multi_stage",
-          "sequence_id": "data_comms_admin",
-          "step": 2
+          "type": "single"
         }
       ]
     },
@@ -205,22 +146,11 @@
       "description": "Feeds secondary propulsion drives and diagnostic tests.",
       "tasks": [
         {
-          "name": "Fuel Engines (Stage 2A)",
+          "name": "Fuel Engines",
           "room": "Storage",
           "file": "tasks/fuel_engines.html",
-          "params": "?mode=fill",
-          "type": "multi_stage",
-          "sequence_id": "fuel_lower_engine",
-          "step": 1
-        },
-        {
-          "name": "Fuel Engines (Stage 2B)",
-          "room": "Lower Engine",
-          "file": "tasks/fuel_engines.html",
-          "params": "?mode=empty",
-          "type": "multi_stage",
-          "sequence_id": "fuel_lower_engine",
-          "step": 2
+          "params": "",
+          "type": "single"
         },
         {
           "name": "Inspect Sample",
@@ -230,22 +160,11 @@
           "type": "single"
         },
         {
-          "name": "Divert Power (Stage 1)",
+          "name": "Divert Power",
           "room": "Electrical",
           "file": "tasks/divert_power.html",
-          "params": "?mode=divert",
-          "type": "multi_stage",
-          "sequence_id": "divert_shields",
-          "step": 1
-        },
-        {
-          "name": "Accept Diverted Power (Stage 2)",
-          "room": "Shields",
-          "file": "tasks/divert_power.html",
-          "params": "?mode=accept",
-          "type": "multi_stage",
-          "sequence_id": "divert_shields",
-          "step": 2
+          "params": "",
+          "type": "single"
         },
         {
           "name": "Clean Vent",
@@ -269,27 +188,23 @@
           "type": "single"
         },
         {
-          "name": "Empty Chute (Stage 1)",
+          "name": "Empty Garbage",
           "room": "O2",
           "file": "tasks/empty_garbage.html",
           "params": "",
-          "type": "multi_stage",
-          "sequence_id": "trash_o2_storage",
-          "step": 1
-        },
-        {
-          "name": "Empty Garbage (Stage 2)",
-          "room": "Storage",
-          "file": "tasks/empty_garbage.html",
-          "params": "",
-          "type": "multi_stage",
-          "sequence_id": "trash_o2_storage",
-          "step": 2
+          "type": "single"
         },
         {
           "name": "Chart Course",
           "room": "Navigation",
           "file": "tasks/chart_course.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Fix Wiring",
+          "room": "Electrical",
+          "file": "tasks/wiring.html",
           "params": "",
           "type": "single"
         }

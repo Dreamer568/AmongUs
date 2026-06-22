@@ -1,13 +1,13 @@
 
 UI--ALMOST OK
-Map--TODO
-iframe setup--WORKING BUT LAGING and not closing
+Map--add arrow to show ehre the player is facing
+
 
 multiplayer 
 promixity chat
 
 
-START THE REACTOR TASK NOT CLOSING
+
 
 
 2 stage task problem
