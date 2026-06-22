@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Align Engine Output</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #1e222a;
+      border: 6px solid #2d3748;
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a545c;
+      border: 4px solid #31383e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31383e;
+      z-index: 10;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ea580c;
+      text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+      text-transform: uppercase;
+    }
+
+    .align-status {
+      font-size: 0.8rem;
+      color: #eab308;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Alignment Arena */
+    .alignment-arena {
+      flex-grow: 1;
+      width: 100%;
+      position: relative;
+      margin: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #111317;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+      padding: 10px 25px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* Left Side: Rotatable Thruster Nozzle Representation */
+    .thruster-bay {
+      width: 240px;
+      height: 240px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thruster-gimbal {
+      width: 170px;
+      height: 170px;
+      position: relative;
+      transition: transform 0.05s linear;
+    }
+
+    /* Horizontal needle across thruster nozzle */
+    .thruster-needle {
+      position: absolute;
+      left: -20px;
+      right: -20px;
+      top: 50%;
+      height: 3px;
+      background: #ff5500;
+      box-shadow: 0 0 6px #ff5500;
+      transform: translateY(-50%);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .thruster-needle.secured {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    /* Center target centerline indicator */
+    .alignment-target-line {
+      position: absolute;
+      left: 10px;
+      right: 150px;
+      top: 50%;
+      height: 2px;
+      background: rgba(16, 185, 129, 0.2);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .alignment-target-line.aligned {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Center target index markers */
+    .center-target-arrow {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 15px solid #10b981;
+      transform: translateY(-50%);
+      z-index: 4;
+      filter: drop-shadow(0 0 4px #10b981);
+    }
+
+    /* Right Side: Heavy Slider Chevron controls */
+    .slider-track-box {
+      width: 80px;
+      height: 220px;
+      background: #181a1d;
+      border-radius: 6px;
+      border: 2px solid #2d3135;
+      position: relative;
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.5);
+    }
+
+    .slider-rail {
+      position: absolute;
+      left: 50%;
+      top: 15px;
+      bottom: 15px;
+      width: 10px;
+      background: #090a0d;
+      border-radius: 5px;
+      transform: translateX(-50%);
+    }
+
+    .chevron-handle {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      border: 3.5px solid #1a0a05;
+      border-radius: 8px;
+      position: absolute;
+      left: 50%;
+      top: 86px; /* center initially */
+      transform: translateX(-50%);
+      cursor: grab;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .chevron-handle:active {
+      cursor: grabbing;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.7);
+    }
+
+    .handle-stripe {
+      width: 22px;
+      height: 4px;
+      background: #1a0a05;
+      border-radius: 1px;
+    }
+
+    /* Success display screen */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #10b981;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- Header diagnostic status -->
+      <div class='header'>
+        <h1>Align Engine Output</h1>
+        <div class='align-status' id='status-lbl'>GIMBAL OFFSET: +18.5 DEG</div>
+      </div>
+
+      <!-- Dynamic Calibration Area -->
+      <div class='alignment-arena' id='arena'>
+        
+        <div class='center-target-arrow'></div>
+        <div class='alignment-target-line' id='center-line'></div>
+
+        <!-- Left: Thruster gimbal vector representation -->
+        <div class='thruster-bay'>
+          <div class='thruster-gimbal' id='thruster'>
+            <div class='thruster-needle' id='needle'></div>
+            <!-- Engine nozzle SVG schematic -->
+            <svg viewBox='0 0 100 100' width='100%' height='100%'>
+              <!-- Combustion dome -->
+              <ellipse cx='30' cy='50' rx='14' ry='28' fill='#2d3748' stroke='#1a202c' stroke-width='4.5' />
+              <!-- Nozzle bells -->
+              <path d='M35 30 L85 10 L85 90 L35 70 Z' fill='#475569' stroke='#1a202c' stroke-width='4.5' stroke-linejoin='round' />
+              <rect x='85' y='25' width='8' height='50' fill='#ea580c' stroke='#1a202c' stroke-width='3' rx='2' />
+              <!-- Core cooling tubes -->
+              <line x1='35' y1='40' x2='85' y2='40' stroke='#334155' stroke-width='4' />
+              <line x1='35' y1='50' x2='85' y2='50' stroke='#334155' stroke-width='4' />
+              <line x1='35' y1='60' x2='85' y2='60' stroke='#334155' stroke-width='4' />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right: Vertical chunky dial track -->
+        <div class='slider-track-box'>
+          <div class='slider-rail'></div>
+          <div class='chevron-handle' id='handle'>
+            <div class='handle-stripe'></div>
+            <div class='handle-stripe'></div>
+            <div class='handle-stripe'></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style='color: #a0aec0; font-size: 0.75rem; text-align: center; letter-spacing: 1px;'>
+        DRAG SIDE LEVER TO ALIGN ENGINE OUTPUT LINE TO THE STATIONARY CENTER GREEN MARKER
+      </div>
+
+      <!-- Complete Success screen -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Engine Aligned!</div>
+        <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;'>Gimbal hydraulic locks engaged</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // Engine gimbal low rumble noise synthesizer
+    let rumbleOsc = null;
+    let rumbleGain = null;
+
+    function startGimbalRumble() {
+      try {
+        initAudio();
+        rumbleOsc = audioCtx.createOscillator();
+        rumbleGain = audioCtx.createGain();
+        
+        rumbleOsc.type = 'sawtooth';
+        rumbleOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(100, audioCtx.currentTime);
+        
+        rumbleGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        
+        rumbleOsc.connect(filter);
+        filter.connect(rumbleGain);
+        rumbleGain.connect(audioCtx.destination);
+        rumbleOsc.start();
+      } catch (e) {}
+    }
+
+    function stopGimbalRumble() {
+      if (rumbleGain) {
+        try {
+          rumbleGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+          setTimeout(() => {
+            if (rumbleOsc) { rumbleOsc.stop(); rumbleOsc = null; }
+          }, 60);
+        } catch(e) {}
+      }
+    }
+
+    function playLockSound() {
+      // Heavy mechanical clamp slide
+      playTone(220, 'triangle', 0.15, 0.25);
+      setTimeout(() => {
+        playTone(330, 'sine', 0.1, 0.18);
+      }, 80);
+    }
+
+    function playVictoryChirp() {
+      try {
+        initAudio();
+        const notes = [392.00, 493.88, 587.33, 783.99, 987.77];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          }, idx * 60);
+        });
+      } catch(e) {}
+    }
+
+    const handle = document.getElementById('handle');
+    const thruster = document.getElementById('thruster');
+    const needle = document.getElementById('needle');
+    const centerLine = document.getElementById('center-line');
+    const statusLbl = document.getElementById('status-lbl');
+    const successScr = document.getElementById('success-scr');
+
+    let isDragging = false;
+    let dragStartY = 0;
+    
+    // Top of handle: track goes from 0px (top) to 172px (bottom)
+    const maxTrackHeight = 172; 
+    const initialTop = 86; // center
+    let handleTop = initialTop;
+    
+    // Randomize initial off-alignment position at start: offset can be positive or negative
+    const startOffsets = [20, 35, 140, 155]; // avoiding exact center on launch
+    handleTop = startOffsets[Math.floor(Math.random() * startOffsets.length)];
+    handle.style.top = handleTop + 'px';
+
+    let completed = false;
+    let currentRotation = 0;
+
+    function updateAlignment() {
+      // Convert slider top position to gimbal rotation degrees
+      // Slider center is 86px (which corresponds to 0 degrees alignment)
+      const sliderCenter = 86;
+      const offsetFromCenter = handleTop - sliderCenter; // range -86 to +86
+      
+      // Map offset to rotation: max thruster deflection of +/- 30 degrees
+      currentRotation = (offsetFromCenter / 86) * 30;
+      thruster.style.transform = `rotate(${currentRotation}deg)`;
+
+      // Display text degrees
+      const displayedOffset = currentRotation.toFixed(1);
+      statusLbl.innerText = `GIMBAL OFFSET: ${displayedOffset > 0 ? '+' : ''}${displayedOffset} DEG`;
+
+      // Alignment check: target tolerance is +/- 1.2 degrees of exact horizontal center
+      const isAligned = Math.abs(currentRotation) <= 1.2;
+      
+      if (isAligned) {
+        centerLine.classList.add('aligned');
+        needle.classList.add('secured');
+        statusLbl.style.color = '#10b981';
+      } else {
+        centerLine.classList.remove('aligned');
+        needle.classList.remove('secured');
+        statusLbl.style.color = '#eab308';
+      }
+
+      return isAligned;
+    }
+
+    // Interaction dragging handlers
+    handle.addEventListener('mousedown', (e) => {
+      if (completed) return;
+      initAudio();
+      isDragging = true;
+      startGimbalRumble();
+      
+      dragStartY = e.clientY - handleTop;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || completed) return;
+      
+      const proposedY = e.clientY - dragStartY;
+      handleTop = Math.max(0, Math.min(maxTrackHeight, proposedY));
+      handle.style.top = handleTop + 'px';
+
+      updateAlignment();
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      stopGimbalRumble();
+
+      if (completed) return;
+
+      // Snap-lock check on release: if released while precisely aligned, complete task!
+      const aligned = updateAlignment();
+      if (aligned) {
+        triggerEngineLock();
+      }
+    });
+
+    function triggerEngineLock() {
+      completed = true;
+      
+      // Hard snap handle to exact center (86px)
+      handleTop = 86;
+      handle.style.transition = 'top 0.1s ease-out';
+      handle.style.top = '86px';
+      
+      thruster.style.transition = 'transform 0.1s ease-out';
+      thruster.style.transform = 'rotate(0deg)';
+      
+      statusLbl.innerText = 'GIMBAL OUTPUT: STABILIZED (0.0 DEG)';
+      statusLbl.style.color = '#10b981';
+      
+      playLockSound();
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playVictoryChirp();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Align Engine Output' }, '*');
+        }
+      }, 550);
+    }
+
+    // Initial positioning calibration
+    updateAlignment();
+  </script>
+</body>
+</html>

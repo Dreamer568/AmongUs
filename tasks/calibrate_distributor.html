@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Calibrate Distributor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ffcc00;
+      text-shadow: 0 0 6px rgba(255, 204, 0, 0.4);
+      text-transform: uppercase;
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      color: #a5f3fc;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Distributor Nodes Column Grid */
+    .distributor-board {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      flex-grow: 1;
+      padding: 15px 5px;
+      justify-content: center;
+    }
+
+    /* Individual ring channel */
+    .ring-lane {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #181a1d;
+      border: 2px solid #2d3135;
+      border-radius: 6px;
+      padding: 8px 15px;
+      position: relative;
+    }
+
+    /* Rotating Node Canvas */
+    .node-canvas-container {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+
+    .node-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Wired connector static nodes */
+    .contact-conduit {
+      width: 25px;
+      height: 25px;
+      border-radius: 4px;
+      background: #23272a;
+      border: 2px solid #3d4554;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* Colored LEDs */
+    .indicator-led {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2a1111;
+      border: 2px solid #1a0a0a;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+
+    /* Active state lights */
+    .conduit-yellow.secured { background: #ffe600; border-color: #8a7e00; box-shadow: 0 0 10px #ffe600; }
+    .conduit-blue.secured { background: #0088ff; border-color: #004b8d; box-shadow: 0 0 10px #0088ff; }
+    .conduit-magenta.secured { background: #ff00ff; border-color: #9c009c; box-shadow: 0 0 10px #ff00ff; }
+
+    .led-yellow.secured { background: #ffe600; border-color: #8a7e00; box-shadow: 0 0 10px #ffe600; }
+    .led-blue.secured { background: #0088ff; border-color: #004b8d; box-shadow: 0 0 10px #0088ff; }
+    .led-magenta.secured { background: #ff00ff; border-color: #9c009c; box-shadow: 0 0 10px #ff00ff; }
+
+    /* Clickable trigger keys */
+    .calibrate-btn {
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-sizing: border-box;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+      border: 2px solid #151515;
+    }
+
+    .btn-yellow {
+      background: #e6b800;
+      color: #11141a;
+    }
+    .btn-yellow:hover { background: #ffd700; }
+    .btn-yellow:active { transform: scale(0.95); }
+
+    .btn-blue {
+      background: #0066cc;
+      color: #ffffff;
+    }
+    .btn-blue:hover { background: #0088ff; }
+    .btn-blue:active { transform: scale(0.95); }
+
+    .btn-magenta {
+      background: #cc00cc;
+      color: #ffffff;
+    }
+    .btn-magenta:hover { background: #ff00ff; }
+    .btn-magenta:active { transform: scale(0.95); }
+
+    .calibrate-btn.locked-btn {
+      background: #2d3135;
+      border-color: #1a1c1e;
+      color: #555;
+      cursor: default;
+      transform: none !important;
+      box-shadow: none;
+    }
+
+    /* Electrical sparking overlay */
+    .spark-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 230, 0, 0.12);
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    /* Complete screen */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ffcc00;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <div class='header'>
+        <h1>Calibrate Distributor</h1>
+        <div class='status-msg' id='status-txt'>ALIGNMENT GAP DETECTED</div>
+      </div>
+
+      <div class='distributor-board'>
+        <!-- Ring 1 (Yellow) -->
+        <div class='ring-lane' id='lane-1'>
+          <div class='node-canvas-container'>
+            <canvas class='node-canvas' id='canvas-1'></canvas>
+          </div>
+          <div class='contact-conduit' id='conduit-1'></div>
+          <div class='indicator-led' id='led-1'></div>
+          <button class='calibrate-btn btn-yellow' id='btn-1'>Align</button>
+        </div>
+
+        <!-- Ring 2 (Blue) -->
+        <div class='ring-lane' id='lane-2'>
+          <div class='node-canvas-container'>
+            <canvas class='node-canvas' id='canvas-2'></canvas>
+          </div>
+          <div class='contact-conduit' id='conduit-2'></div>
+          <div class='indicator-led' id='led-2'></div>
+          <button class='calibrate-btn btn-blue locked-btn' id='btn-2' disabled>Align</button>
+        </div>
+
+        <!-- Ring 3 (Magenta) -->
+        <div class='ring-lane' id='lane-3'>
+          <div class='node-canvas-container'>
+            <canvas class='node-canvas' id='canvas-3'></canvas>
+          </div>
+          <div class='contact-conduit' id='conduit-3'></div>
+          <div class='indicator-led' id='led-3'></div>
+          <button class='calibrate-btn btn-magenta locked-btn' id='btn-3' disabled>Align</button>
+        </div>
+      </div>
+
+      <div style='color: #8f9cae; font-size: 0.75rem; text-align: center; letter-spacing: 1px;'>
+        TAP ALIGN WHEN ROTATING COPPER CORES CONTACT RIGHT BRUSHES
+      </div>
+
+      <!-- Spark Overlay -->
+      <div class='spark-overlay' id='spark-flash'></div>
+
+      <!-- Victory Page -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Task Complete!</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Distributor contacts fully calibrated</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playLockSound() {
+      playTone(400, 'triangle', 0.12, 0.2);
+      setTimeout(() => {
+        playTone(600, 'sine', 0.08, 0.15);
+      }, 50);
+    }
+
+    function playShortCircuit() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(60, audioCtx.currentTime + 0.35);
+        
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch(e) {}
+    }
+
+    function playSuccessChirp() {
+      try {
+        initAudio();
+        const melody = [523.25, 659.25, 783.99, 1046.50];
+        melody.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+          }, idx * 70);
+        });
+      } catch(e) {}
+    }
+
+    // Rings configurations
+    const COLORS = {
+      1: { hex: '#ffe600', active: 'conduit-yellow', led: 'led-yellow', btn: 'btn-yellow' },
+      2: { hex: '#0088ff', active: 'conduit-blue', led: 'led-blue', btn: 'btn-blue' },
+      3: { hex: '#ff00ff', active: 'conduit-magenta', led: 'led-magenta', btn: 'btn-magenta' }
+    };
+
+    const angles = { 1: 0, 2: 0, 3: 0 };
+    // Differing speeds for challenge: Ring 1 slow, Ring 2 medium, Ring 3 fast!
+    const speeds = { 1: 0.035, 2: 0.05, 3: 0.065 };
+    const locked = { 1: false, 2: false, 3: false };
+    let activeRing = 1;
+    let completed = false;
+
+    const canvasList = {
+      1: document.getElementById('canvas-1'),
+      2: document.getElementById('canvas-2'),
+      3: document.getElementById('canvas-3')
+    };
+    
+    const ctxList = {
+      1: canvasList[1].getContext('2d'),
+      2: canvasList[2].getContext('2d'),
+      3: canvasList[3].getContext('2d')
+    };
+
+    const conduits = {
+      1: document.getElementById('conduit-1'),
+      2: document.getElementById('conduit-2'),
+      3: document.getElementById('conduit-3')
+    };
+
+    const leds = {
+      1: document.getElementById('led-1'),
+      2: document.getElementById('led-2'),
+      3: document.getElementById('led-3')
+    };
+
+    const buttons = {
+      1: document.getElementById('btn-1'),
+      2: document.getElementById('btn-2'),
+      3: document.getElementById('btn-3')
+    };
+
+    const sparkFlash = document.getElementById('spark-flash');
+    const successScr = document.getElementById('success-scr');
+    const statusTxt = document.getElementById('status-txt');
+
+    // Setup canvas resolution
+    Object.keys(canvasList).forEach(r => {
+      canvasList[r].width = 80;
+      canvasList[r].height = 80;
+    });
+
+    // Core drawing loop
+    function draw() {
+      if (completed) return;
+
+      Object.keys(canvasList).forEach(rId => {
+        const ctx = ctxList[rId];
+        const cx = 40;
+        const cy = 40;
+        const radius = 32;
+        
+        ctx.clearRect(0, 0, 80, 80);
+        
+        // Draw background tracks
+        ctx.strokeStyle = '#111317';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Update angle of active, unlocked rings
+        if (!locked[rId]) {
+          angles[rId] = (angles[rId] + speeds[rId]) % (Math.PI * 2);
+        }
+
+        // Draw Ring core color outline
+        ctx.strokeStyle = locked[rId] ? COLORS[rId].hex : '#2d3135';
+        ctx.lineWidth = locked[rId] ? 5 : 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw copper node contact notch on the ring
+        const nodeAngle = angles[rId];
+        const nodeX = cx + Math.cos(nodeAngle) * radius;
+        const nodeY = cy + Math.sin(nodeAngle) * radius;
+        
+        // Notch is gold/copper colored when uncalibrated, glows when locked
+        ctx.fillStyle = locked[rId] ? COLORS[rId].hex : '#d69e2e';
+        ctx.beginPath();
+        ctx.arc(nodeX, nodeY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Stroke border for copper block
+        ctx.strokeStyle = locked[rId] ? '#ffffff' : '#744210';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    // Click Button triggers calibration attempt
+    Object.keys(buttons).forEach(rId => {
+      buttons[rId].addEventListener('mousedown', () => {
+        if (completed || locked[rId] || parseInt(rId) !== activeRing) return;
+        initAudio();
+
+        // Alignment check!
+        // Contact point is directly on the right: angle is 0 (or 2*PI, or 0 degrees)
+        // Tolerance gap of ~0.25 radians (roughly 14 degrees) around 0 point
+        const currentAngle = angles[rId];
+        const isAligned = currentAngle < 0.22 || currentAngle > (Math.PI * 2 - 0.22);
+
+        if (isAligned) {
+          // Success aligning!
+          locked[rId] = true;
+          conduits[rId].className = 'contact-conduit ' + COLORS[rId].active + ' secured';
+          leds[rId].className = 'indicator-led ' + COLORS[rId].led + ' secured';
+          
+          buttons[rId].classList.add('locked-btn');
+          buttons[rId].disabled = true;
+
+          playLockSound();
+          
+          if (activeRing < 3) {
+            activeRing++;
+            // Unlock next button
+            buttons[activeRing].classList.remove('locked-btn');
+            buttons[activeRing].disabled = false;
+            statusTxt.innerText = `NODE ${activeRing} READY FOR TUNING`;
+          } else {
+            triggerVictory();
+          }
+        } else {
+          // Calibration Fail! Electric short circuit flashes screen and resets everything back to 1!
+          playShortCircuit();
+          flashShortCircuit();
+          resetCalibration();
+        }
+      });
+    });
+
+    function flashShortCircuit() {
+      sparkFlash.style.display = 'block';
+      setTimeout(() => {
+        sparkFlash.style.display = 'none';
+      }, 220);
+    }
+
+    function resetCalibration() {
+      // Reset locks
+      Object.keys(locked).forEach(rId => {
+        locked[rId] = false;
+        conduits[rId].className = 'contact-conduit';
+        leds[rId].className = 'indicator-led';
+        buttons[rId].classList.add('locked-btn');
+        buttons[rId].disabled = true;
+      });
+      
+      // Re-enable first button
+      activeRing = 1;
+      buttons[1].classList.remove('locked-btn');
+      buttons[1].disabled = false;
+      
+      statusTxt.innerText = 'CALIBRATION FAIL: CORE DESYNC';
+      statusTxt.style.color = '#ff3b30';
+    }
+
+    function triggerVictory() {
+      completed = true;
+      statusTxt.innerText = 'CALIBRATION SYNCHRONIZED';
+      statusTxt.style.color = '#00ff66';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playSuccessChirp();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Calibrate Distributor' }, '*');
+        }
+      }, 450);
+    }
+
+    // Start loop
+    draw();
+  </script>
+</body>
+</html>

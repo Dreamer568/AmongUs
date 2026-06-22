@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Submit Scan</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+      gap: 15px;
+    }
+
+    /* Left Side: Scanning Pad Bay */
+    .scanner-bay {
+      width: 220px;
+      height: 350px;
+      background: radial-gradient(circle at 50% 80%, #1e2630 10%, #0d1216 100%);
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+    }
+
+    /* Laser Sweep Beam */
+    .laser-beam {
+      position: absolute;
+      left: 10px;
+      width: 200px;
+      height: 12px;
+      background: rgba(52, 246, 120, 0.45);
+      border-top: 2.5px solid #00ff66;
+      border-bottom: 2.5px solid #00ff66;
+      box-shadow: 0 0 16px #00ff66;
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+    }
+
+    .laser-beam.scanning-active {
+      opacity: 1;
+      animation: laserSweep 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 30px; }
+      100% { top: 310px; }
+    }
+
+    /* Pad pedestal */
+    .pad-floor {
+      position: absolute;
+      bottom: 12px;
+      width: 140px;
+      height: 30px;
+      background: radial-gradient(ellipse at 50% 50%, #2f3b4d 0%, #151b22 100%);
+      border-radius: 50%;
+      border: 3.5px solid #4a5568;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pad-glow {
+      width: 110px;
+      height: 16px;
+      border-radius: 50%;
+      background: #004d1a;
+      border: 1.5px solid #00802b;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .pad-glow.active {
+      background: #10b981;
+      box-shadow: 0 0 15px #10b981, inset 0 0 3px rgba(255,255,255,0.7);
+    }
+
+    /* Right Side: Readout Console */
+    .console-pane {
+      flex: 1;
+      height: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .screen-readout {
+      flex-grow: 1;
+      background: #080b0e;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      padding: 15px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.8rem;
+      line-height: 1.4rem;
+      color: #10b981;
+      text-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+      box-shadow: inset 0 5px 12px rgba(0,0,0,0.9);
+      overflow: hidden;
+    }
+
+    .readout-line {
+      opacity: 0;
+      transition: opacity 0.25s;
+      font-weight: bold;
+    }
+
+    .readout-line.printed {
+      opacity: 1;
+    }
+
+    /* Circular progress indicator */
+    .progress-box {
+      height: 100px;
+      background: #20242b;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 25px;
+      box-sizing: border-box;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .progress-pct {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #10b981;
+      text-shadow: 0 0 10px #10b981;
+      letter-spacing: 1px;
+    }
+
+    .progress-status {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Trigger trigger button */
+    .scan-btn {
+      width: 100%;
+      padding: 10px;
+      background: #10b981;
+      color: #11141a;
+      border: 3px solid #047857;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .scan-btn:hover { background: #34d399; }
+    .scan-btn:active { transform: scale(0.98); }
+    .scan-btn.disabled {
+      background: #2d3135;
+      border-color: #1a1c1e;
+      color: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Complete success overlay */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #10b981;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- Left Side: Scanner Bay containing physical crewmember -->
+      <div class='scanner-bay'>
+        <div class='laser-beam' id='laser'></div>
+        
+        <!-- Scanner base platform -->
+        <div class='pad-floor'>
+          <div class='pad-glow' id='platform-glow'></div>
+        </div>
+
+        <!-- Full Red Crewmember SVG -->
+        <svg viewBox='0 0 100 100' width='110' height='150' style='position: absolute; bottom: 32px; z-index: 2;'>
+          <!-- Body outline/fill -->
+          <path d='M 30 75 L 30 35 C 30 20, 70 20, 70 35 L 70 75 Z' fill='#ff1a1a' stroke='#000' stroke-width='4.5' />
+          <!-- Leg Left -->
+          <path d='M 33 74 L 33 90 L 48 90 L 48 74 Z' fill='#ff1a1a' stroke='#000' stroke-width='4.5' />
+          <!-- Leg Right -->
+          <path d='M 52 74 L 52 90 L 67 90 L 67 74 Z' fill='#ff1a1a' stroke='#000' stroke-width='4.5' />
+          <!-- Visor -->
+          <path d='M 50 32 C 65 32, 72 38, 72 45 C 72 52, 60 55, 45 55 C 35 55, 32 50, 32 45 Z' fill='#8ee5ff' stroke='#000' stroke-width='4.5' />
+          <ellipse cx='45' cy='41' rx='8' ry='4' fill='#fff' />
+          <!-- Backpack -->
+          <path d='M 28 40 L 16 40 L 16 70 L 28 70 Z' fill='#cc0000' stroke='#000' stroke-width='4.5' />
+        </svg>
+      </div>
+
+      <!-- Right Side: Diagnostics Controls -->
+      <div class='console-pane'>
+        
+        <!-- CRT Text logs -->
+        <div class='screen-readout'>
+          <div class='readout-line' id='line-1'>> INITIALIZING BIOMETRIC SCAN...</div>
+          <div class='readout-line' id='line-2'>> RECONSTRUCTING GRID INDEX...</div>
+          <div class='readout-line' id='line-3'>> SUBJECT IDENTIFIED: CREWMATE RED</div>
+          <div class='readout-line' id='line-4'>> HEIGHT: 3' 6" | WEIGHT: 92 LBS</div>
+          <div class='readout-line' id='line-5'>> BLOOD ELEMENT: O-POSITIVE</div>
+          <div class='readout-line' id='line-6'>> SYSTEM REPORT: SECURED & HEALTHY</div>
+        </div>
+
+        <!-- Progress indicator -->
+        <div class='progress-box'>
+          <div class='progress-status' id='status-lbl'>SCANNER READY</div>
+          <div class='progress-pct' id='pct-lbl'>0%</div>
+        </div>
+
+        <button class='scan-btn' id='trigger-btn'>Submit Scan</button>
+
+      </div>
+
+      <!-- Complete Success overlay -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Scan Complete!</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Biometric credentials verified</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Diagnostic continuous sweep sound synthesizer
+    let scanOsc = null;
+    let scanMod = null;
+    let scanGain = null;
+
+    function startScanHum() {
+      try {
+        initAudio();
+        scanOsc = audioCtx.createOscillator();
+        scanMod = audioCtx.createOscillator();
+        const modGain = audioCtx.createGain();
+        scanGain = audioCtx.createGain();
+        
+        // Sweeping low sine wave representing magnetic optical scanner
+        scanOsc.type = 'sine';
+        scanOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
+
+        scanMod.type = 'sine';
+        scanMod.frequency.value = 1.5; // low frequency sweep rate
+        modGain.gain.value = 25;
+        
+        scanGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        scanGain.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.2);
+        
+        scanMod.connect(modGain);
+        modGain.connect(scanOsc.frequency);
+        scanOsc.connect(scanGain);
+        scanGain.connect(audioCtx.destination);
+        
+        scanOsc.start();
+        scanMod.start();
+      } catch (e) {}
+    }
+
+    function stopScanHum() {
+      if (scanGain) {
+        try {
+          scanGain.gain.setValueAtTime(scanGain.gain.value, audioCtx.currentTime);
+          scanGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          setTimeout(() => {
+            if (scanOsc) { scanOsc.stop(); scanOsc = null; }
+            if (scanMod) { scanMod.stop(); scanMod = null; }
+          }, 120);
+        } catch(e) {}
+      }
+    }
+
+    function playApprovedChime() {
+      try {
+        initAudio();
+        // Double happy chime (approved feedback sound)
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.1); // G5
+        
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    // Game logic
+    const triggerBtn = document.getElementById('trigger-btn');
+    const laser = document.getElementById('laser');
+    const platformGlow = document.getElementById('platform-glow');
+    const statusLbl = document.getElementById('status-lbl');
+    const pctLbl = document.getElementById('pct-lbl');
+    const successScr = document.getElementById('success-scr');
+
+    let scanning = false;
+    let progress = 0;
+    let scanInterval = null;
+    let startTime = null;
+    const scanDuration = 5200; // 5.2 seconds total scan time
+
+    triggerBtn.addEventListener('mousedown', () => {
+      if (scanning || progress >= 100) return;
+      initAudio();
+      
+      scanning = true;
+      triggerBtn.classList.add('disabled');
+      triggerBtn.innerText = 'Scanning...';
+      
+      // Activate glowing visual cues
+      laser.classList.add('scanning-active');
+      platformGlow.classList.add('active');
+      statusLbl.innerText = 'SCANNING...';
+      statusLbl.style.color = '#10b981';
+      
+      startScanHum();
+      startTime = Date.now();
+      scanInterval = setInterval(updateScanProgress, 50);
+    });
+
+    function updateScanProgress() {
+      const elapsed = Date.now() - startTime;
+      progress = Math.min(100, (elapsed / scanDuration) * 100);
+      
+      pctLbl.innerText = Math.floor(progress) + '%';
+      
+      // Incremental display logs printed line-by-line depending on completion percentage
+      if (progress >= 10) document.getElementById('line-1').classList.add('printed');
+      if (progress >= 25) document.getElementById('line-2').classList.add('printed');
+      if (progress >= 42) document.getElementById('line-3').classList.add('printed');
+      if (progress >= 60) document.getElementById('line-4').classList.add('printed');
+      if (progress >= 78) document.getElementById('line-5').classList.add('printed');
+      if (progress >= 95) document.getElementById('line-6').classList.add('printed');
+
+      if (progress >= 100) {
+        clearInterval(scanInterval);
+        stopScanHum();
+        playApprovedChime();
+        
+        statusLbl.innerText = 'VERIFIED';
+        statusLbl.style.color = '#34d399';
+        laser.classList.remove('scanning-active');
+        
+        setTimeout(() => {
+          successScr.style.display = 'flex';
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Submit Scan' }, '*');
+          }
+        }, 650);
+      }
+    }
+  </script>
+</body>
+</html>

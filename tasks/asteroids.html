@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Asteroids</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #00ff66;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #06090c;
+      border: 6px solid #242b35;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* CRT Scanline Overlay Effect */
+    #task-container::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      z-index: 20;
+      background-size: 100% 3px, 3px 100%;
+      pointer-events: none;
+    }
+
+    #scope-canvas {
+      display: block;
+      flex-grow: 1;
+      cursor: crosshair;
+    }
+
+    /* Score and Status Overlay */
+    .overlay-bar {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .score-box {
+      background: rgba(6, 9, 12, 0.8);
+      border: 2px solid #00ff66;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(0, 255, 102, 0.6);
+      letter-spacing: 1px;
+      box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+    }
+
+    .system-status {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #ffcc00;
+      text-shadow: 0 0 5px rgba(255, 204, 0, 0.6);
+      text-transform: uppercase;
+      animation: blink 1.2s infinite alternate;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Success Screen */
+    .success-panel {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(6, 9, 12, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 30;
+      animation: zoomIn 0.3s ease-out;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .victory-msg {
+      font-size: 2rem;
+      font-weight: bold;
+      text-shadow: 0 0 15px rgba(0, 255, 102, 0.7);
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <!-- HUD Display -->
+    <div class="overlay-bar">
+      <div id="score-display" class="score-box">DESTROYED: 0 / 20</div>
+      <div id="status-indicator" class="system-status">WEAPONS SYSTEM COCKED</div>
+    </div>
+
+    <!-- Interactive Canvas -->
+    <canvas id="scope-canvas"></canvas>
+
+    <!-- Success UI -->
+    <div id="success-panel" class="success-panel">
+      <div class="victory-msg">Task Complete!</div>
+      <div style="color: #8f9cae; font-size: 0.9rem; letter-spacing: 1px;">Defense grid fully secured</div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playLaserSound() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.15);
+        
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    function playExplosionSound() {
+      try {
+        initAudio();
+        const bufferSize = audioCtx.sampleRate * 0.1;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 350;
+        
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      } catch (e) {}
+    }
+
+    function playCompleteSound() {
+      try {
+        initAudio();
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+          }, idx * 60);
+        });
+      } catch (e) {}
+    }
+
+    // Canvas & Setup
+    const canvas = document.getElementById('scope-canvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score-display');
+    const statusInd = document.getElementById('status-indicator');
+    const successPanel = document.getElementById('success-panel');
+
+    let destroyedCount = 0;
+    const targetGoal = 20;
+    let completed = false;
+
+    let stars = [];
+    let asteroids = [];
+    let lasers = []; // holds { x1, y1, x2, y2, time, life }
+    let particles = [];
+
+    // Initialize canvas scale
+    function resize() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Populate ambient stars
+    for (let i = 0; i < 35; i++) {
+      stars.push({
+        x: Math.random() * 580,
+        y: Math.random() * 440,
+        speed: Math.random() * 0.5 + 0.2,
+        size: Math.random() * 1.5 + 0.5
+      });
+    }
+
+    // Asteroid Generator
+    function spawnAsteroid() {
+      if (completed) return;
+      
+      // Spawn off-screen top or side
+      const side = Math.floor(Math.random() * 3);
+      let x, y, vx, vy;
+      
+      if (side === 0) { // Top
+        x = Math.random() * canvas.width;
+        y = -40;
+        vx = Math.random() * 2 - 1;
+        vy = Math.random() * 1.5 + 1;
+      } else if (side === 1) { // Left
+        x = -40;
+        y = Math.random() * (canvas.height - 120);
+        vx = Math.random() * 1.5 + 1;
+        vy = Math.random() * 1.5 - 0.55;
+      } else { // Right
+        x = canvas.width + 40;
+        y = Math.random() * (canvas.height - 120);
+        vx = -(Math.random() * 1.5 + 1);
+        vy = Math.random() * 1.5 - 0.55;
+      }
+
+      // Generate polygonal wireframe coordinates
+      const numVertices = Math.floor(Math.random() * 3) + 6; // 6 to 8 points
+      const radius = Math.random() * 15 + 15;
+      const vertices = [];
+      for (let i = 0; i < numVertices; i++) {
+        const angle = (i / numVertices) * Math.PI * 2;
+        const offset = Math.random() * (radius * 0.4) - (radius * 0.2);
+        vertices.push({
+          x: Math.cos(angle) * (radius + offset),
+          y: Math.sin(angle) * (radius + offset)
+        });
+      }
+
+      asteroids.push({
+        id: Math.random(),
+        x, y, vx, vy, vertices, radius, rotation: Math.random() * Math.PI * 2, rotSpeed: Math.random() * 0.02 - 0.01
+      });
+    }
+
+    // Shoot action
+    canvas.addEventListener('mousedown', (e) => {
+      if (completed) return;
+      initAudio();
+      playLaserSound();
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Fire dual lasers from bottom corners
+      lasers.push({
+        x1: 20,
+        y1: canvas.height - 10,
+        x2: clickX,
+        y2: clickY,
+        life: 1.0
+      });
+      
+      lasers.push({
+        x1: canvas.width - 20,
+        y1: canvas.height - 10,
+        x2: clickX,
+        y2: clickY,
+        life: 1.0
+      });
+
+      // Check hit on asteroids
+      let hitAny = false;
+      for (let i = asteroids.length - 1; i >= 0; i--) {
+        const ast = asteroids[i];
+        const dist = Math.hypot(clickX - ast.x, clickY - ast.y);
+        if (dist <= ast.radius + 15) { // broad cylinder bounding hitbox
+          playExplosionSound();
+          spawnParticles(ast.x, ast.y);
+          asteroids.splice(i, 1);
+          destroyedCount++;
+          hitAny = true;
+          break;
+        }
+      }
+
+      scoreDisplay.innerText = `DESTROYED: ${destroyedCount} / ${targetGoal}`;
+
+      if (destroyedCount >= targetGoal) {
+        triggerSuccess();
+      }
+    });
+
+    function spawnParticles(x, y) {
+      for (let i = 0; i < 12; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3 + 1.5,
+          life: 1.0,
+          decay: Math.random() * 0.03 + 0.02
+        });
+      }
+    }
+
+    function triggerSuccess() {
+      completed = true;
+      statusInd.innerText = "WEAPONS SYSTEM DISARMED";
+      statusInd.style.color = "#00ff66";
+      
+      setTimeout(() => {
+        successPanel.style.display = 'flex';
+        playCompleteSound();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Clear Asteroids' }, '*');
+        }
+      }, 500);
+    }
+
+    // Main Animation Loop
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Space Background stars
+      ctx.fillStyle = "#00ff66";
+      stars.forEach(star => {
+        ctx.globalAlpha = star.size / 2;
+        ctx.fillRect(star.x, star.y, star.size, star.size);
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = 0;
+          star.x = Math.random() * canvas.width;
+        }
+      });
+      ctx.globalAlpha = 1.0;
+
+      // 2. Draw Vector Reticle lines
+      ctx.strokeStyle = "rgba(0, 255, 102, 0.15)";
+      ctx.lineWidth = 1.5;
+      
+      // Crosshair Scope circle
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 80, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 160, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Axis Lines
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2 - 200, canvas.height / 2);
+      ctx.lineTo(canvas.width / 2 + 200, canvas.height / 2);
+      ctx.moveTo(canvas.width / 2, canvas.height / 2 - 130);
+      ctx.lineTo(canvas.width / 2, canvas.height / 2 + 130);
+      ctx.stroke();
+
+      // 3. Draw Laser beams
+      lasers.forEach((laser, idx) => {
+        ctx.strokeStyle = `rgba(0, 255, 102, ${laser.life})`;
+        ctx.lineWidth = 3 * laser.life;
+        ctx.beginPath();
+        ctx.moveTo(laser.x1, laser.y1);
+        ctx.lineTo(laser.x2, laser.y2);
+        ctx.stroke();
+
+        // Core laser wire
+        ctx.strokeStyle = `rgba(255, 255, 255, ${laser.life})`;
+        ctx.lineWidth = 1 * laser.life;
+        ctx.beginPath();
+        ctx.moveTo(laser.x1, laser.y1);
+        ctx.lineTo(laser.x2, laser.y2);
+        ctx.stroke();
+
+        laser.life -= 0.12;
+      });
+      lasers = lasers.filter(l => l.life > 0);
+
+      // 4. Draw Particles
+      particles.forEach((part) => {
+        ctx.fillStyle = `rgba(0, 255, 102, ${part.life})`;
+        ctx.fillRect(part.x, part.y, part.size, part.size);
+        part.x += part.vx;
+        part.y += part.vy;
+        part.life -= part.decay;
+      });
+      particles = particles.filter(p => p.life > 0);
+
+      // 5. Spawn Asteroids dynamically
+      if (Math.random() < 0.025 && asteroids.length < 5) {
+        spawnAsteroid();
+      }
+
+      // 6. Draw Asteroids
+      asteroids.forEach(ast => {
+        ctx.save();
+        ctx.translate(ast.x, ast.y);
+        ctx.rotate(ast.rotation);
+        
+        ctx.strokeStyle = "#00ff66";
+        ctx.lineWidth = 2;
+        ctx.fillStyle = "rgba(0, 255, 102, 0.05)";
+        
+        ctx.beginPath();
+        ctx.moveTo(ast.vertices[0].x, ast.vertices[0].y);
+        for (let i = 1; i < ast.vertices.length; i++) {
+          ctx.lineTo(ast.vertices[i].x, ast.vertices[i].y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.restore();
+
+        // Physics update
+        ast.x += ast.vx;
+        ast.y += ast.vy;
+        ast.rotation += ast.rotSpeed;
+      });
+
+      // Filter out-of-bounds asteroids
+      asteroids = asteroids.filter(ast => {
+        return ast.x > -50 && ast.x < canvas.width + 50 && ast.y > -50 && ast.y < canvas.height + 50;
+      });
+
+      // Loop animation
+      requestAnimationFrame(draw);
+    }
+
+    // Start loop
+    draw();
+  </script>
+</body>
+</html>

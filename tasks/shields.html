@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prime Shields</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e0e6ed;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Metal panel bezel */
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ffd700;
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+      text-transform: uppercase;
+    }
+
+    .sub-title {
+      font-size: 0.75rem;
+      color: #b0bac5;
+      font-weight: bold;
+    }
+
+    /* Hexagonal shield placement */
+    .shields-cluster {
+      position: relative;
+      width: 320px;
+      height: 280px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .shield-tile {
+      position: absolute;
+      width: 80px;
+      height: 92px;
+      cursor: pointer;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+      transition: transform 0.1s;
+    }
+
+    .shield-tile:active {
+      transform: scale(0.95);
+    }
+
+    /* SVG styling for hexagonal tiles */
+    .hex-poly {
+      fill: #a02020;
+      stroke: #601010;
+      stroke-width: 4;
+      transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+    }
+
+    /* Inactive / Red state */
+    .shield-tile.inactive .hex-poly {
+      fill: #ff3b30;
+      stroke: #801010;
+      filter: drop-shadow(0 0 8px rgba(255, 59, 48, 0.4));
+    }
+
+    /* Active / Primed state */
+    .shield-tile.active .hex-poly {
+      fill: #cbd5e1;
+      stroke: #94a3b8;
+    }
+
+    /* Real-time active primed state with blue glowing overlay */
+    .shield-tile.active-primed .hex-poly {
+      fill: #a5f3fc;
+      stroke: #00d5ff;
+      filter: drop-shadow(0 0 12px #00d5ff);
+    }
+
+    /* Hex positioning coords */
+    /* Center */
+    #tile-center { top: 94px; left: 120px; }
+    /* Orbit outer rings */
+    #tile-top    { top: 5px; left: 120px; }
+    #tile-tr     { top: 49px; left: 198px; }
+    #tile-br     { top: 139px; left: 198px; }
+    #tile-bottom { top: 183px; left: 120px; }
+    #tile-bl     { top: 139px; left: 42px; }
+    #tile-tl     { top: 49px; left: 42px; }
+
+    /* Success Overlay */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #00d5ff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(0, 213, 255, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <div class="panel-bezel">
+      <div class="header">
+        <h1>Prime Shields</h1>
+        <div class="sub-title" id="status-txt">SYSTEM UNPRIMED</div>
+      </div>
+
+      <div class="shields-cluster">
+        <!-- Center Hex -->
+        <div class="shield-tile" id="tile-center" data-id="center">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+        
+        <!-- Top Hex -->
+        <div class="shield-tile" id="tile-top" data-id="top">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+
+        <!-- Top Right Hex -->
+        <div class="shield-tile" id="tile-tr" data-id="tr">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+
+        <!-- Bottom Right Hex -->
+        <div class="shield-tile" id="tile-br" data-id="br">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+
+        <!-- Bottom Hex -->
+        <div class="shield-tile" id="tile-bottom" data-id="bottom">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+
+        <!-- Bottom Left Hex -->
+        <div class="shield-tile" id="tile-bl" data-id="bl">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+
+        <!-- Top Left Hex -->
+        <div class="shield-tile" id="tile-tl" data-id="tl">
+          <svg viewBox="0 0 100 115" width="80" height="92">
+            <polygon class="hex-poly" points="50,5 95,30 95,85 50,110 5,85 5,30" />
+          </svg>
+        </div>
+      </div>
+
+      <div style="color: #8f9cae; font-size: 0.75rem; letter-spacing: 1px;">
+        CLICK UNPRIMED TILES TO SECURE SUBGRID
+      </div>
+
+      <!-- Success overlay -->
+      <div class="success-overlay" id="success-scr">
+        <div class="complete-banner">Task Complete!</div>
+        <div style="color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;">Main deflectors charged to 100%</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playThud(freq) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.18);
+        
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.18);
+      } catch(e) {}
+    }
+
+    function playSuccessChime() {
+      try {
+        initAudio();
+        const chords = [329.63, 392.00, 523.25, 659.25, 1046.50]; // E, G, C, E, C chord beep
+        chords.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 80);
+        });
+      } catch (e) {}
+    }
+
+    // Game variables
+    const tileIds = ['center', 'top', 'tr', 'br', 'bottom', 'bl', 'tl'];
+    const tilesEl = {};
+    let tileStates = {}; // id -> true (primed/active) or false (unprimed/red)
+    let completed = false;
+
+    // Setup elements
+    tileIds.forEach(id => {
+      const el = document.getElementById(`tile-${id}`);
+      tilesEl[id] = el;
+      
+      // Click handler
+      el.addEventListener('mousedown', () => {
+        if (completed) return;
+        initAudio();
+        
+        // Toggle state
+        const currentState = tileStates[id];
+        if (!currentState) {
+          // Turn active
+          tileStates[id] = true;
+          playThud(140);
+          refreshUI();
+          checkWin();
+        } else {
+          // In Among Us, clicking a primed shield stays primed (you can't toggle it back off once secured)
+          // Let's mirror this authentic logic
+          playThud(80);
+        }
+      });
+    });
+
+    function initGame() {
+      // Randomize initial unprimed states
+      // Always keep at least 2 and up to 5 tiles unprimed (red) at start
+      const numUnprimed = Math.floor(Math.random() * 4) + 2; 
+      const shuffledIds = tileIds.slice().sort(() => Math.random() - 0.5);
+      
+      tileIds.forEach(id => {
+        tileStates[id] = true; // start all primed
+      });
+
+      for (let i = 0; i < numUnprimed; i++) {
+        tileStates[shuffledIds[i]] = false; // set some to unprimed
+      }
+
+      refreshUI();
+    }
+
+    function refreshUI() {
+      tileIds.forEach(id => {
+        const el = tilesEl[id];
+        const primed = tileStates[id];
+        
+        if (primed) {
+          el.classList.remove('inactive');
+          el.classList.add('active-primed');
+        } else {
+          el.classList.remove('active-primed');
+          el.classList.add('inactive');
+        }
+      });
+    }
+
+    function checkWin() {
+      const allPrimed = tileIds.every(id => tileStates[id] === true);
+      if (allPrimed) {
+        completed = true;
+        document.getElementById('status-txt').innerText = "SHIELDS FULLY CHARGED";
+        document.getElementById('status-txt').style.color = "#00d5ff";
+        
+        setTimeout(() => {
+          document.getElementById('success-scr').style.display = 'flex';
+          playSuccessChirp();
+        }, 300);
+      }
+    }
+
+    function playSuccessChirp() {
+      playSuccessChime();
+      if (window.parent) {
+        window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Prime Shields' }, '*');
+      }
+    }
+
+    // Start game
+    initGame();
+  </script>
+</body>
+</html>

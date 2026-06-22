@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Stabilize Steering</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #1e222a;
+      border: 6px solid #2d3748;
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a545c;
+      border: 4px solid #31383e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31383e;
+      z-index: 10;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #eab308;
+      text-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
+      text-transform: uppercase;
+    }
+
+    .steer-status {
+      font-size: 0.8rem;
+      color: #f97316;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* CRT Scope screen viewport */
+    .radar-viewport {
+      flex-grow: 1;
+      background: radial-gradient(circle at 50% 50%, #151c17 0%, #060907 100%);
+      border: 3px solid #1c2e21;
+      border-radius: 6px;
+      margin: 15px 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.9);
+    }
+
+    /* Compass concentric rings and axis crosses */
+    .radar-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      border: 1.5px solid rgba(16, 185, 129, 0.12);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    #ring-inner  { width: 80px;  height: 80px; }
+    #ring-middle { width: 160px; height: 160px; }
+    #ring-outer  { width: 240px; height: 240px; }
+
+    .radar-axis {
+      position: absolute;
+      background: rgba(16, 185, 129, 0.1);
+      pointer-events: none;
+    }
+    .axis-h {
+      top: 50%; left: 10%; right: 10%;
+      height: 1.5px;
+    }
+    .axis-v {
+      left: 50%; top: 5%; bottom: 5%;
+      width: 1.5px;
+    }
+
+    /* Center target lock-on zone */
+    .bullseye-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 16px; height: 16px;
+      margin-left: -8px; margin-top: -8px;
+      border: 2px solid #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      pointer-events: none;
+    }
+
+    /* Wobbling Drifting Reticle target */
+    .drift-reticle {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      margin-left: -27.5px;
+      margin-top: -27.5px;
+      cursor: pointer;
+      z-index: 5;
+      filter: drop-shadow(0 0 8px #ef4444);
+    }
+
+    .reticle-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Locking Clamps bracket overlays */
+    .clamp-bracket {
+      position: absolute;
+      background: #4a5568;
+      border: 2px solid #718096;
+      z-index: 3;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #clamp-left   { top: 50%; left: -30px;  width: 45px; height: 12px; margin-top: -6px; }
+    #clamp-right  { top: 50%; right: -30px; width: 45px; height: 12px; margin-top: -6px; }
+    #clamp-top    { left: 50%; top: -30px;   width: 12px; height: 45px; margin-left: -6px; }
+    #clamp-bottom { left: 50%; bottom: -30px;width: 12px; height: 45px; margin-left: -6px; }
+
+    /* Complete success overlay */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #10b981;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- HUD Header -->
+      <div class='header'>
+        <h1>Stabilize Steering</h1>
+        <div class='steer-status' id='status-lbl'>STEERING: DEVIATED (X: +22, Y: -14)</div>
+      </div>
+
+      <!-- Main Radar CRT Viewport -->
+      <div class='radar-viewport' id='viewport'>
+        
+        <!-- Grids and ring markings -->
+        <div class='radar-axis axis-h'></div>
+        <div class='radar-axis axis-v'></div>
+        <div class='radar-ring' id='ring-inner'></div>
+        <div class='radar-ring' id='ring-middle'></div>
+        <div class='radar-ring' id='ring-outer'></div>
+        
+        <div class='bullseye-center'></div>
+
+        <!-- Wobbling Target Reticle -->
+        <div class='drift-reticle' id='reticle'>
+          <svg class='reticle-svg' viewBox='0 0 100 100'>
+            <circle cx='50' cy='50' r='38' fill='none' stroke='#ef4444' stroke-width='6' />
+            <circle cx='50' cy='50' r='3' fill='#ef4444' />
+            <line x1='50' y1='5' x2='50' y2='25' stroke='#ef4444' stroke-width='6' />
+            <line x1='50' y1='75' x2='50' y2='95' stroke='#ef4444' stroke-width='6' />
+            <line x1='5' y1='50' x2='25' y2='50' stroke='#ef4444' stroke-width='6' />
+            <line x1='75' y1='50' x2='95' y2='50' stroke='#ef4444' stroke-width='6' />
+          </svg>
+        </div>
+
+        <!-- Mechanical Alignment Clamps -->
+        <div class='clamp-bracket' id='clamp-left'></div>
+        <div class='clamp-bracket' id='clamp-right'></div>
+        <div class='clamp-bracket' id='clamp-top'></div>
+        <div class='clamp-bracket' id='clamp-bottom'></div>
+
+      </div>
+
+      <div style='color: #a0aec0; font-size: 0.75rem; text-align: center; letter-spacing: 1px;'>
+        TAP THE WOBBLING PILOT RETICLE TO LOCK COMPASS ALIGNMENT
+      </div>
+
+      <!-- Victory Overlay screen -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Heading Locked!</div>
+        <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;'>Gyroscopic navigation heading stabilized</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Looping radar hum sweep synthesizer
+    let radarOsc = null;
+    let radarGain = null;
+
+    function startRadarHum() {
+      try {
+        initAudio();
+        radarOsc = audioCtx.createOscillator();
+        radarGain = audioCtx.createGain();
+        
+        // Sweeps a sine pitch up/down ambiently
+        radarOsc.type = 'sine';
+        radarOsc.frequency.setValueAtTime(90, audioCtx.currentTime);
+        
+        const sweep = audioCtx.createOscillator();
+        sweep.type = 'sine';
+        sweep.frequency.value = 0.5; // slow sweep cycle
+        const sweepGain = audioCtx.createGain();
+        sweepGain.gain.value = 10; 
+        
+        radarGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        
+        sweep.connect(sweepGain);
+        sweepGain.connect(radarOsc.frequency);
+        radarOsc.connect(radarGain);
+        radarGain.connect(audioCtx.destination);
+        
+        radarOsc.start();
+        sweep.start();
+        
+        radarOsc = { osc: radarOsc, sweep };
+      } catch (e) {}
+    }
+
+    function stopRadarHum() {
+      if (radarGain) {
+        try {
+          radarGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          setTimeout(() => {
+            if (radarOsc) {
+              radarOsc.osc.stop();
+              radarOsc.sweep.stop();
+              radarOsc = null;
+            }
+          }, 120);
+        } catch(e) {}
+      }
+    }
+
+    function playClampClick() {
+      try {
+        initAudio();
+        // Heavy pneumatic piston thud ("chhh-shhht")
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.22);
+        
+        gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.22);
+      } catch (e) {}
+    }
+
+    function playNavigationSuccess() {
+      try {
+        initAudio();
+        const notes = [392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          }, idx * 60);
+        });
+      } catch(e) {}
+    }
+
+    // Game variables
+    const reticle = document.getElementById('reticle');
+    const statusLbl = document.getElementById('status-lbl');
+    const viewport = document.getElementById('viewport');
+    const successScr = document.getElementById('success-scr');
+
+    // Clamp elements
+    const clamps = {
+      left: document.getElementById('clamp-left'),
+      right: document.getElementById('clamp-right'),
+      top: document.getElementById('clamp-top'),
+      bottom: document.getElementById('clamp-bottom')
+    };
+
+    let reticleX = 150;
+    let reticleY = 100;
+    let completed = false;
+    let startTime = Date.now();
+
+    // Lissajous curve constants for organic drifting math
+    const driftRangeX = 140; // width bounds
+    const driftRangeY = 70;  // height bounds
+    const freqX = 0.0014;   
+    const freqY = 0.0019;
+
+    function animateDrift() {
+      if (completed) return;
+
+      const elapsed = Date.now() - startTime;
+      
+      // Drifting offset calculation based on sin/cos waves
+      const dx = Math.sin(elapsed * freqX) * driftRangeX;
+      const dy = Math.cos(elapsed * freqY) * driftRangeY;
+
+      // Translate center relative coordinates to viewport coordinates
+      // Viewport is 538px wide, 246px high. Center is roughly cx=269, cy=123
+      const cx = 269;
+      const cy = 123;
+
+      reticleX = cx + dx;
+      reticleY = cy + dy;
+
+      reticle.style.left = reticleX + 'px';
+      reticle.style.top = reticleY + 'px';
+
+      // Readout coordinates (e.g. "X: -42, Y: +18")
+      const gridX = Math.round(dx / 1.5);
+      const gridY = Math.round(-dy / 1.1);
+      statusLbl.innerText = `ALIGNMENT DRIFT: X:${gridX} | Y:${gridY}`;
+
+      requestAnimationFrame(anim);
+    }
+
+    // Align on click
+    reticle.addEventListener('mousedown', () => {
+      if (completed) return;
+      initAudio();
+      triggerSteeringLock();
+    });
+
+    function triggerSteeringLock() {
+      completed = true;
+      stopRadarHum();
+      playClampClick();
+
+      // Snap reticle directly to center coordinates
+      const cx = 269;
+      const cy = 123;
+      
+      reticle.style.transition = 'left 0.15s ease-out, top 0.15s ease-out';
+      reticle.style.left = cx + 'px';
+      reticle.style.top = cy + 'px';
+      
+      // Change reticle stroke color to neon-green
+      reticle.querySelector('circle').setAttribute('stroke', '#10b981');
+      reticle.querySelector('circle').style.filter = 'drop-shadow(0 0 10px #10b981)';
+      reticle.querySelectorAll('line').forEach(line => line.setAttribute('stroke', '#10b981'));
+      reticle.querySelectorAll('circle')[1].setAttribute('fill', '#10b981');
+
+      // Slid clamps inwards to securely lock reticle
+      clamps.left.style.transform = 'translateX(210px)';
+      clamps.right.style.transform = 'translateX(-210px)';
+      clamps.top.style.transform = 'translateY(80px)';
+      clamps.bottom.style.transform = 'translateY(-80px)';
+
+      statusLbl.innerText = 'STEERING: STABILIZED (X: 00 | Y: 00)';
+      statusLbl.style.color = '#10b981';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playNavigationSuccess();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Stabilize Steering' }, '*');
+        }
+      }, 550);
+    }
+
+    // Start ambient processes
+    window.addEventListener('load', () => {
+      startRadarHum();
+      animateDrift();
+    });
+    
+    // Quick loop handler
+    function anim() {
+      animateDrift();
+    }
+  </script>
+</body>
+</html>

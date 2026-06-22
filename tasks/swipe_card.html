@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swipe Card</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e0e6ed;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Authentic Grey Metal Bezel */
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Card Reader Terminal */
+    .reader-groove {
+      height: 70px;
+      background: #181a1d;
+      border-radius: 4px;
+      position: relative;
+      border-bottom: 4px solid #2d3135;
+      border-top: 4px solid #111214;
+      display: flex;
+      align-items: center;
+    }
+
+    .reader-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Status LED & Screen display */
+    .reader-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .screen-display {
+      background: #0d1216;
+      border: 3px solid #2a3540;
+      border-radius: 4px;
+      padding: 6px 12px;
+      width: 180px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+      font-size: 1rem;
+      color: #00ff66;
+      text-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .screen-display.error {
+      color: #ff3b30;
+      text-shadow: 0 0 5px rgba(255, 59, 48, 0.5);
+    }
+    
+    .screen-display.warning {
+      color: #ffcc00;
+      text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    }
+
+    .led-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .led-label {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #b0bac5;
+      text-transform: uppercase;
+    }
+
+    .led {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #331111;
+      border: 2px solid #1a0808;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .led.green-on {
+      background: #34c759;
+      border-color: #248a3d;
+      box-shadow: 0 0 10px #34c759, inset 0 2px 4px rgba(255,255,255,0.6);
+    }
+
+    .led.red-on {
+      background: #ff3b30;
+      border-color: #b3241c;
+      box-shadow: 0 0 10px #ff3b30, inset 0 2px 4px rgba(255,255,255,0.6);
+    }
+
+    /* Wallet & Card styling */
+    .wallet {
+      height: 160px;
+      background: #1e2229;
+      border: 3px solid #13151a;
+      border-radius: 8px;
+      position: relative;
+      overflow: visible; 
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: flex-end;
+      padding: 10px;
+    }
+
+    .wallet-pocket {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 85px;
+      background: #2c323d;
+      border-top: 4px solid #3d4554;
+      border-radius: 0 0 5px 5px;
+      z-index: 5;
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+
+    .card {
+      width: 200px;
+      height: 120px;
+      background: linear-gradient(135deg, #e6ebf0 0%, #cbd5e1 100%);
+      border-radius: 8px;
+      border: 2px solid #94a3b8;
+      cursor: pointer;
+      position: absolute;
+      left: 20px;
+      bottom: 15px;
+      z-index: 4; 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 10px;
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s;
+    }
+
+    .card.in-groove {
+      cursor: grab;
+      transition: none;
+      z-index: 100;
+    }
+
+    .card.dragging {
+      cursor: grabbing;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+    }
+
+    /* Crewmember photo ID design */
+    .card-top {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .card-photo {
+      width: 42px;
+      height: 46px;
+      background: #5a74a1;
+      border: 2px solid #475569;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-info {
+      display: flex;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-info-title {
+      font-size: 0.6rem;
+      font-weight: bold;
+      color: #1e293b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-info-detail {
+      font-size: 0.55rem;
+      color: #475569;
+      margin-top: 1px;
+    }
+
+    .card-barcode {
+      height: 20px;
+      background: repeating-linear-gradient(
+        90deg,
+        #000,
+        #000 2px,
+        transparent 2px,
+        transparent 5px
+      );
+      width: 100%;
+      opacity: 0.85;
+    }
+
+    .green-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(52, 199, 89, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+      border-radius: 6px;
+      animation: fadeIn 0.2s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <div class="panel-bezel">
+      
+      <!-- Reader Header with Screen and LED indicators -->
+      <div class="reader-header">
+        <div class="led-container">
+          <div class="led-label">Ready</div>
+          <div id="led-green" class="led"></div>
+        </div>
+        
+        <div id="screen-msg" class="screen-display">No Card</div>
+
+        <div class="led-container">
+          <div class="led-label">Fail</div>
+          <div id="led-red" class="led"></div>
+        </div>
+      </div>
+
+      <!-- Swipe Slot -->
+      <div class="reader-groove" id="reader-groove">
+        <div class="reader-line"></div>
+      </div>
+
+      <!-- Wallet holder -->
+      <div class="wallet" id="wallet-container">
+        <div class="wallet-pocket"></div>
+
+        <!-- Draggable ID Card -->
+        <div class="card" id="id-card" draggable="false">
+          <div class="card-top">
+            <div class="card-photo">
+              <!-- Tiny Among Us Red Character SVG -->
+              <svg viewBox="0 0 100 100" width="34" height="34">
+                <!-- Body -->
+                <path d="M 30 75 L 30 35 C 30 20, 70 20, 70 35 L 70 75 Z" fill="#ff1a1a" stroke="#000" stroke-width="6" />
+                <!-- Leg Left -->
+                <path d="M 33 74 L 33 90 L 48 90 L 48 74 Z" fill="#ff1a1a" stroke="#000" stroke-width="6" />
+                <!-- Leg Right -->
+                <path d="M 52 74 L 52 90 L 67 90 L 67 74 Z" fill="#ff1a1a" stroke="#000" stroke-width="6" />
+                <!-- Visor -->
+                <path d="M 50 32 C 65 32, 72 38, 72 45 C 72 52, 60 55, 45 55 C 35 55, 32 50, 32 45 Z" fill="#8ee5ff" stroke="#000" stroke-width="6" />
+                <!-- Visor reflection -->
+                <ellipse cx="45" cy="41" rx="8" ry="4" fill="#fff" />
+                <!-- Backpack -->
+                <path d="M 28 40 L 16 40 L 16 70 L 28 70 Z" fill="#cc0000" stroke="#000" stroke-width="6" />
+              </svg>
+            </div>
+            <div class="card-info">
+              <span class="card-info-title">Crewmember ID</span>
+              <span class="card-info-detail">Name: RED</span>
+              <span class="card-info-detail">Room: ADMIN</span>
+              <span class="card-info-detail">Code: 42-XF</span>
+            </div>
+          </div>
+          <div class="card-barcode"></div>
+        </div>
+      </div>
+
+      <!-- Final Accept Overlay -->
+      <div id="green-overlay" class="green-overlay">
+        <h2 style="color: white; margin: 0 0 8px 0; text-transform: uppercase; font-size: 1.6rem; letter-spacing: 2px;">Accepted!</h2>
+        <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem;">Card Verified & Logging System Online</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playFailBuzz() {
+      playTone(130, 'sawtooth', 0.25, 0.2)
+    }
+
+    function playSuccessChirp() {
+      playTone(587.33, 'sine', 0.12, 0.15);
+      setTimeout(() => {
+        playTone(880, 'sine', 0.25, 0.2);
+      }, 100);
+    }
+
+    const idCard = document.getElementById('id-card');
+    const groove = document.getElementById('reader-groove');
+    const screenMsg = document.getElementById('screen-msg');
+    const ledGreen = document.getElementById('led-green');
+    const ledRed = document.getElementById('led-red');
+    const overlay = document.getElementById('green-overlay');
+
+    let isDocked = false; // Is the card retrieved and sitting in the groove?
+    let isDragging = false;
+    let dragStartX = 0;
+    let cardCurrentX = 20; // current horizontal offset from left inside groove slot (20px is start)
+    let swipePoints = [];
+    let completed = false;
+
+    // Limits for locked swiping inside the groove
+    const SWIPE_START_X = 20;
+    const SWIPE_END_X = 350; 
+
+    screenMsg.innerText = "Click Card";
+    screenMsg.className = "screen-display warning";
+
+    idCard.addEventListener('mousedown', (e) => {
+      if (completed) return;
+      initAudio();
+
+      if (!isDocked) {
+        // Step 1: Auto-dock card into groove slot when clicked in wallet
+        isDocked = true;
+        idCard.classList.add('in-groove');
+        // Animate up: vertical translate relative to pocket
+        // Groove y position is roughly -145px relative to the starting wallet bottom style
+        idCard.style.transform = `translate(${SWIPE_START_X}px, -145px)`;
+        screenMsg.innerText = "Swipe Card";
+        screenMsg.className = "screen-display warning";
+        setLEDs(false, false);
+        playTone(400, 'sine', 0.1, 0.05);
+      } else {
+        // Step 2: Already docked, start sliding horizontally
+        isDragging = true;
+        idCard.classList.add('dragging');
+        dragStartX = e.clientX - cardCurrentX;
+        swipePoints = [{ x: cardCurrentX, time: Date.now() }];
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || completed) return;
+
+      // Drag along horizontal axis only
+      let proposedX = e.clientX - dragStartX;
+      cardCurrentX = Math.max(SWIPE_START_X, Math.min(SWIPE_END_X, proposedX));
+
+      // Apply translation locked horizontally
+      idCard.style.transform = `translate(${cardCurrentX}px, -145px)`;
+      
+      // Accumulate swipe history
+      swipePoints.push({ x: cardCurrentX, time: Date.now() });
+      
+      if (cardCurrentX > SWIPE_START_X + 20) {
+        screenMsg.innerText = "Reading...";
+        screenMsg.className = "screen-display warning";
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      idCard.classList.remove('dragging');
+
+      if (completed) return;
+
+      // Check if swiped all the way to the end
+      if (cardCurrentX >= SWIPE_END_X) {
+        const leftIdx = swipePoints.findIndex(p => p.x < SWIPE_START_X + 15);
+        const rightIdx = swipePoints.findIndex(p => p.x > SWIPE_END_X - 15);
+
+        if (leftIdx !== -1 && rightIdx !== -1 && rightIdx > leftIdx) {
+          const t1 = swipePoints[leftIdx].time;
+          const t2 = swipePoints[rightIdx].time;
+          const duration = t2 - t1;
+
+          // Time calibrations
+          if (duration < 320) {
+            showResult("Too Fast", 'fast');
+          } else if (duration > 900) {
+            showResult("Too Slow", 'slow');
+          } else {
+            showResult("Accepted", 'ok');
+          }
+        } else {
+          showResult("Bad Swipe", 'bad');
+        }
+      } else {
+        // Didn't swipe all the way, slide back to start of groove
+        slideBack();
+      }
+    });
+
+    function showResult(message, status) {
+      if (status === 'ok') {
+        completed = true;
+        screenMsg.innerText = message;
+        screenMsg.className = "screen-display";
+        setLEDs(true, false);
+        playSuccessChirp();
+        
+        setTimeout(() => {
+          overlay.style.display = "flex";
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Swipe Card' }, '*');
+          }
+        }, 500);
+      } else {
+        screenMsg.innerText = message;
+        if (status === 'fast' || status === 'slow') {
+          screenMsg.className = "screen-display warning";
+        } else {
+          screenMsg.className = "screen-display error";
+        }
+        setLEDs(false, true);
+        playFailBuzz();
+        slideBack();
+      }
+    }
+
+    function slideBack() {
+      // Slide back to start
+      cardCurrentX = SWIPE_START_X;
+      idCard.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+      idCard.style.transform = `translate(${SWIPE_START_X}px, -145px)`;
+      
+      // Clear transition once done to prevent drag lag
+      setTimeout(() => {
+        idCard.style.transition = 'none';
+        if (!completed) {
+          screenMsg.innerText = "Swipe Card";
+          screenMsg.className = "screen-display warning";
+        }
+      }, 400);
+    }
+
+    function setLEDs(green, red) {
+      if (green) {
+        ledGreen.classList.add('green-on');
+      } else {
+        ledGreen.classList.remove('green-on');
+      }
+
+      if (red) {
+        ledRed.classList.add('red-on');
+      } else {
+        ledRed.classList.remove('red-on');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Chart Course</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #181a1f;
+      border: 6px solid #2d3748;
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #38bdf8;
+      text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+      text-transform: uppercase;
+    }
+
+    .radar-status {
+      font-size: 0.8rem;
+      color: #38bdf8;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Map chamber and canvas */
+    .map-viewport {
+      flex-grow: 1;
+      background: radial-gradient(circle at 50% 50%, #0d121c 0%, #06080d 100%);
+      border: 3px solid #1e293b;
+      border-radius: 6px;
+      margin: 15px 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.9);
+    }
+
+    /* Radar grid coordinates lines overlay */
+    .radar-grid {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-position: center;
+      pointer-events: none;
+    }
+
+    /* Course drawing overlay path */
+    #map-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+    }
+
+    /* Navigation nodes */
+    .nav-node {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      margin-left: -14px;
+      margin-top: -14px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .node-star {
+      width: 100%;
+      height: 100%;
+      fill: #1e293b;
+      stroke: #38bdf8;
+      stroke-width: 2.5;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+    }
+
+    .nav-node.active .node-star {
+      fill: #38bdf8;
+      stroke: #ffffff;
+      filter: drop-shadow(0 0 10px #38bdf8);
+    }
+
+    .nav-node.completed-node .node-star {
+      fill: #10b981;
+      stroke: #ffffff;
+      filter: drop-shadow(0 0 8px #10b981);
+    }
+
+    /* Draggable Spaceship */
+    .ship-avatar {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      margin-left: -21px;
+      margin-top: -21px;
+      cursor: grab;
+      z-index: 10;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+    }
+
+    .ship-avatar.dragging {
+      cursor: grabbing;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7));
+    }
+
+    .ship-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(90deg); /* align ship forward */
+    }
+
+    /* Glow particles */
+    .star-particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #38bdf8;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Success display */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #38bdf8;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- Header bar -->
+      <div class='header'>
+        <h1>Chart Course</h1>
+        <div class='radar-status' id='radar-lbl'>AUTOPILOT: OFFLINE</div>
+      </div>
+
+      <!-- Star map space view -->
+      <div class='map-viewport' id='viewport'>
+        <div class='radar-grid'></div>
+        
+        <!-- Connection course vectors lines -->
+        <svg id='map-svg'></svg>
+
+        <!-- Dynamic Nodes will be drawn here -->
+        <div class='nav-node active' id='node-0'>
+          <svg class='node-star' viewBox='0 0 24 24'><polygon points='12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9' /></svg>
+        </div>
+        <div class='nav-node' id='node-1'>
+          <svg class='node-star' viewBox='0 0 24 24'><polygon points='12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9' /></svg>
+        </div>
+        <div class='nav-node' id='node-2'>
+          <svg class='node-star' viewBox='0 0 24 24'><polygon points='12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9' /></svg>
+        </div>
+        <div class='nav-node' id='node-3'>
+          <svg class='node-star' viewBox='0 0 24 24'><polygon points='12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9' /></svg>
+        </div>
+
+        <!-- Draggable Spaceship entity -->
+        <div class='ship-avatar' id='ship'>
+          <svg class='ship-svg' viewBox='0 0 100 100'>
+            <!-- Cute Among Us/Navigation retro starfighter -->
+            <path d='M50 15 L85 85 L50 70 L15 85 Z' fill='#cbd5e1' stroke='#334155' stroke-width='6' stroke-linejoin='round' />
+            <ellipse cx='50' cy='48' rx='10' ry='16' fill='#0284c7' stroke='#334155' stroke-width='4' />
+            <path d='M35 76 L15 85 L22 65 Z' fill='#e2e8f0' stroke='#334155' stroke-width='4' />
+            <path d='M65 76 L85 85 L78 65 Z' fill='#e2e8f0' stroke='#334155' stroke-width='4' />
+          </svg>
+        </div>
+
+      </div>
+
+      <div style='color: #8f9cae; font-size: 0.75rem; text-align: center; letter-spacing: 1px;'>
+        CLICK AND DRAG THE SHIP ALONG THE FLIGHT SEGMENTS TO PLOT CORE NAVIGATION
+      </div>
+
+      <!-- Victory overlay screen -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Autopilot Engaged</div>
+        <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;'>Autopilot sequence plotted successfully</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playLockBeep() {
+      playTone(587.33, 'sine', 0.12, 0.15);
+    }
+
+    function playSecureBeep() {
+      playTone(880, 'sine', 0.12, 0.15);
+      setTimeout(() => {
+        playTone(1174.66, 'sine', 0.22, 0.15);
+      }, 80);
+    }
+
+    function playWarpSuccess() {
+      try {
+        initAudio();
+        const notes = [440.00, 554.37, 659.25, 880.00, 1108.73, 1318.51, 1760.00];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 60);
+        });
+      } catch (e) {}
+    }
+
+    // Node Positions (x, y coordinates inside the 520x240 viewport space)
+    const NODES = [
+      { x: 50,  y: 120 },
+      { x: 170, y: 50  },
+      { x: 330, y: 190 },
+      { x: 470, y: 120 }
+    ];
+
+    const ship = document.getElementById('ship');
+    const viewport = document.getElementById('viewport');
+    const svg = document.getElementById('map-svg');
+    const successScr = document.getElementById('success-scr');
+    const radarLbl = document.getElementById('radar-lbl');
+
+    let activeSegmentIndex = 0; // current leg: 0 means Node 0 -> Node 1, 1 means Node 1 -> Node 2, etc.
+    let completedNodes = [0]; // starts with Node 0 completed
+    let isDragging = false;
+    let currentShipX = NODES[0].x;
+    let currentShipY = NODES[0].y;
+    let completed = false;
+
+    // Set initial positions
+    NODES.forEach((node, idx) => {
+      const el = document.getElementById('node-' + idx);
+      el.style.left = node.x + 'px';
+      el.style.top = node.y + 'px';
+    });
+
+    ship.style.left = currentShipX + 'px';
+    ship.style.top = currentShipY + 'px';
+
+    // Draw Course lines helper
+    function drawCoursePaths() {
+      svg.innerHTML = '';
+      
+      // Draw paths between nodes
+      for (let i = 0; i < NODES.length - 1; i++) {
+        const n1 = NODES[i];
+        const n2 = NODES[i + 1];
+        
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', n1.x);
+        line.setAttribute('y1', n1.y);
+        line.setAttribute('x2', n2.x);
+        line.setAttribute('y2', n2.y);
+        
+        // Style paths: locked legs glow solid green, unlocked display as yellow dashed line
+        if (completedNodes.includes(i + 1)) {
+          line.setAttribute('stroke', '#10b981');
+          line.setAttribute('stroke-width', '4');
+          line.setAttribute('filter', 'drop-shadow(0 0 6px #10b981)');
+        } else {
+          line.setAttribute('stroke', '#eab308');
+          line.setAttribute('stroke-dasharray', '8, 8');
+          line.setAttribute('stroke-width', '2.5');
+        }
+        svg.appendChild(line);
+      }
+    }
+
+    // Angle alignment of ship based on segment slope
+    function alignShipRotation() {
+      if (activeSegmentIndex >= NODES.length - 1) return;
+      const n1 = NODES[activeSegmentIndex];
+      const n2 = NODES[activeSegmentIndex + 1];
+      const dx = n2.x - n1.x;
+      const dy = n2.y - n1.y;
+      
+      // Calculate degrees of slope
+      const angleDeg = Math.atan2(dy, dx) * 180 / Math.PI;
+      // Add 90 degrees offset to match vector graphic orientation
+      ship.querySelector('.ship-svg').style.transform = `rotate(${angleDeg + 90}deg)`;
+    }
+
+    // Interaction handlers
+    ship.addEventListener('mousedown', (e) => {
+      if (completed) return;
+      initAudio();
+      isDragging = true;
+      ship.classList.add('dragging');
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || completed) return;
+      
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Core drag lock math: lock the ship directly onto the active course segment vector line!
+      const n1 = NODES[activeSegmentIndex];
+      const n2 = NODES[activeSegmentIndex + 1];
+
+      const dx = n2.x - n1.x;
+      const dy = n2.y - n1.y;
+      const segmentLengthSq = dx * dx + dy * dy;
+      
+      if (segmentLengthSq === 0) return;
+
+      // Project mouse coordinate on segment line: dot product calculation
+      // Vector t projection fraction (clamped between 0 and 1)
+      let t = ((mouseX - n1.x) * dx + (mouseY - n1.y) * dy) / segmentLengthSq;
+      t = Math.max(0, Math.min(1, t));
+
+      // Final target lock projection coordinates
+      currentShipX = n1.x + t * dx;
+      currentShipY = n1.y + t * dy;
+
+      ship.style.left = currentShipX + 'px';
+      ship.style.top = currentShipY + 'px';
+
+      alignShipRotation();
+
+      // Check if ship reached the next target node (t is close or at 1.0)
+      if (t > 0.96) {
+        // Dock/Lock onto the target node!
+        const targetIdx = activeSegmentIndex + 1;
+        
+        if (!completedNodes.includes(targetIdx)) {
+          completedNodes.push(targetIdx);
+          
+          // Visual locked updates
+          const nodeEl = document.getElementById('node-' + targetIdx);
+          nodeEl.classList.add('completed-node');
+          
+          // Node 0 stays completed-node, set active ring to next target
+          document.getElementById('node-' + activeSegmentIndex).classList.remove('active');
+          nodeEl.classList.add('active');
+          
+          spawnStarParticles(n2.x, n2.y);
+          drawCoursePaths();
+
+          if (targetIdx < NODES.length - 1) {
+            activeSegmentIndex++;
+            alignShipRotation();
+            playLockBeep();
+          } else {
+            // Reached final node!
+            triggerWarpDrive();
+          }
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      ship.classList.remove('dragging');
+      
+      if (completed) return;
+
+      // Snapping correction: if ship let go mid-segment, slide it back smoothly to the starting node
+      const n1 = NODES[activeSegmentIndex];
+      currentShipX = n1.x;
+      currentShipY = n1.y;
+
+      ship.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+      ship.style.left = currentShipX + 'px';
+      ship.style.top = currentShipY + 'px';
+
+      setTimeout(() => {
+        ship.style.transition = 'none';
+      }, 300);
+    });
+
+    function spawnStarParticles(x, y) {
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'star-particle';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        viewport.appendChild(p);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 6 + 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        
+        let px = x;
+        let py = y;
+        let op = 1.0;
+
+        function anim() {
+          px += vx;
+          py += vy;
+          op -= 0.04;
+          p.style.left = px + 'px';
+          p.style.top = py + 'px';
+          p.style.opacity = op;
+
+          if (op > 0) {
+            requestAnimationFrame(anim);
+          } else {
+            p.remove();
+          }
+        }
+        requestAnimationFrame(anim);
+      }
+    }
+
+    function triggerWarpDrive() {
+      completed = true;
+      radarLbl.innerText = 'AUTOPILOT: LOCKED';
+      radarLbl.style.color = '#10b981';
+      
+      playSecureBeep();
+      
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playWarpSuccess();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Chart Course' }, '*');
+        }
+      }, 600);
+    }
+
+    // Initial draw
+    drawCoursePaths();
+    alignShipRotation();
+  </script>
+</body>
+</html>

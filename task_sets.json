@@ -1,0 +1,299 @@
+{
+  "task_sets": [
+    {
+      "id": "set_1",
+      "name": "Set A: Main Grid Calibration",
+      "description": "Focuses on main grid maintenance and security feeds.",
+      "tasks": [
+        {
+          "name": "Swipe Card",
+          "room": "Admin",
+          "file": "tasks/swipe_card.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Calibrate Distributor",
+          "room": "Electrical",
+          "file": "tasks/calibrate_distributor.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Divert Power (Stage 1)",
+          "room": "Electrical",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=divert",
+          "type": "multi_stage",
+          "sequence_id": "divert_security",
+          "step": 1
+        },
+        {
+          "name": "Accept Diverted Power (Stage 2)",
+          "room": "Security",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=accept",
+          "type": "multi_stage",
+          "sequence_id": "divert_security",
+          "step": 2
+        },
+        {
+          "name": "Submit Scan",
+          "room": "MedBay",
+          "file": "tasks/submit_scan.html",
+          "params": "",
+          "type": "single"
+        }
+      ]
+    },
+    {
+      "id": "set_2",
+      "name": "Set B: Life Support & Shielding",
+      "description": "Critical O2 filtration adjustments and shield primings.",
+      "tasks": [
+        {
+          "name": "Clean O2 Filter",
+          "room": "O2",
+          "file": "tasks/clean_o2.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Prime Shields",
+          "room": "Shields",
+          "file": "tasks/shields.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Divert Power (Stage 1)",
+          "room": "Electrical",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=divert",
+          "type": "multi_stage",
+          "sequence_id": "divert_o2",
+          "step": 1
+        },
+        {
+          "name": "Accept Diverted Power (Stage 2)",
+          "room": "O2",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=accept",
+          "type": "multi_stage",
+          "sequence_id": "divert_o2",
+          "step": 2
+        },
+        {
+          "name": "Unlock Manifolds",
+          "room": "Reactor",
+          "file": "tasks/manifolds.html",
+          "params": "",
+          "type": "single"
+        }
+      ]
+    },
+    {
+      "id": "set_3",
+      "name": "Set C: Auxiliary Propulsion Drive",
+      "description": "Aligns engine thrust manifolds and refueling storage.",
+      "tasks": [
+        {
+          "name": "Fuel Engines (Stage 1A)",
+          "room": "Storage",
+          "file": "tasks/fuel_engines.html",
+          "params": "?mode=fill",
+          "type": "multi_stage",
+          "sequence_id": "fuel_upper_engine",
+          "step": 1
+        },
+        {
+          "name": "Fuel Engines (Stage 1B)",
+          "room": "Upper Engine",
+          "file": "tasks/fuel_engines.html",
+          "params": "?mode=empty",
+          "type": "multi_stage",
+          "sequence_id": "fuel_upper_engine",
+          "step": 2
+        },
+        {
+          "name": "Align Engine Output (Stage 1)",
+          "room": "Upper Engine",
+          "file": "tasks/align_engine.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Divert Power (Stage 1)",
+          "room": "Electrical",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=divert",
+          "type": "multi_stage",
+          "sequence_id": "divert_navigation",
+          "step": 1
+        },
+        {
+          "name": "Accept Diverted Power (Stage 2)",
+          "room": "Navigation",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=accept",
+          "type": "multi_stage",
+          "sequence_id": "divert_navigation",
+          "step": 2
+        },
+        {
+          "name": "Stabilize Steering",
+          "room": "Navigation",
+          "file": "tasks/stabilize_steering.html",
+          "params": "",
+          "type": "single"
+        }
+      ]
+    },
+    {
+      "id": "set_4",
+      "name": "Set D: Defense Grid Routing",
+      "description": "Securing asteroid defenses and calibrating communications.",
+      "tasks": [
+        {
+          "name": "Clear Asteroids",
+          "room": "Weapons",
+          "file": "tasks/asteroids.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Divert Power (Stage 1)",
+          "room": "Electrical",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=divert",
+          "type": "multi_stage",
+          "sequence_id": "divert_weapons",
+          "step": 1
+        },
+        {
+          "name": "Accept Diverted Power (Stage 2)",
+          "room": "Weapons",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=accept",
+          "type": "multi_stage",
+          "sequence_id": "divert_weapons",
+          "step": 2
+        },
+        {
+          "name": "Download Data (Stage 1)",
+          "room": "Communications",
+          "file": "tasks/download.html",
+          "params": "",
+          "type": "multi_stage",
+          "sequence_id": "data_comms_admin",
+          "step": 1
+        },
+        {
+          "name": "Upload Data (Stage 2)",
+          "room": "Admin",
+          "file": "tasks/download.html",
+          "params": "",
+          "type": "multi_stage",
+          "sequence_id": "data_comms_admin",
+          "step": 2
+        }
+      ]
+    },
+    {
+      "id": "set_5",
+      "name": "Set E: Primary Refueling Loop",
+      "description": "Feeds secondary propulsion drives and diagnostic tests.",
+      "tasks": [
+        {
+          "name": "Fuel Engines (Stage 2A)",
+          "room": "Storage",
+          "file": "tasks/fuel_engines.html",
+          "params": "?mode=fill",
+          "type": "multi_stage",
+          "sequence_id": "fuel_lower_engine",
+          "step": 1
+        },
+        {
+          "name": "Fuel Engines (Stage 2B)",
+          "room": "Lower Engine",
+          "file": "tasks/fuel_engines.html",
+          "params": "?mode=empty",
+          "type": "multi_stage",
+          "sequence_id": "fuel_lower_engine",
+          "step": 2
+        },
+        {
+          "name": "Inspect Sample",
+          "room": "MedBay",
+          "file": "tasks/inspect_sample.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Divert Power (Stage 1)",
+          "room": "Electrical",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=divert",
+          "type": "multi_stage",
+          "sequence_id": "divert_shields",
+          "step": 1
+        },
+        {
+          "name": "Accept Diverted Power (Stage 2)",
+          "room": "Shields",
+          "file": "tasks/divert_power.html",
+          "params": "?mode=accept",
+          "type": "multi_stage",
+          "sequence_id": "divert_shields",
+          "step": 2
+        },
+        {
+          "name": "Clean Vent",
+          "room": "Security",
+          "file": "tasks/clean_vent.html",
+          "params": "",
+          "type": "single"
+        }
+      ]
+    },
+    {
+      "id": "set_6",
+      "name": "Set F: Auxiliary Waste Operations",
+      "description": "Manages reactor core boots and auxiliary trash compactors.",
+      "tasks": [
+        {
+          "name": "Start Reactor",
+          "room": "Reactor",
+          "file": "tasks/start_reactor.html",
+          "params": "",
+          "type": "single"
+        },
+        {
+          "name": "Empty Chute (Stage 1)",
+          "room": "O2",
+          "file": "tasks/empty_garbage.html",
+          "params": "",
+          "type": "multi_stage",
+          "sequence_id": "trash_o2_storage",
+          "step": 1
+        },
+        {
+          "name": "Empty Garbage (Stage 2)",
+          "room": "Storage",
+          "file": "tasks/empty_garbage.html",
+          "params": "",
+          "type": "multi_stage",
+          "sequence_id": "trash_o2_storage",
+          "step": 2
+        },
+        {
+          "name": "Chart Course",
+          "room": "Navigation",
+          "file": "tasks/chart_course.html",
+          "params": "",
+          "type": "single"
+        }
+      ]
+    }
+  ]
+}

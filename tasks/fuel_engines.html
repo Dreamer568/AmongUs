@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Fuel Engines</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+      z-index: 10;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #f97316;
+      text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+      text-transform: uppercase;
+    }
+
+    .fuel-status {
+      font-size: 0.8rem;
+      color: #eab308;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .display-arena {
+      flex-grow: 1;
+      width: 100%;
+      position: relative;
+      margin: 15px 0;
+      overflow: hidden;
+    }
+
+    .stage-canister-panel {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #181a1d;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 15px 25px;
+      box-sizing: border-box;
+      transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 2;
+    }
+
+    .canister-visual {
+      width: 130px;
+      height: 180px;
+      background: #334155;
+      border: 4px solid #1e293b;
+      border-radius: 8px 8px 16px 16px;
+      position: relative;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+    }
+
+    .canister-neck {
+      width: 50px;
+      height: 25px;
+      background: #1e293b;
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 4px 4px 0 0;
+    }
+
+    .canister-handle-loop {
+      width: 110px;
+      height: 35px;
+      border: 6px solid #1e293b;
+      border-bottom: none;
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 12px 12px 0 0;
+      z-index: -1;
+    }
+
+    .canister-fill {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 0%;
+      background: #f59e0b;
+      border-radius: 0 0 12px 12px;
+      box-shadow: inset 0 4px 10px rgba(255,255,255,0.3);
+      transition: height 0.05s linear;
+    }
+
+    .gauge-marking {
+      position: absolute;
+      left: 10px;
+      width: 15px;
+      height: 2px;
+      background: rgba(255,255,255,0.2);
+    }
+    #mark-25 { bottom: 45px; }
+    #mark-50 { bottom: 90px; }
+    #mark-75 { bottom: 135px; }
+
+    .stage-engine-panel {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #111317;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 15px 25px;
+      box-sizing: border-box;
+      transform: translateX(540px);
+      transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 3;
+    }
+
+    .engine-tank-visual {
+      width: 100px;
+      height: 190px;
+      background: #2a2d34;
+      border: 4px solid #1a1c21;
+      border-radius: 50px;
+      position: relative;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    .engine-tank-fill {
+      position: absolute;
+      bottom: 0; left: 0; width: 100%;
+      height: 0%;
+      background: #ea580c;
+      box-shadow: inset 0 4px 10px rgba(255,255,255,0.3);
+      transition: height 0.05s linear;
+    }
+
+    .tank-sight-glass {
+      position: absolute;
+      top: 20px; left: 45px;
+      width: 10px;
+      height: 150px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 5px;
+      border: 1px solid #4a5568;
+    }
+
+    .trigger-button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .push-trigger {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      border: 5px solid #1a0a05;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 8px rgba(0,0,0,0.5), inset 0 3px 5px rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .push-trigger:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .push-trigger-cap {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #11141a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #f97316;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(249, 115, 22, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <div class='header'>
+        <h1 id='title-lbl'>Refuel Canister</h1>
+        <div class='fuel-status' id='fuel-lbl'>CANISTER: 0.0 / 2.0 GAL</div>
+      </div>
+
+      <div class='display-arena'>
+        
+        <div class='stage-canister-panel' id='stage-1-panel'>
+          <div class='canister-visual'>
+            <div class='canister-neck'></div>
+            <div class='canister-handle-loop'></div>
+            <div class='canister-fill' id='can-fill-bar'></div>
+            <div class='gauge-marking' id='mark-25'></div>
+            <div class='gauge-marking' id='mark-50'></div>
+            <div class='gauge-marking' id='mark-75'></div>
+          </div>
+          
+          <div class='trigger-button-container'>
+            <div class='push-trigger' id='trigger-1'>
+              <div class='push-trigger-cap'>Hold To<br>Refuel</div>
+            </div>
+            <span style='font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;'>Fuel Source: Auxiliary</span>
+          </div>
+        </div>
+
+        <div class='stage-engine-panel' id='stage-2-panel'>
+          <div class='engine-tank-visual'>
+            <div class='engine-tank-fill' id='engine-fill-bar'></div>
+            <div class='tank-sight-glass'></div>
+          </div>
+          
+          <div class='trigger-button-container'>
+            <div class='push-trigger' id='trigger-2' style='background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);'>
+              <div class='push-trigger-cap' style='color: white;'>Hold To<br>Fuel</div>
+            </div>
+            <span style='font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px;'>Core Nozzle Alignment</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style='color: #a0aec0; font-size: 0.75rem; text-align: center; letter-spacing: 1px;' id='help-txt'>
+        CLICK AND HOLD THE TRIGGER TO DISPENSE AUXILIARY GASOLINE
+      </div>
+
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner' id='success-banner'>Engine Fueled!</div>
+        <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;' id='success-sub'>Auxiliary engine manifolds fully primed</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playBubbleTick() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(140 + Math.random() * 20, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.12);
+        
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    function playIgnitionChime() {
+      try {
+        initAudio();
+        const scale = [220, 277.18, 329.63, 440, 554.37, 659.25, 880];
+        scale.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 60);
+        });
+      } catch(e) {}
+    }
+
+    const trigger1 = document.getElementById('trigger-1');
+    const trigger2 = document.getElementById('trigger-2');
+    const canFillBar = document.getElementById('can-fill-bar');
+    const engineFillBar = document.getElementById('engine-fill-bar');
+    
+    const stage1Panel = document.getElementById('stage-1-panel');
+    const stage2Panel = document.getElementById('stage-2-panel');
+    
+    const titleLbl = document.getElementById('title-lbl');
+    const fuelLbl = document.getElementById('fuel-lbl');
+    const helpTxt = document.getElementById('help-txt');
+    const successScr = document.getElementById('success-scr');
+    const successBanner = document.getElementById('success-banner');
+    const successSub = document.getElementById('success-sub');
+
+    // READ CONFIG MODE PARAMETER
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode') || 'combined'; // 'fill', 'empty', or 'combined'
+
+    let isHolding = false;
+    let currentStage = 1; 
+    let fillLevel = 0; 
+    let fillInterval = null;
+    let completed = false;
+
+    function setupModes() {
+      if (mode === 'empty') {
+        // Bypasses Stage 1 entirely
+        currentStage = 2;
+        fillLevel = 100;
+        
+        stage1Panel.style.transform = 'translateX(-540px)';
+        stage2Panel.style.transform = 'translateX(0)';
+        
+        canFillBar.style.height = '100%';
+        engineFillBar.style.height = '0%';
+        
+        titleLbl.innerText = 'Fuel Engine';
+        fuelLbl.innerText = 'ENGINE TANK: EMPTY';
+        fuelLbl.style.color = '#ea580c';
+        
+        helpTxt.innerText = 'HOLD TRIGGER TO POUR GASOLINE DIRECTLY INTO ENGINE INTAKE CONDUIT';
+        helpTxt.style.color = '#ea580c';
+      } else {
+        // Standard combined or fill mode
+        currentStage = 1;
+        fillLevel = 0;
+        canFillBar.style.height = '0%';
+      }
+    }
+
+    // Stage 1 Action (Refuel)
+    trigger1.addEventListener('mousedown', () => {
+      if (currentStage !== 1 || completed) return;
+      initAudio();
+      isHolding = true;
+      playTone(180, 'triangle', 0.1, 0.15);
+      
+      fillInterval = setInterval(() => {
+        if (isHolding && fillLevel < 100) {
+          fillLevel += 1.5;
+          canFillBar.style.height = fillLevel + '%';
+          
+          const gallons = ((fillLevel / 100) * 2.0).toFixed(1);
+          fuelLbl.innerText = `CANISTER: ${gallons} / 2.0 GAL`;
+          
+          if (Math.random() < 0.45) {
+            playBubbleTick();
+          }
+
+          if (fillLevel >= 100) {
+            clearInterval(fillInterval);
+            isHolding = false;
+            
+            if (mode === 'fill') {
+              triggerFillOnlyVictory();
+            } else {
+              triggerStageTransition();
+            }
+          }
+        }
+      }, 40);
+    });
+
+    // Stage 2 Action (Pour)
+    trigger2.addEventListener('mousedown', () => {
+      if (currentStage !== 2 || completed) return;
+      isHolding = true;
+      playTone(180, 'triangle', 0.1, 0.15);
+      
+      fillInterval = setInterval(() => {
+        if (isHolding && fillLevel > 0) {
+          fillLevel -= 1.5;
+          canFillBar.style.height = fillLevel + '%';
+          engineFillBar.style.height = (100 - fillLevel) + '%';
+          
+          const remainingCan = ((fillLevel / 100) * 2.0).toFixed(1);
+          const engineFuel = (((100 - fillLevel) / 100) * 2.0).toFixed(1);
+          fuelLbl.innerText = `ENGINE TANK: ${engineFuel} / 2.0 GAL`;
+          
+          if (Math.random() < 0.45) {
+            playBubbleTick();
+          }
+
+          if (fillLevel <= 0) {
+            clearInterval(fillInterval);
+            isHolding = false;
+            triggerEngineVictory();
+          }
+        }
+      }, 40);
+    });
+
+    // Global up stops gurgles
+    document.addEventListener('mouseup', () => {
+      if (isHolding) {
+        isHolding = false;
+        clearInterval(fillInterval);
+        playTone(110, 'triangle', 0.08, 0.15);
+      }
+    });
+
+    function triggerStageTransition() {
+      currentStage = 2;
+      playTone(300, 'sine', 0.12, 0.15);
+      fuelLbl.innerText = 'CANISTER: FULL (2.0 GAL)';
+      
+      setTimeout(() => {
+        stage1Panel.style.transform = 'translateX(-540px)';
+        stage2Panel.style.transform = 'translateX(0)';
+        
+        titleLbl.innerText = 'Fuel Engine';
+        fuelLbl.innerText = 'ENGINE TANK: EMPTY';
+        fuelLbl.style.color = '#ea580c';
+        
+        helpTxt.innerText = 'HOLD TRIGGER TO POUR GASOLINE DIRECTLY INTO ENGINE INTAKE CONDUIT';
+        helpTxt.style.color = '#ea580c';
+      }, 550);
+    }
+
+    function triggerFillOnlyVictory() {
+      completed = true;
+      fuelLbl.innerText = 'CANISTER FULL (2.0 GAL)';
+      fuelLbl.style.color = '#00ff66';
+      
+      successBanner.innerText = 'Canister Filled!';
+      successSub.innerText = 'Gas canister ready for engine delivery';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playIgnitionChime();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Fuel Engines (Refuel)' }, '*');
+        }
+      }, 500);
+    }
+
+    function triggerEngineVictory() {
+      completed = true;
+      fuelLbl.innerText = 'ENGINE TANK FULL';
+      fuelLbl.style.color = '#00ff66';
+      
+      successBanner.innerText = 'Engine Fueled!';
+      successSub.innerText = 'Auxiliary engine manifolds fully primed';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playIgnitionChime();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Fuel Engines (Pour)' }, '*');
+        }
+      }, 500);
+    }
+
+    // Start
+    setupModes();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Among Us 3D Task & Wall Editor</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      user-select: none;
+    }
+    
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Sidebar styling */
+    #sidebar {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 340px;
+      max-height: calc(100vh - 30px);
+      background: rgba(24, 24, 24, 0.88);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 10, 10, 0.5);
+    }
+    
+    .sidebar-header h2 {
+      margin: 0 0 5px 0;
+      font-size: 1.25rem;
+      color: #ffd700;
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .sidebar-header p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .section {
+      padding: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section h3 {
+      margin: 0 0 10px 0;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #bbb;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #333;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #444;
+      border-color: #555;
+    }
+
+    .btn-primary {
+      background: #e6a100;
+      color: #121212;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: #ffd700;
+    }
+
+    .btn-success {
+      background: #2e7d32;
+      color: #fff;
+      border: none;
+    }
+
+    .btn-success:hover {
+      background: #388e3c;
+    }
+
+    .btn-danger {
+      background: #c62828;
+      color: #fff;
+      border: none;
+      padding: 5px 8px;
+      font-size: 0.8rem;
+      width: auto;
+      margin: 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-danger:hover {
+      background: #d32f2f;
+    }
+
+    /* Form fields for active properties */
+    .form-group {
+      margin-bottom: 10px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .task-select {
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.85rem;
+      width: 100%;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .task-select:focus {
+      outline: none;
+      border-color: #ffd700;
+    }
+
+    .task-custom-input {
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.85rem;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .task-custom-input:focus {
+      outline: none;
+      border-color: #ffd700;
+    }
+
+    #task-list, #wall-list {
+      max-height: 160px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 5px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .task-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .task-item.selected {
+      border-color: #ffd700;
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .task-item-info {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      margin-right: 10px;
+    }
+
+    .task-item-title {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #ffd700;
+    }
+    
+    .task-item-subtitle {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    .task-item-coords {
+      font-size: 0.7rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    /* Helper overlay at bottom */
+    #controls-helper {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      background: rgba(24, 24, 24, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 18px;
+      z-index: 10;
+      font-size: 0.85rem;
+      pointer-events: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .key-badge {
+      background: #444;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border-bottom: 2px solid #222;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #fff;
+    }
+
+    /* Loader Overlay */
+    #loader {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #121212;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      transition: opacity 0.5s ease;
+    }
+
+    .loader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #ffd700;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    #loader-text {
+      font-size: 1.1rem;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+    
+    #loader-sub {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #444;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+  
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.152.2/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Loader Overlay -->
+  <div id="loader">
+    <div class="loader-spinner"></div>
+    <div id="loader-text">Loading The Skeld Map... (0%)</div>
+    <div id="loader-sub">This is a large file and may take a moment to load locally.</div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Sidebar Controls -->
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h2>Skeld Map & Tasks</h2>
+      <p>Configure placements and register tasks</p>
+    </div>
+
+    <!-- Map Placement Controls -->
+    <div class="section">
+      <h3>Map Placement</h3>
+      <button id="btn-select-map" class="btn">Transform Map</button>
+      <button id="btn-reset-map" class="btn" style="font-size:0.8rem; padding: 5px; background: #2a2a2a; margin-bottom:0;">Reset Map Transforms</button>
+    </div>
+
+    <!-- 2D Minimap Calibration Overlay -->
+    <div class="section" style="border-top: 1px solid rgba(255,255,255,0.15);">
+      <h3>2D Minimap Calibration</h3>
+      <div class="form-group">
+        <label class="form-label">Local Image Path</label>
+        <input type="text" id="input-2dmap-path" class="task-custom-input" value="the_skeld_2d.png" placeholder="e.g. skeld_blueprint.png" />
+      </div>
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <button id="btn-load-2dmap" class="btn" style="flex: 1; margin-bottom: 0; font-size: 0.8rem; padding: 8px;">Load Map</button>
+        <button id="btn-transform-2dmap" class="btn" style="flex: 1; margin-bottom: 0; font-size: 0.8rem; padding: 8px; display: none;">Transform</button>
+      </div>
+      
+      <div id="minimap-calibration-controls" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Overlay Opacity: <span id="lbl-2dmap-opacity">0.5</span></label>
+          <input type="range" id="slide-2dmap-opacity" min="0" max="1" step="0.05" value="0.5" style="width: 100%; cursor: pointer;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vertical height (Y): <span id="lbl-2dmap-height">2.0</span></label>
+          <input type="range" id="slide-2dmap-height" min="-20" max="25" step="0.1" value="2.0" style="width: 100%; cursor: pointer;" />
+        </div>
+
+        <div id="debug-minimap-projection" style="font-size: 0.75rem; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 8px; display: none; line-height: 1.4;">
+          <strong>Projection coordinates (Selected Task):</strong><br>
+          Relative local coordinate of task mapped to 0-1 bounds on the 2D surface texture:<br>
+          <span style="color: #ffd700; font-family: monospace;">U (horizontal): <span id="debug-proj-u">-</span></span><br>
+          <span style="color: #ffd700; font-family: monospace;">V (vertical): &nbsp;<span id="debug-proj-v">-</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Sphere Task Assign Properties Panel -->
+    <div class="section" id="properties-panel" style="background: rgba(255,215,0,0.03); border-top: 1px solid rgba(255,215,0,0.15); border-bottom: 1px solid rgba(255,215,0,0.15); display: none;">
+      <h3 style="color: #ffd700;">Sphere Properties</h3>
+      
+      <div class="form-group">
+        <label class="form-label">Assign Room</label>
+        <select id="prop-room" class="task-select"></select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Assign Task / Sabotage</label>
+        <select id="prop-task" class="task-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Display Name</label>
+        <input type="text" id="prop-name" class="task-custom-input" placeholder="e.g. Navigation - Chart Course" />
+      </div>
+    </div>
+
+    <!-- Wall Builder Controls -->
+    <div class="section" style="border-top: 1px solid rgba(255,255,255,0.15);">
+      <h3>Wall Collision Builder</h3>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button id="btn-toggle-template" class="btn" style="flex: 1; margin-bottom: 0; font-size: 0.8rem; padding: 8px;">Edit Template</button>
+        <button id="btn-toggle-builder" class="btn btn-primary" style="flex: 1; margin-bottom: 0; font-size: 0.8rem; padding: 8px;">Draw Walls (2D)</button>
+      </div>
+      <div id="builder-status" style="font-size: 0.8rem; color: #ffd700; background: rgba(255, 215, 0, 0.1); border: 1px dashed rgba(255, 215, 0, 0.3); padding: 8px; border-radius: 6px; margin-bottom: 8px; display: none; text-align: center; line-height: 1.3;">
+        <strong>Top-Down View Active</strong><br>
+        1. Left-Click to set Start (Point A)<br>
+        2. Move mouse to draw & Left-Click End (Point B)<br>
+        <span style="color: #aaa; font-size: 0.75rem;">Press [Esc] to cancel line | Right-Click + drag to pan</span>
+      </div>
+      <div id="wall-list" style="max-height: 150px; overflow-y: auto; display: none; margin-top: 5px; padding-right: 5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;"></div>
+    </div>
+
+    <!-- Task List -->
+    <div class="section" style="flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;">
+      <h3>Summoned Spheres</h3>
+      <button id="btn-add-task" class="btn btn-primary">+ Summon Task Sphere</button>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- Persistence -->
+    <div class="section" style="background: rgba(0,0,0,0.2);">
+      <button id="btn-save" class="btn btn-success">Save Configuration</button>
+    </div>
+  </div>
+
+  <!-- Control Helpers Overlay -->
+  <div id="controls-helper">
+    <div><strong>Navigation:</strong> Drag Left-click to Rotate | Drag Right-click to Pan | Scroll to Zoom</div>
+    <div style="margin-top: 6px;"><strong>Transform Tool:</strong> 
+      <span class="key-badge">W</span> Move | 
+      <span class="key-badge">E</span> Rotate | 
+      <span class="key-badge">R</span> Scale | 
+      <span class="key-badge">Esc</span> Deselect
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { TransformControls } from 'three/addons/controls/TransformControls.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+    // Embedded Room, Tasks and Sabotages Database
+    const ROOM_TASKS_DB = {
+      "Unassigned": {
+        "tasks": [],
+        "sabotages": []
+      },
+      "Cafeteria": {
+        "tasks": ["Clean Vent", "Download Data (Stage 1)", "Empty Garbage (Stage 1)", "Fix Wiring (Stage 2 or 3)"],
+        "sabotages": ["Door Sabotage"]
+      },
+      "Weapons": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Clean Vent", "Clear Asteroids", "Download Data (Stage 1)"],
+        "sabotages": []
+      },
+      "Hallway": {
+        "tasks": ["Clean Vent"],
+        "sabotages": []
+      },
+      "O2": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Clean O2 Filter", "Empty Chute (Stage 1)"],
+        "sabotages": ["Oxygen Depleted"]
+      },
+      "Navigation": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Chart Course", "Clean Vent", "Download Data (Stage 1)", "Fix Wiring (Stage 1, 2 or 3)", "Stabilize Steering"],
+        "sabotages": []
+      },
+      "Shields": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Clean Vent", "Prime Shields"],
+        "sabotages": []
+      },
+      "Communications": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Download Data (Stage 1)"],
+        "sabotages": ["Comms Sabotaged"]
+      },
+      "Storage": {
+        "tasks": ["Empty Chute (Stage 2)", "Empty Garbage (Stage 2)", "Fix Wiring (Stage 1 or 2)", "Fuel Engines (Stage 1A and 2A)"],
+        "sabotages": ["Door Sabotage"]
+      },
+      "Admin": {
+        "tasks": ["Clean Vent", "Fix Wiring (Stage 1, 2 or 3)", "Swipe Card", "Upload Data (Stage 2)"],
+        "sabotages": ["Oxygen Depleted"]
+      },
+      "Electrical": {
+        "tasks": ["Divert Power (Stage 1)", "Calibrate Distributor", "Clean Vent", "Download Data (Stage 1)", "Fix Wiring (Stage 1)"],
+        "sabotages": ["Door Sabotage", "Fix Lights"]
+      },
+      "Lower Engine": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Align Engine Output (Stage 2 [or stage 1 on ehT dlekS])", "Clean Vent", "Fuel Engines (Stage 2B)"],
+        "sabotages": ["Door Sabotage"]
+      },
+      "Reactor": {
+        "tasks": ["Clean Vent", "Unlock Manifolds", "Start Reactor"],
+        "sabotages": ["Reactor Meltdown"]
+      },
+      "Security": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Clean Vent", "Fix Wiring (Stage 3)"],
+        "sabotages": ["Door Sabotage"]
+      },
+      "Upper Engine": {
+        "tasks": ["Accept Diverted Power (Stage 2)", "Align Engine Output (Stage 1 [or stage 2 on ehT dlekS])", "Clean Vent", "Fuel Engines (Stage 1B)"],
+        "sabotages": ["Door Sabotage"]
+      },
+      "MedBay": {
+        "tasks": ["Clean Vent", "Inspect Sample", "Submit Scan"],
+        "sabotages": ["Door Sabotage"]
+      }
+    };
+
+    // Main Application Variables
+    let scene, camera, renderer, orbitControls, transformControls;
+    let mapModel = null;
+    let tasks = []; // Array of { id, name, mesh, el }
+    let selectedObject = null; // Can be mapModel, a task mesh, templateWallMesh, or map2dMesh
+    
+    // Wall Building State and Meshes
+    let wallsList = []; // Array of { id, mesh, el, pointA, pointB }
+    let templateWallMesh = null;
+    let previewWallMesh = null;
+    let hoverMarker = null;
+    let isBuilderMode = false;
+    let pointA = null; // Vector3 anchor
+    let originalCameraState = null;
+
+    // 2D Map Alignment Overlay Meshes
+    let map2dMesh = null;
+    let map2dTexture = null;
+
+    const container = document.getElementById('canvas-container');
+    const loaderOverlay = document.getElementById('loader');
+    const loaderText = document.getElementById('loader-text');
+    const taskListEl = document.getElementById('task-list');
+    const wallListEl = document.getElementById('wall-list');
+
+    // Properties elements
+    const propertiesPanel = document.getElementById('properties-panel');
+    const propRoom = document.getElementById('prop-room');
+    const propTask = document.getElementById('prop-task');
+    const propName = document.getElementById('prop-name');
+
+    // Materials
+    const taskMaterialNormal = new THREE.MeshStandardMaterial({
+      color: 0xffd700, // Gold
+      metalness: 0.8,
+      roughness: 0.15,
+      emissive: 0x332a00,
+    });
+    
+    const taskMaterialSelected = new THREE.MeshStandardMaterial({
+      color: 0xffea00,
+      metalness: 0.9,
+      roughness: 0.1,
+      emissive: 0x665500,
+    });
+
+    const builtWallMaterial = new THREE.MeshStandardMaterial({
+      color: 0x00aaff, // Semitransparent blue-mesh profile
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+
+    init();
+
+    function init() {
+      // 1. Scene Setup
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0a0f);
+      scene.fog = new THREE.FogExp2(0x0a0a0f, 0.005);
+
+      // 2. Camera Setup
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 30, 50);
+
+      // 3. Renderer Setup
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+
+      // 4. Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      dirLight.position.set(30, 60, 30);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      const dirLight2 = new THREE.DirectionalLight(0x4466ff, 0.5);
+      dirLight2.position.set(-30, 20, -30);
+      scene.add(dirLight2);
+
+      // 5. Grid helper
+      const gridHelper = new THREE.GridHelper(200, 100, 0x444444, 0x222222);
+      gridHelper.position.y = -0.01; 
+      scene.add(gridHelper);
+
+      // 6. Orbit Controls
+      orbitControls = new OrbitControls(camera, renderer.domElement);
+      orbitControls.enableDamping = true;
+      orbitControls.dampingFactor = 0.05;
+      orbitControls.maxPolarAngle = Math.PI / 2 - 0.01;
+
+      // 7. Transform Controls (Gizmo)
+      transformControls = new TransformControls(camera, renderer.domElement);
+      transformControls.size = 0.75;
+      scene.add(transformControls);
+
+      // Disable orbit controls while transforming
+      transformControls.addEventListener('dragging-changed', (event) => {
+        orbitControls.enabled = !event.value;
+      });
+
+      // Detect object change to update list coordinates UI in real-time
+      transformControls.addEventListener('change', () => {
+        if (selectedObject) {
+          updateTaskCoordsUI(selectedObject);
+        }
+      });
+
+      // Create Wall Builder Blueprint template structures
+      const templateGeom = new THREE.BoxGeometry(1, 1, 1);
+      const templateMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ff00,
+        transparent: true,
+        opacity: 0.45,
+        roughness: 0.5,
+        metalness: 0.1
+      });
+      templateWallMesh = new THREE.Mesh(templateGeom, templateMaterial);
+      templateWallMesh.position.set(0, 2.0, 0);
+      templateWallMesh.scale.set(1.0, 4.0, 0.5); // Default Thickness, Height, Profile values
+      templateWallMesh.visible = false; // Hidden until edit toggled
+      scene.add(templateWallMesh);
+
+      // Draft line preview mesh representation
+      const previewMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffaa00,
+        transparent: true,
+        opacity: 0.5,
+        roughness: 0.5,
+        metalness: 0.1
+      });
+      previewWallMesh = new THREE.Mesh(templateGeom, previewMaterial);
+      previewWallMesh.visible = false;
+      scene.add(previewWallMesh);
+
+      // Drafting dot indicator helper
+      const markerGeom = new THREE.SphereGeometry(0.3, 16, 16);
+      const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, depthTest: false });
+      hoverMarker = new THREE.Mesh(markerGeom, markerMaterial);
+      hoverMarker.renderOrder = 999;
+      hoverMarker.visible = false;
+      scene.add(hoverMarker);
+
+      // Create 2D Map Plane Overlay (Plane geometry is flat on Z-up, so orient horizontally)
+      const planeGeom = new THREE.PlaneGeometry(1, 1);
+      const planeMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5,
+        depthWrite: false
+      });
+      map2dMesh = new THREE.Mesh(planeGeom, planeMat);
+      map2dMesh.rotation.x = -Math.PI / 2; // Lie flat on horizontal plane
+      map2dMesh.position.set(0, 2, 0); // slightly offset
+      map2dMesh.scale.set(40, 40, 1);
+      map2dMesh.visible = false; // invisible until loaded
+      scene.add(map2dMesh);
+
+      // 8. Event Listeners
+      window.addEventListener('resize', onWindowResize);
+      window.addEventListener('keydown', onKeyDown);
+      renderer.domElement.addEventListener('pointerdown', onPointerDown);
+      renderer.domElement.addEventListener('pointermove', onPointerMove);
+
+      // Initialize UI controls
+      setupUIEvents();
+      populateRoomDropdown();
+
+      // 9. Load config and model
+      loadProject();
+
+      // Start Loop
+      animate();
+    }
+
+    // Populate the Room Select dropdown on start
+    function populateRoomDropdown() {
+      propRoom.innerHTML = '';
+      Object.keys(ROOM_TASKS_DB).forEach(room => {
+        const opt = document.createElement('option');
+        opt.value = room;
+        opt.innerText = room;
+        propRoom.appendChild(opt);
+      });
+    }
+
+    // Load Configs and then GLB Model
+    async function loadProject() {
+      let config = { map: { position: [0,0,0], rotation: [0,0,0], scale: [1,1,1] }, tasks: [] };
+      let wallsConfig = { defaultWall: { position: [0, 2, 0], scale: [1, 4, 0.5], rotation: [0, 0, 0] }, walls: [] };
+
+      try {
+        const [resConfig, resWalls] = await Promise.all([
+          fetch('/config.json'),
+          fetch('/walls.json')
+        ]);
+        
+        if (resConfig.ok) config = await resConfig.json();
+        if (resWalls.ok) wallsConfig = await resWalls.json();
+      } catch (err) {
+        console.log("Error loading config files, starting with defaults.", err);
+      }
+
+      // Configure Draco decompression
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+
+      // Load GLB Map
+      const loader = new GLTFLoader();
+      loader.setDRACOLoader(dracoLoader);
+
+      loader.load(
+        'among_us_-_map_the_skeld.glb',
+        (gltf) => {
+          mapModel = gltf.scene;
+          
+          mapModel.traverse((node) => {
+            if (node.isMesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+            }
+          });
+
+          // Apply map placement from config
+          if (config.map) {
+            if (config.map.position) mapModel.position.fromArray(config.map.position);
+            if (config.map.rotation) mapModel.rotation.fromArray(config.map.rotation);
+            if (config.map.scale) mapModel.scale.fromArray(config.map.scale);
+          }
+
+          scene.add(mapModel);
+
+          // Restore saved tasks
+          if (config.tasks && Array.isArray(config.tasks)) {
+            config.tasks.forEach(tData => {
+              createTaskSphere(tData);
+            });
+          }
+
+          // Restore template values
+          if (wallsConfig.defaultWall) {
+            if (wallsConfig.defaultWall.position) templateWallMesh.position.fromArray(wallsConfig.defaultWall.position);
+            if (wallsConfig.defaultWall.scale) templateWallMesh.scale.fromArray(wallsConfig.defaultWall.scale);
+            if (wallsConfig.defaultWall.rotation) templateWallMesh.rotation.fromArray(wallsConfig.defaultWall.rotation);
+          }
+
+          // Restore saved walls
+          if (wallsConfig.walls && Array.isArray(wallsConfig.walls)) {
+            wallsConfig.walls.forEach(wData => {
+              const pA = new THREE.Vector3().fromArray(wData.pointA);
+              const pB = new THREE.Vector3().fromArray(wData.pointB);
+              createWallSegment(pA, pB, wData.id);
+            });
+          }
+
+          // Restore 2D Map settings
+          if (config.map2d) {
+            document.getElementById('input-2dmap-path').value = config.map2d.imagePath || 'the_skeld_2d.png';
+            if (config.map2d.position) map2dMesh.position.fromArray(config.map2d.position);
+            if (config.map2d.rotation) map2dMesh.rotation.fromArray(config.map2d.rotation);
+            if (config.map2d.scale) map2dMesh.scale.fromArray(config.map2d.scale);
+            if (config.map2d.opacity !== undefined) {
+              map2dMesh.material.opacity = config.map2d.opacity;
+              document.getElementById('slide-2dmap-opacity').value = config.map2d.opacity;
+              document.getElementById('lbl-2dmap-opacity').innerText = config.map2d.opacity;
+            }
+            
+            // Set slider to position height
+            document.getElementById('slide-2dmap-height').value = map2dMesh.position.y.toFixed(1);
+            document.getElementById('lbl-2dmap-height').innerText = map2dMesh.position.y.toFixed(1);
+
+            if (config.map2d.imagePath) {
+              load2DMapTexture(config.map2d.imagePath);
+            }
+          }
+
+          // Hide Loader Screen
+          loaderOverlay.style.opacity = '0';
+          setTimeout(() => {
+            loaderOverlay.style.display = 'none';
+          }, 500);
+        },
+        (xhr) => {
+          if (xhr.total > 0) {
+            const percent = Math.round((xhr.loaded / xhr.total) * 100);
+            loaderText.innerText = `Loading The Skeld Map... (${percent}%)`;
+          } else {
+            loaderText.innerText = `Downloading... ${(xhr.loaded / (1024 * 1024)).toFixed(1)} MB`;
+          }
+        },
+        (error) => {
+          console.error('An error happened loading GLB model:', error);
+          loaderText.innerText = 'Error loading map file!';
+          loaderText.style.color = '#ff4444';
+        }
+      );
+    }
+
+    // Load visual 2D texture map
+    function load2DMapTexture(url) {
+      const loader = new THREE.TextureLoader();
+      loader.load(
+        url,
+        (texture) => {
+          map2dTexture = texture;
+          map2dMesh.material.map = texture;
+          map2dMesh.material.needsUpdate = true;
+          map2dMesh.visible = true;
+
+          document.getElementById('minimap-calibration-controls').style.display = 'block';
+          document.getElementById('btn-transform-2dmap').style.display = 'block';
+
+          // Correct geometry aspect scales based on texture pixels
+          const img = texture.image;
+          if (img) {
+            const aspect = img.width / img.height;
+            map2dMesh.scale.set(map2dMesh.scale.y * aspect, map2dMesh.scale.y, 1);
+          }
+        },
+        undefined,
+        (err) => {
+          console.error("Could not load texture from " + url, err);
+          alert("Could not load image: " + url + "\nMake sure the file exists in the directory.");
+        }
+      );
+    }
+
+    // Summon a Task (Golden Sphere)
+    function createTaskSphere(data = {}) {
+      const geom = new THREE.SphereGeometry(1, 32, 32);
+      const mesh = new THREE.Mesh(geom, taskMaterialNormal);
+      mesh.castShadow = true;
+      
+      mesh.userData.id = data.id || 'task_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+      mesh.userData.room = data.room || 'Unassigned';
+      mesh.userData.task = data.task || 'Unassigned Task';
+      mesh.userData.name = data.name || (mesh.userData.room !== 'Unassigned' ? `${mesh.userData.room} - ${mesh.userData.task}` : 'New Task Sphere');
+      mesh.userData.isTask = true;
+
+      if (data.position) {
+        mesh.position.fromArray(data.position);
+      } else {
+        const target = orbitControls.target;
+        mesh.position.copy(target).add(new THREE.Vector3(0, 1, 0));
+      }
+
+      if (data.scale) {
+        mesh.scale.fromArray(data.scale);
+      } else {
+        mesh.scale.set(1.5, 1.5, 1.5);
+      }
+
+      if (data.rotation) {
+        mesh.rotation.fromArray(data.rotation);
+      }
+
+      scene.add(mesh);
+
+      // Create UI Element list representation
+      const el = document.createElement('div');
+      el.className = 'task-item';
+      el.dataset.id = mesh.userData.id;
+      
+      el.innerHTML = `
+        <div class="task-item-info">
+          <div class="task-item-title">${mesh.userData.room}</div>
+          <div class="task-item-subtitle">${mesh.userData.task}</div>
+          <div class="task-item-coords">Pos: ${mesh.position.x.toFixed(1)}, ${mesh.position.y.toFixed(1)}, ${mesh.position.z.toFixed(1)}</div>
+        </div>
+        <button class="btn-danger">❌</button>
+      `;
+
+      el.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+          selectObject(mesh);
+        }
+      });
+
+      const delBtn = el.querySelector('.btn-danger');
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTask(mesh.userData.id);
+      });
+
+      taskListEl.appendChild(el);
+
+      tasks.push({
+        id: mesh.userData.id,
+        mesh: mesh,
+        el: el
+      });
+
+      selectObject(mesh);
+    }
+
+    // Delete task sphere
+    function deleteTask(id) {
+      const index = tasks.findIndex(t => t.id === id);
+      if (index !== -1) {
+        const task = tasks[index];
+        scene.remove(task.mesh);
+        task.mesh.geometry.dispose();
+        task.el.remove();
+
+        if (selectedObject === task.mesh) {
+          deselectAll();
+        }
+
+        tasks.splice(index, 1);
+      }
+    }
+
+    // Selection Logic
+    function selectObject(obj) {
+      deselectAll();
+      
+      selectedObject = obj;
+
+      if (obj.userData.isTask) {
+        obj.material = taskMaterialSelected;
+        const taskData = tasks.find(t => t.mesh === obj);
+        if (taskData) {
+          taskData.el.classList.add('selected');
+          taskData.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Activate properties panel
+        propertiesPanel.style.display = 'block';
+        
+        // Set fields from userData
+        propRoom.value = obj.userData.room || 'Unassigned';
+        updateTasksDropdown(obj.userData.room || 'Unassigned');
+        propTask.value = obj.userData.task || 'Unassigned Task';
+        propName.value = obj.userData.name || '';
+        
+      } else if (obj === mapModel) {
+        document.getElementById('btn-select-map').classList.add('btn-primary');
+        propertiesPanel.style.display = 'none';
+      } else if (obj === templateWallMesh) {
+        document.getElementById('btn-toggle-template').classList.add('btn-primary');
+        propertiesPanel.style.display = 'none';
+      } else if (obj === map2dMesh) {
+        document.getElementById('btn-transform-2dmap').classList.add('btn-primary');
+        propertiesPanel.style.display = 'none';
+      }
+
+      transformControls.attach(obj);
+    }
+
+    function deselectAll() {
+      if (selectedObject) {
+        if (selectedObject.userData.isTask) {
+          selectedObject.material = taskMaterialNormal;
+        }
+        transformControls.detach();
+      }
+
+      tasks.forEach(t => t.el.classList.remove('selected'));
+      document.getElementById('btn-select-map').classList.remove('btn-primary');
+      document.getElementById('btn-toggle-template').classList.remove('btn-primary');
+      document.getElementById('btn-transform-2dmap').classList.remove('btn-primary');
+      propertiesPanel.style.display = 'none';
+      selectedObject = null;
+    }
+
+    // Update list UI coordinates/text
+    function updateTaskCoordsUI(obj) {
+      if (obj.userData.isTask) {
+        const taskData = tasks.find(t => t.mesh === obj);
+        if (taskData) {
+          const coordsEl = taskData.el.querySelector('.task-item-coords');
+          coordsEl.innerText = `Pos: ${obj.position.x.toFixed(1)}, ${obj.position.y.toFixed(1)}, ${obj.position.z.toFixed(1)}`;
+        }
+      }
+    }
+
+    // Update visual info inside sidebar list element
+    function updateTaskUIInfo(mesh) {
+      const taskData = tasks.find(t => t.mesh === mesh);
+      if (taskData) {
+        const titleEl = taskData.el.querySelector('.task-item-title');
+        const subtitleEl = taskData.el.querySelector('.task-item-subtitle');
+        
+        titleEl.innerText = mesh.userData.room;
+        subtitleEl.innerText = mesh.userData.task;
+      }
+    }
+
+    // Update specific tasks dropdown list depending on the selected room
+    function updateTasksDropdown(roomName) {
+      propTask.innerHTML = '';
+      const data = ROOM_TASKS_DB[roomName];
+      if (!data) {
+        const opt = document.createElement('option');
+        opt.value = 'Unassigned Task';
+        opt.innerText = 'Unassigned Task';
+        propTask.appendChild(opt);
+        return;
+      }
+
+      // Add Tasks
+      if (data.tasks.length > 0) {
+        const group = document.createElement('optgroup');
+        group.label = 'Tasks';
+        data.tasks.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t;
+          opt.innerText = t;
+          group.appendChild(opt);
+        });
+        propTask.appendChild(group);
+      }
+
+      // Add Sabotages
+      if (data.sabotages.length > 0) {
+        const group = document.createElement('optgroup');
+        group.label = 'Sabotages';
+        data.sabotages.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.innerText = s;
+          group.appendChild(opt);
+        });
+        propTask.appendChild(group);
+      }
+
+      // If nothing matches, insert standard item
+      if (propTask.children.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = 'Custom Action';
+        opt.innerText = 'Custom Action';
+        propTask.appendChild(opt);
+      }
+    }
+
+    // Enter/Exit 2D Drafting view
+    function toggleBuilderMode() {
+      isBuilderMode = !isBuilderMode;
+      const btn = document.getElementById('btn-toggle-builder');
+      const statusEl = document.getElementById('builder-status');
+      const listEl = document.getElementById('wall-list');
+
+      if (isBuilderMode) {
+        deselectAll();
+        templateWallMesh.visible = false;
+
+        // Cache existing camera properties
+        originalCameraState = {
+          position: camera.position.clone(),
+          target: orbitControls.target.clone(),
+          enableRotate: orbitControls.enableRotate,
+          minPolarAngle: orbitControls.minPolarAngle,
+          maxPolarAngle: orbitControls.maxPolarAngle
+        };
+
+        // Align camera directly overhead the map target
+        const center = orbitControls.target;
+        camera.position.set(center.x, center.y + 100, center.z);
+        orbitControls.target.copy(center);
+
+        // Lock orbit rotation angles
+        orbitControls.enableRotate = false;
+        orbitControls.minPolarAngle = 0;
+        orbitControls.maxPolarAngle = 0;
+        orbitControls.update();
+
+        btn.innerText = 'Exit Wall Builder';
+        btn.classList.add('btn-success');
+        statusEl.style.display = 'block';
+        listEl.style.display = 'block';
+        hoverMarker.visible = true;
+      } else {
+        exitBuilderClean();
+      }
+    }
+
+    function exitBuilderClean() {
+      isBuilderMode = false;
+      const btn = document.getElementById('btn-toggle-builder');
+      const statusEl = document.getElementById('builder-status');
+      const listEl = document.getElementById('wall-list');
+
+      if (originalCameraState) {
+        camera.position.copy(originalCameraState.position);
+        orbitControls.target.copy(originalCameraState.target);
+        orbitControls.enableRotate = originalCameraState.enableRotate;
+        orbitControls.minPolarAngle = originalCameraState.minPolarAngle;
+        orbitControls.maxPolarAngle = originalCameraState.maxPolarAngle;
+        orbitControls.update();
+      }
+
+      templateWallMesh.visible = false;
+      previewWallMesh.visible = false;
+      hoverMarker.visible = false;
+      pointA = null;
+
+      btn.innerText = 'Draw Walls (2D)';
+      btn.classList.remove('btn-success');
+      statusEl.style.display = 'none';
+      listEl.style.display = 'none';
+    }
+
+    // Get 3D coordinates projected from screen relative to the template offset height
+    function getDraftCoordsOnPlane(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+
+      const planeHeight = templateWallMesh.position.y;
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -planeHeight);
+      
+      const intersection = new THREE.Vector3();
+      if (raycaster.ray.intersectPlane(plane, intersection)) {
+        return intersection;
+      }
+      return null;
+    }
+
+    function onPointerMove(event) {
+      if (!isBuilderMode) return;
+
+      const hit = getDraftCoordsOnPlane(event);
+      if (hit) {
+        if (!pointA) {
+          // Free hovering
+          hoverMarker.position.copy(hit);
+          previewWallMesh.visible = false;
+        } else {
+          // Anchored drafting
+          const pointB = hit;
+          const distance = pointA.distanceTo(pointB);
+          const midpoint = new THREE.Vector3().addVectors(pointA, pointB).multiplyScalar(0.5);
+          
+          const dir = new THREE.Vector3().subVectors(pointB, pointA).normalize();
+          const yaw = Math.atan2(-dir.z, dir.x);
+
+          previewWallMesh.position.copy(midpoint);
+          previewWallMesh.scale.set(distance, templateWallMesh.scale.y, templateWallMesh.scale.z);
+          previewWallMesh.rotation.set(0, yaw, 0);
+          previewWallMesh.visible = true;
+
+          // Align interactive dot to drafting target
+          hoverMarker.position.copy(pointB);
+        }
+      }
+    }
+
+    // Place Wall Segment committed targets
+    function createWallSegment(pA, pB, id = null) {
+      const geom = new THREE.BoxGeometry(1, 1, 1);
+      const mesh = new THREE.Mesh(geom, builtWallMaterial);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+
+      const distance = pA.distanceTo(pB);
+      const midpoint = new THREE.Vector3().addVectors(pA, pB).multiplyScalar(0.5);
+      const dir = new THREE.Vector3().subVectors(pB, pA).normalize();
+      const yaw = Math.atan2(-dir.z, dir.x);
+
+      mesh.position.copy(midpoint);
+      mesh.scale.set(distance, templateWallMesh.scale.y, templateWallMesh.scale.z);
+      mesh.rotation.set(0, yaw, 0);
+
+      const wallId = id || 'wall_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+      mesh.userData = {
+        id: wallId,
+        isWall: true,
+        pointA: [pA.x, pA.y, pA.z],
+        pointB: [pB.x, pB.y, pB.z],
+        height: templateWallMesh.scale.y,
+        thickness: templateWallMesh.scale.z,
+        yOffset: templateWallMesh.position.y
+      };
+
+      scene.add(mesh);
+
+      // Create list item
+      const el = document.createElement('div');
+      el.className = 'task-item';
+      el.style.borderColor = 'rgba(0, 170, 255, 0.3)';
+      el.style.background = 'rgba(0, 170, 255, 0.04)';
+      el.dataset.id = wallId;
+
+      el.innerHTML = `
+        <div class="task-item-info">
+          <div class="task-item-title" style="color: #00aaff;">Wall Collision</div>
+          <div class="task-item-subtitle">Length: ${distance.toFixed(1)}m | H: ${templateWallMesh.scale.y.toFixed(1)}m</div>
+          <div class="task-item-coords">Mid: ${midpoint.x.toFixed(1)}, ${midpoint.y.toFixed(1)}, ${midpoint.z.toFixed(1)}</div>
+        </div>
+        <button class="btn-danger">❌</button>
+      `;
+
+      el.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON') {
+          orbitControls.target.copy(mesh.position);
+          if (isBuilderMode) {
+            camera.position.set(mesh.position.x, mesh.position.y + 80, mesh.position.z);
+          } else {
+            camera.position.copy(mesh.position).add(new THREE.Vector3(12, 18, 18));
+          }
+          orbitControls.update();
+        }
+      });
+
+      const delBtn = el.querySelector('.btn-danger');
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteWall(wallId);
+      });
+
+      wallListEl.appendChild(el);
+
+      wallsList.push({
+        id: wallId,
+        mesh: mesh,
+        el: el,
+        pointA: pA.clone(),
+        pointB: pB.clone()
+      });
+    }
+
+    function deleteWall(id) {
+      const index = wallsList.findIndex(w => w.id === id);
+      if (index !== -1) {
+        const wall = wallsList[index];
+        scene.remove(wall.mesh);
+        wall.mesh.geometry.dispose();
+        wall.el.remove();
+        wallsList.splice(index, 1);
+      }
+    }
+
+    // Save All Data to Server
+    async function saveConfiguration() {
+      // 1. Compile map, tasks, and 2D minimap alignment settings
+      const config = {
+        map: {
+          position: mapModel ? [mapModel.position.x, mapModel.position.y, mapModel.position.z] : [0,0,0],
+          rotation: mapModel ? [mapModel.rotation.x, mapModel.rotation.y, mapModel.rotation.z] : [0,0,0],
+          scale: mapModel ? [mapModel.scale.x, mapModel.scale.y, mapModel.scale.z] : [1,1,1]
+        },
+        map2d: {
+          imagePath: document.getElementById('input-2dmap-path').value,
+          position: [map2dMesh.position.x, map2dMesh.position.y, map2dMesh.position.z],
+          rotation: [map2dMesh.rotation.x, map2dMesh.rotation.y, map2dMesh.rotation.z],
+          scale: [map2dMesh.scale.x, map2dMesh.scale.y, map2dMesh.scale.z],
+          opacity: map2dMesh.material.opacity
+        },
+        tasks: tasks.map(t => ({
+          id: t.mesh.userData.id,
+          room: t.mesh.userData.room,
+          task: t.mesh.userData.task,
+          name: t.mesh.userData.name,
+          position: [t.mesh.position.x, t.mesh.position.y, t.mesh.position.z],
+          rotation: [t.mesh.rotation.x, t.mesh.rotation.y, t.mesh.rotation.z],
+          scale: [t.mesh.scale.x, t.mesh.scale.y, t.mesh.scale.z]
+        }))
+      };
+
+      // 2. Compile default wall settings and list segments
+      const wallsConfig = {
+        defaultWall: {
+          position: [templateWallMesh.position.x, templateWallMesh.position.y, templateWallMesh.position.z],
+          scale: [templateWallMesh.scale.x, templateWallMesh.scale.y, templateWallMesh.scale.z],
+          rotation: [templateWallMesh.rotation.x, templateWallMesh.rotation.y, templateWallMesh.rotation.z]
+        },
+        walls: wallsList.map(w => ({
+          id: w.id,
+          pointA: [w.pointA.x, w.pointA.y, w.pointA.z],
+          pointB: [w.pointB.x, w.pointB.y, w.pointB.z],
+          position: [w.mesh.position.x, w.mesh.position.y, w.mesh.position.z],
+          rotation: [w.mesh.rotation.x, w.mesh.rotation.y, w.mesh.rotation.z],
+          scale: [w.mesh.scale.x, w.mesh.scale.y, w.mesh.scale.z]
+        }))
+      };
+
+      try {
+        const [resConfig, resWalls] = await Promise.all([
+          fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config, null, 2)
+          }),
+          fetch('/api/walls', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(wallsConfig, null, 2)
+          })
+        ]);
+
+        if (resConfig.ok && resWalls.ok) {
+          const saveBtn = document.getElementById('btn-save');
+          const originalText = saveBtn.innerText;
+          saveBtn.innerText = 'Saved Successfully!';
+          saveBtn.style.background = '#1b5e20';
+          setTimeout(() => {
+            saveBtn.innerText = originalText;
+            saveBtn.style.background = '';
+          }, 2000);
+        } else {
+          alert('Failed to save configuration files.');
+        }
+      } catch (err) {
+        console.error('Save error:', err);
+        alert('Could not reach the local server to save configuration.');
+      }
+    }
+
+    // Interactive Clicking in 3D Space (Raycaster selection & Drafting placements)
+    function onPointerDown(event) {
+      if (transformControls.dragging) return;
+
+      if (isBuilderMode) {
+        if (event.button !== 0) return; // Only process drafting points with left click
+
+        const intersection = getDraftCoordsOnPlane(event);
+        if (intersection) {
+          if (!pointA) {
+            pointA = intersection.clone();
+            hoverMarker.position.copy(pointA);
+            hoverMarker.material.color.setHex(0xff0000); // Anchor visual point
+          } else {
+            const pointB = intersection.clone();
+            if (pointA.distanceTo(pointB) > 0.1) {
+              createWallSegment(pointA, pointB);
+            }
+            pointA = null;
+            hoverMarker.material.color.setHex(0xffff00);
+          }
+        }
+        return;
+      }
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+
+      // Populate list of selection targets (exclude map2dMesh from click selection to avoid blocking objects underneath)
+      const selectables = tasks.map(t => t.mesh);
+      if (templateWallMesh.visible) {
+        selectables.push(templateWallMesh);
+      }
+
+      const intersects = raycaster.intersectObjects(selectables);
+      if (intersects.length > 0) {
+        selectObject(intersects[0].object);
+      }
+    }
+
+    // Handle Setup events
+    function setupUIEvents() {
+      document.getElementById('btn-add-task').addEventListener('click', () => {
+        createTaskSphere();
+      });
+
+      document.getElementById('btn-select-map').addEventListener('click', () => {
+        if (mapModel) {
+          selectObject(mapModel);
+        }
+      });
+
+      document.getElementById('btn-reset-map').addEventListener('click', () => {
+        if (mapModel) {
+          mapModel.position.set(0, 0, 0);
+          mapModel.rotation.set(0, 0, 0);
+          mapModel.scale.set(1, 1, 1);
+          if (selectedObject === mapModel) {
+            transformControls.attach(mapModel);
+          }
+        }
+      });
+
+      document.getElementById('btn-load-2dmap').addEventListener('click', () => {
+        const path = document.getElementById('input-2dmap-path').value;
+        load2DMapTexture(path);
+      });
+
+      document.getElementById('btn-transform-2dmap').addEventListener('click', () => {
+        if (map2dMesh) {
+          selectObject(map2dMesh);
+        }
+      });
+
+      document.getElementById('slide-2dmap-opacity').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (map2dMesh) {
+          map2dMesh.material.opacity = val;
+        }
+        document.getElementById('lbl-2dmap-opacity').innerText = val.toFixed(2);
+      });
+
+      document.getElementById('slide-2dmap-height').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (map2dMesh) {
+          map2dMesh.position.y = val;
+        }
+        document.getElementById('lbl-2dmap-height').innerText = val.toFixed(1);
+      });
+
+      document.getElementById('btn-toggle-template').addEventListener('click', () => {
+        if (isBuilderMode) {
+          exitBuilderClean();
+        }
+        templateWallMesh.visible = true;
+        selectObject(templateWallMesh);
+      });
+
+      document.getElementById('btn-toggle-builder').addEventListener('click', toggleBuilderMode);
+
+      document.getElementById('btn-save').addEventListener('click', saveConfiguration);
+
+      // Handle real-time properties changes
+      propRoom.addEventListener('change', (e) => {
+        if (selectedObject && selectedObject.userData.isTask) {
+          const roomVal = e.target.value;
+          selectedObject.userData.room = roomVal;
+          
+          // Populate and set tasks
+          updateTasksDropdown(roomVal);
+          const defaultTask = propTask.value;
+          selectedObject.userData.task = defaultTask;
+          
+          // Set dynamic name
+          const generatedName = roomVal !== 'Unassigned' ? `${roomVal} - ${defaultTask}` : 'New Task Sphere';
+          selectedObject.userData.name = generatedName;
+          propName.value = generatedName;
+          
+          updateTaskUIInfo(selectedObject);
+        }
+      });
+
+      propTask.addEventListener('change', (e) => {
+        if (selectedObject && selectedObject.userData.isTask) {
+          const taskVal = e.target.value;
+          selectedObject.userData.task = taskVal;
+          
+          // Set dynamic name
+          const roomVal = selectedObject.userData.room;
+          const generatedName = roomVal !== 'Unassigned' ? `${roomVal} - ${taskVal}` : 'New Task Sphere';
+          selectedObject.userData.name = generatedName;
+          propName.value = generatedName;
+          
+          updateTaskUIInfo(selectedObject);
+        }
+      });
+
+      propName.addEventListener('input', (e) => {
+        if (selectedObject && selectedObject.userData.isTask) {
+          selectedObject.userData.name = e.target.value;
+        }
+      });
+    }
+
+    // Keyboard Shortcuts
+    function onKeyDown(event) {
+      if (isBuilderMode) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+          if (pointA) {
+            pointA = null;
+            previewWallMesh.visible = false;
+            hoverMarker.material.color.setHex(0xffff00);
+            event.stopPropagation();
+          } else {
+            exitBuilderClean();
+          }
+        }
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case 'w':
+          transformControls.setMode('translate');
+          break;
+        case 'e':
+          transformControls.setMode('rotate');
+          break;
+        case 'r':
+          transformControls.setMode('scale');
+          break;
+        case 'escape':
+          deselectAll();
+          templateWallMesh.visible = false;
+          break;
+      }
+    }
+
+    // Resize Window Handler
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Render Animation Loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      orbitControls.update();
+
+      const time = Date.now() * 0.002;
+      tasks.forEach(t => {
+        if (t.mesh !== selectedObject) {
+          t.mesh.position.y += Math.sin(time + t.mesh.position.x + t.mesh.position.z) * 0.001;
+        }
+      });
+
+      // Calculate relative coordinate projection debug printout
+      if (selectedObject && selectedObject.userData.isTask && map2dMesh && map2dMesh.visible) {
+        document.getElementById('debug-minimap-projection').style.display = 'block';
+        
+        // Convert the 3D task sphere world position to the local coordinates of the calibrated 2D plane
+        const localPos = map2dMesh.worldToLocal(selectedObject.position.clone());
+        
+        // Since PlaneGeometry is 1x1 before scaling, local coordinates span from -0.5 to 0.5.
+        // We offset by 0.5 to yield standard 0.0 to 1.0 UV mapping bounds.
+        const u = localPos.x + 0.5;
+        const v = localPos.y + 0.5;
+        
+        document.getElementById('debug-proj-u').innerText = u.toFixed(4) + ` (${(u * 100).toFixed(1)}%)`;
+        document.getElementById('debug-proj-v').innerText = v.toFixed(4) + ` (${(v * 100).toFixed(1)}%)`;
+      } else {
+        document.getElementById('debug-minimap-projection').style.display = 'none';
+      }
+
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>

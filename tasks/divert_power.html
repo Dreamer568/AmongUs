@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Divert Power</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+      z-index: 15;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ea580c;
+      text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+      text-transform: uppercase;
+    }
+
+    .voltage-status {
+      font-size: 0.8rem;
+      color: #eab308;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .stage-canvas-area {
+      flex-grow: 1;
+      width: 100%;
+      position: relative;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+
+    .stage-breaker-panel {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #181a1d;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px;
+      box-sizing: border-box;
+      transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 2;
+    }
+
+    .slider-lane {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      width: 32px;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .slider-track {
+      width: 8px;
+      height: 180px;
+      background: #090a0d;
+      border-radius: 4px;
+      border: 1.5px solid #2d3135;
+      position: relative;
+    }
+
+    .slider-handle {
+      width: 26px;
+      height: 34px;
+      background: linear-gradient(180deg, #e2e8f0 0%, #94a3b8 100%);
+      border: 2px solid #1e293b;
+      border-radius: 4px;
+      position: absolute;
+      left: -11px;
+      bottom: 0px;
+      cursor: grab;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.5);
+    }
+
+    .slider-handle:active {
+      cursor: grabbing;
+    }
+
+    .slider-lane.active-divert .slider-track {
+      border-color: #f97316;
+      box-shadow: 0 0 8px rgba(249, 115, 22, 0.2);
+    }
+
+    .slider-lane.active-divert .slider-handle {
+      background: linear-gradient(180deg, #f97316 0%, #ea580c 100%);
+      border-color: #431407;
+      box-shadow: 0 0 10px #f97316, inset 0 1px 1px rgba(255,255,255,0.4);
+      animation: sliderGlow 1.2s infinite alternate;
+    }
+
+    @keyframes sliderGlow {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.25); }
+    }
+
+    .slider-label {
+      font-size: 0.55rem;
+      font-weight: bold;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .slider-lane.active-divert .slider-label {
+      color: #f97316;
+      text-shadow: 0 0 4px rgba(249, 115, 22, 0.3);
+    }
+
+    .stage-accept-panel {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #111317;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      transform: translateX(540px);
+      transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+      z-index: 3;
+    }
+
+    .breaker-switch-container {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #2d3748 0%, #1a202c 100%);
+      border: 4px solid #31363e;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .breaker-switch-container.secured {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .contact-conduit {
+      width: 25px;
+      height: 25px;
+      border-radius: 4px;
+      background: #23272a;
+      border: 2px solid #3d4554;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .indicator-led {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #2a1111;
+      border: 2px solid #1a0a0a;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+      transition: background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .conduit-orange.secured { background: #f59e0b; border-color: #9a3412; box-shadow: 0 0 10px #f59e0b; }
+    .led-orange.secured { background: #f59e0b; border-color: #9a3412; box-shadow: 0 0 10px #f59e0b; }
+
+    .lightning-bolt-svg {
+      width: 65px;
+      height: 65px;
+      fill: #22252a;
+      stroke: #090a0d;
+      stroke-width: 2;
+      transition: fill 0.3s, filter 0.3s;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .breaker-switch-container.secured .lightning-bolt-svg {
+      fill: #f59e0b;
+      filter: drop-shadow(0 0 15px #f59e0b);
+    }
+
+    .elec-spark {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #f97316;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 50;
+      box-shadow: 0 0 6px #eab308;
+    }
+
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #ea580c;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(234, 88, 12, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <div class='header'>
+        <h1 id='title-lbl'>Divert Power</h1>
+        <div class='voltage-status' id='voltage-lbl'>GRID CORE: INCOMPLETE</div>
+      </div>
+
+      <div class='stage-canvas-area' id='arena'>
+        
+        <div class='stage-breaker-panel' id='stage-1-panel'>
+          <!-- Programmatic list -->
+        </div>
+
+        <div class='stage-accept-panel' id='stage-2-panel'>
+          <h2 style='color: #eab308; margin-top: 0; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px;'>Accept Diverted Relay</h2>
+          <div class='breaker-switch-container' id='breaker-btn'>
+            <svg class='lightning-bolt-svg' viewBox='0 0 100 100'>
+              <polygon points='55,10 25,55 45,55 35,90 75,40 50,40' />
+            </svg>
+          </div>
+          <p style='color: #64748b; font-size: 0.75rem; text-transform: uppercase; margin-top: 15px; letter-spacing: 1px;'>Flip Local Breaker Fuse</p>
+        </div>
+
+      </div>
+
+      <div style='color: #a0aec0; font-size: 0.75rem; text-align: center; letter-spacing: 1px;' id='help-txt'>
+        SLIDE THE GLOWING ACTIVE HIGH-VOLTAGE BREAKER UPWARD
+      </div>
+
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner' id='success-banner'>Power Diverted!</div>
+        <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;' id='success-sub'>Grid relay secured & localized systems online</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playElecSparkSound() {
+      try {
+        initAudio();
+        const bufferSize = audioCtx.sampleRate * 0.08;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1000;
+        
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      } catch(e) {}
+    }
+
+    function playIndustrialClunk() {
+      playTone(180, 'triangle', 0.18, 0.3);
+      setTimeout(() => {
+        playTone(90, 'sawtooth', 0.1, 0.2);
+      }, 50);
+    }
+
+    function playGridVictory() {
+      try {
+        initAudio();
+        const melody = [392.00, 493.88, 587.33, 783.99, 987.77];
+        melody.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 60);
+        });
+      } catch(e) {}
+    }
+
+    const ROOMS = ['WEAP', 'NAV', 'O2', 'SHLD', 'COMM', 'SEC', 'L-ENG', 'U-ENG'];
+    const targetDivertIndex = Math.floor(Math.random() * 8);
+    
+    const stage1Panel = document.getElementById('stage-1-panel');
+    const stage2Panel = document.getElementById('stage-2-panel');
+    const breakerBtn = document.getElementById('breaker-btn');
+    const arena = document.getElementById('arena');
+    
+    const titleLbl = document.getElementById('title-lbl');
+    const voltageLbl = document.getElementById('voltage-lbl');
+    const helpTxt = document.getElementById('help-txt');
+    const successScr = document.getElementById('success-scr');
+    const successBanner = document.getElementById('success-banner');
+    const successSub = document.getElementById('success-sub');
+
+    // READ MODULAR ROUTING PARAMETERS
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode') || 'combined'; // 'divert', 'accept', or 'combined'
+
+    let activeDragHandle = null;
+    let dragOffset = 0;
+    const maxTrackHeight = 146; 
+
+    let stage1Done = false;
+    let stage2Done = false;
+
+    function setupModes() {
+      if (mode === 'accept') {
+        // Start directly on Stage 2
+        stage1Done = true;
+        stage1Panel.style.transform = 'translateX(-540px)';
+        stage2Panel.style.transform = 'translateX(0)';
+        
+        titleLbl.innerText = 'Accept Power';
+        titleLbl.style.color = '#eab308';
+        voltageLbl.innerText = 'GRID RELAY: ACCEPT READY';
+        
+        helpTxt.innerText = 'TAP THE HIGH-VOLTAGE BREAKER FUSE TO LOG CONNECTIVITY';
+        helpTxt.style.color = '#eab308';
+      } else {
+        // Standard slide start
+        stage1Done = false;
+      }
+    }
+
+    function generateSliders() {
+      stage1Panel.innerHTML = '';
+      ROOMS.forEach((room, idx) => {
+        const lane = document.createElement('div');
+        lane.className = 'slider-lane' + (idx === targetDivertIndex ? ' active-divert' : '');
+        
+        lane.innerHTML = `
+          <div class='slider-label'>${room}</div>
+          <div class='slider-track'>
+            <div class='slider-handle' id='handle-${idx}' data-id='${idx}'></div>
+          </div>
+          <div class='slider-label' style='color: #475569;'>OFF</div>
+        `;
+        
+        stage1Panel.appendChild(lane);
+        
+        const handle = lane.querySelector('.slider-handle');
+        handle.addEventListener('mousedown', (e) => {
+          if (stage1Done || idx !== targetDivertIndex) return;
+          initAudio();
+          
+          activeDragHandle = handle;
+          const rect = handle.getBoundingClientRect();
+          dragOffset = e.clientY - rect.top;
+        });
+      });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (!activeDragHandle || stage1Done) return;
+      
+      const trackEl = activeDragHandle.parentElement;
+      const trackRect = trackEl.getBoundingClientRect();
+      
+      const relativeY = trackRect.bottom - e.clientY - (34 - dragOffset);
+      let clampedY = Math.max(0, Math.min(maxTrackHeight, relativeY));
+      
+      activeDragHandle.style.bottom = clampedY + 'px';
+      
+      if (Math.random() < 0.25) {
+        playElecSparkSound();
+        spawnSparks(trackRect.left + 13, trackRect.bottom - clampedY - 17);
+      }
+
+      if (clampedY >= maxTrackHeight - 4) {
+        stage1Done = true;
+        activeDragHandle.style.bottom = maxTrackHeight + 'px';
+        activeDragHandle = null;
+        
+        if (mode === 'divert') {
+          triggerDivertOnlyVictory();
+        } else {
+          triggerStageTransition();
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (activeDragHandle && !stage1Done) {
+        activeDragHandle.style.transition = 'bottom 0.25s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        activeDragHandle.style.bottom = '0px';
+        setTimeout(() => {
+          if (activeDragHandle) activeDragHandle.style.transition = 'none';
+        }, 250);
+      }
+      activeDragHandle = null;
+    });
+
+    function triggerStageTransition() {
+      playIndustrialClunk();
+      voltageLbl.innerText = 'GRID CORES: ROUTING...';
+      
+      setTimeout(() => {
+        stage1Panel.style.transform = 'translateX(-540px)';
+        stage2Panel.style.transform = 'translateX(0)';
+        
+        titleLbl.innerText = 'Accept Power';
+        titleLbl.style.color = '#eab308';
+        
+        helpTxt.innerText = 'TAP THE HIGH-VOLTAGE BREAKER FUSE TO LOG CONNECTIVITY';
+        helpTxt.style.color = '#eab308';
+      }, 550);
+    }
+
+    function triggerDivertOnlyVictory() {
+      playIndustrialClunk();
+      voltageLbl.innerText = 'GRID CORE: DIVERTED';
+      voltageLbl.style.color = '#00ff66';
+      
+      successBanner.innerText = 'Power Diverted!';
+      successSub.innerText = 'High-voltage grid diverted successfully';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playGridVictory();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Divert Power (Divert)' }, '*');
+        }
+      }, 500);
+    }
+
+    breakerBtn.addEventListener('mousedown', () => {
+      if (!stage1Done || stage2Done) return;
+      
+      stage2Done = true;
+      breakerBtn.classList.add('secured');
+      
+      playIndustrialClunk();
+      playElecSparkSound();
+      
+      const btnRect = breakerBtn.getBoundingClientRect();
+      const vpRect = arena.getBoundingClientRect();
+      
+      for (let i = 0; i < 20; i++) {
+        spawnSparks(btnRect.left + 65 - vpRect.left, btnRect.top + 65 - vpRect.top);
+      }
+      
+      voltageLbl.innerText = 'GRID RELAY: VERIFIED';
+      voltageLbl.style.color = '#00ff66';
+      
+      successBanner.innerText = 'Power Accepted!';
+      successSub.innerText = 'Grid relay secured & localized systems online';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playGridVictory();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Divert Power (Stage 1)' }, '*');
+        }
+      }, 650);
+    });
+
+    function spawnSparks(x, y) {
+      for (let i = 0; i < 6; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'elec-spark';
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        arena.appendChild(spark);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        
+        let px = x;
+        let py = y;
+        let op = 1.0;
+
+        function anim() {
+          px += vx;
+          py += vy + 0.15;
+          op -= 0.05;
+          
+          spark.style.left = px + 'px';
+          spark.style.top = py + 'px';
+          spark.style.opacity = op;
+
+          if (op > 0) {
+            requestAnimationFrame(anim);
+          } else {
+            spark.remove();
+          }
+        }
+        requestAnimationFrame(anim);
+      }
+    }
+
+    // Start Game
+    generateSliders();
+    setupModes();
+  </script>
+</body>
+</html>

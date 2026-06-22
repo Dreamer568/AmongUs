@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Start Reactor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #3b82f6;
+      text-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+      text-transform: uppercase;
+    }
+
+    /* LEDs displaying rounds */
+    .rounds-led-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .round-led {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4a1212;
+      border: 2px solid #200505;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .round-led.active {
+      background: #34c759;
+      border-color: #1e7033;
+      box-shadow: 0 0 8px #34c759, inset 0 1.5px 2px rgba(255,255,255,0.6);
+    }
+
+    /* Screens board alignment */
+    .reactor-screens {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-grow: 1;
+      width: 100%;
+      padding: 15px 0;
+      box-sizing: border-box;
+      gap: 25px;
+    }
+
+    .screen-container {
+      flex: 1;
+      height: 230px;
+      background: #111317;
+      border: 3px solid #2d3135;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      box-sizing: border-box;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
+    }
+
+    .screen-title {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #8f9cae;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    /* 3x3 Grids */
+    .grid-3x3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+      flex-grow: 1;
+    }
+
+    /* Left inactive display tiles */
+    .display-tile {
+      background: #181a1f;
+      border: 1px solid #22252a;
+      border-radius: 4px;
+      transition: background 0.1s, box-shadow 0.1s;
+    }
+
+    /* Active flashing visual on display screen */
+    .display-tile.active-flash {
+      background: #00d5ff;
+      box-shadow: 0 0 15px #00d5ff;
+    }
+
+    /* Keypad triggers */
+    .keypad-btn {
+      background: linear-gradient(135deg, #282c35 0%, #17191e 100%);
+      border: 2px solid #3d4554;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.08);
+      transition: transform 0.05s, border-color 0.1s;
+    }
+
+    .keypad-btn:hover {
+      border-color: #3b82f6;
+    }
+
+    .keypad-btn:active {
+      transform: scale(0.94);
+    }
+
+    .keypad-btn.active-tap {
+      background: #3b82f6;
+      border-color: #00d5ff;
+      box-shadow: 0 0 15px #3b82f6;
+    }
+
+    /* Error red flasher */
+    .fail-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(239, 68, 68, 0.22);
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    /* Complete panel */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #3b82f6;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <div class='header'>
+        <h1>Start Reactor</h1>
+        <!-- Round LEDs -->
+        <div class='rounds-led-row' id='led-row'>
+          <div class='round-led' id='led-1'></div>
+          <div class='round-led' id='led-2'></div>
+          <div class='round-led' id='led-3'></div>
+          <div class='round-led' id='led-4'></div>
+          <div class='round-led' id='led-5'></div>
+        </div>
+      </div>
+
+      <div class='reactor-screens'>
+        <!-- Left screen: display output -->
+        <div class='screen-container'>
+          <div class='screen-title' id='screen-status-txt'>SEQUENCE DISPLAY</div>
+          <div class='grid-3x3' id='display-grid'>
+            <!-- 9 display tiles -->
+          </div>
+        </div>
+
+        <!-- Right screen: keypad inputs -->
+        <div class='screen-container'>
+          <div class='screen-title'>MANUAL INPUT</div>
+          <div class='grid-3x3' id='keypad-grid'>
+            <!-- 9 keypad buttons -->
+          </div>
+        </div>
+      </div>
+
+      <div style='color: #8f9cae; font-size: 0.75rem; text-align: center; letter-spacing: 1px;' id='help-txt'>
+        OBSERVE REACTOR GRID FLASHE AND MATCH PATTERN ON KEYPAD
+      </div>
+
+      <!-- Fail Overlay -->
+      <div class='fail-overlay' id='fail-flash'></div>
+
+      <!-- Victory overlay -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Reactor Online</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Power systems stabilized and engaged</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Tones corresponding to grid indices: pentatonic musical scale mapping
+    const NOTE_FREQS = [
+      261.63, 293.66, 329.63, // C4, D4, E4
+      392.00, 440.00, 523.25, // G4, A4, C5
+      587.33, 659.25, 783.99  // D5, E5, G5
+    ];
+
+    function playGridTone(index) {
+      try {
+        initAudio();
+        const freq = NOTE_FREQS[index] || 440;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      } catch (e) {}
+    }
+
+    function playFailBuzz() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    function playCompleteChirp() {
+      try {
+        initAudio();
+        const victoryNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        victoryNotes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 70);
+        });
+      } catch (e) {}
+    }
+
+    // Game logic variables
+    const totalRounds = 5;
+    let currentRound = 1; 
+    let fullSequence = []; // List of grid indices (0-8)
+    let playerInputIndex = 0;
+    
+    let isPlayingSequence = false;
+    let completed = false;
+
+    const displayGrid = document.getElementById('display-grid');
+    const keypadGrid = document.getElementById('keypad-grid');
+    const screenStatus = document.getElementById('screen-status-txt');
+    const helpTxt = document.getElementById('help-txt');
+    const failFlash = document.getElementById('fail-flash');
+    const successScr = document.getElementById('success-scr');
+
+    // Build visual grid tiles
+    const displayTiles = [];
+    const keypadBtns = [];
+
+    function buildGrids() {
+      displayGrid.innerHTML = '';
+      keypadGrid.innerHTML = '';
+
+      for (let i = 0; i < 9; i++) {
+        // Left display screen tile
+        const tile = document.createElement('div');
+        tile.className = 'display-tile';
+        displayGrid.appendChild(tile);
+        displayTiles.push(tile);
+
+        // Right interaction keypad button
+        const btn = document.createElement('div');
+        btn.className = 'keypad-btn';
+        btn.id = 'keypad-' + i;
+        btn.dataset.index = i;
+        keypadGrid.appendChild(btn);
+        keypadBtns.push(btn);
+
+        // Keypad click interaction
+        btn.addEventListener('mousedown', () => {
+          if (isPlayingSequence || completed) return;
+          initAudio();
+          handleKeypadInput(i);
+        });
+      }
+    }
+
+    // Populate full sequence once at start
+    function generateFullSequence() {
+      fullSequence = [];
+      for (let i = 0; i < totalRounds; i++) {
+        fullSequence.push(Math.floor(Math.random() * 9));
+      }
+    }
+
+    // Run visual cue sequence on the left display grid
+    function playCurrentSequence() {
+      isPlayingSequence = true;
+      playerInputIndex = 0;
+      screenStatus.innerText = 'PLAYING...';
+      screenStatus.style.color = '#3b82f6';
+      helpTxt.innerText = 'MEMORIZE THE DISPLAY PATTERN';
+      helpTxt.style.color = '#8f9cae';
+
+      let stepIdx = 0;
+
+      function showNextStep() {
+        if (stepIdx >= currentRound) {
+          // Done playing, allow player input
+          isPlayingSequence = false;
+          screenStatus.innerText = 'YOUR TURN';
+          screenStatus.style.color = '#00ff66';
+          helpTxt.innerText = 'ENTER THE SEQUENCE PATTERN ON KEYPAD';
+          helpTxt.style.color = '#00ff66';
+          return;
+        }
+
+        const tileIndex = fullSequence[stepIdx];
+        const tileEl = displayTiles[tileIndex];
+
+        // Flash ON
+        tileEl.classList.add('active-flash');
+        playGridTone(tileIndex);
+
+        setTimeout(() => {
+          // Flash OFF
+          tileEl.classList.remove('active-flash');
+          
+          stepIdx++;
+          // Gap between flashes
+          setTimeout(showNextStep, 150);
+        }, 300);
+      }
+
+      // Initial delay before starting to play
+      setTimeout(showNextStep, 400);
+    }
+
+    // Handle player clicks
+    function handleKeypadInput(index) {
+      const btn = keypadBtns[index];
+      const expectedIndex = fullSequence[playerInputIndex];
+
+      // Visual lightup
+      btn.classList.add('active-tap');
+      playGridTone(index);
+      
+      setTimeout(() => {
+        btn.classList.remove('active-tap');
+      }, 150);
+
+      if (index === expectedIndex) {
+        // Correct input!
+        playerInputIndex++;
+        if (playerInputIndex >= currentRound) {
+          // Completed the current round!
+          document.getElementById('led-' + currentRound).classList.add('active');
+          
+          if (currentRound < totalRounds) {
+            currentRound++;
+            setTimeout(() => {
+              playCurrentSequence();
+            }, 600);
+          } else {
+            triggerReactorVictory();
+          }
+        }
+      } else {
+        // Mis-tap! Resets back to Round 1
+        playFailBuzz();
+        flashFailureScreen();
+        resetReactor();
+      }
+    }
+
+    function flashFailureScreen() {
+      failFlash.style.display = 'block';
+      setTimeout(() => {
+        failFlash.style.display = 'none';
+      }, 250);
+    }
+
+    function resetReactor() {
+      currentRound = 1;
+      playerInputIndex = 0;
+      screenStatus.innerText = 'INVALID INPUT';
+      screenStatus.style.color = '#ef4444';
+      helpTxt.innerText = 'SEQUENCE INCOMPLETE: RETRYING SYSTEM...';
+      helpTxt.style.color = '#ef4444';
+
+      // Reset LEDs
+      for (let i = 1; i <= totalRounds; i++) {
+        document.getElementById('led-' + i).classList.remove('active');
+      }
+
+      // Generate new pattern and restart play cycle
+      generateFullSequence();
+      setTimeout(() => {
+        playCurrentSequence();
+      }, 1200);
+    }
+
+    function triggerReactorVictory() {
+      completed = true;
+      screenStatus.innerText = 'STABILIZED';
+      screenStatus.style.color = '#3b82f6';
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playCompleteChime();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Start Reactor' }, '*');
+        }
+      }, 400);
+    }
+
+    // Start Game
+    buildGrids();
+    generateFullSequence();
+    playCurrentSequence();
+  </script>
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Clean O2 Filter</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #1d222a;
+      border: 6px solid #2d3748;
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a545c;
+      border: 4px solid #31383e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31383e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #10b981;
+      text-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+      text-transform: uppercase;
+    }
+
+    .filter-status {
+      font-size: 0.8rem;
+      color: #ecc94b;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Filtration Chamber Viewport */
+    .filter-viewport {
+      flex-grow: 1;
+      background: radial-gradient(circle at 15% 50%, #151e18 0%, #080d0a 100%);
+      border: 3px solid #1c2e24;
+      border-radius: 6px;
+      margin: 15px 0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.9);
+    }
+
+    /* Suction grid intake */
+    .suction-vent {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      width: 110px;
+      height: 110px;
+      margin-top: -55px;
+      border-radius: 50%;
+      background: #090c0a;
+      border: 4px solid #14532d;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), inset 0 5px 10px rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .suction-ring-glow {
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      border: 3px dashed rgba(16, 185, 129, 0.35);
+      pointer-events: none;
+      animation: pulseVortex 2s linear infinite;
+    }
+
+    @keyframes pulseVortex {
+      0% { transform: rotate(0deg) scale(0.95); opacity: 0.3; }
+      50% { opacity: 0.6; }
+      100% { transform: rotate(-360deg) scale(1.08); opacity: 0.3; }
+    }
+
+    .fan-blades {
+      width: 70px;
+      height: 70px;
+      opacity: 0.2;
+      animation: fanSpin 0.8s linear infinite;
+    }
+
+    @keyframes fanSpin {
+      100% { transform: rotate(-360deg); }
+    }
+
+    /* Organic Leaf styling */
+    .leaf-debris {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      cursor: grab;
+      z-index: 10;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+      transition: transform 0.1s;
+    }
+
+    .leaf-debris:active {
+      cursor: grabbing;
+      transform: scale(1.15);
+    }
+
+    .leaf-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Bio-matter swirling particles */
+    .bio-particle {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background-color: #10b981;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Success Screen */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #10b981;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <div class='header'>
+        <h1>Clean O2 Filter</h1>
+        <div class='filter-status' id='status-lbl'>FILTER RECYCLE RATIO: 18%</div>
+      </div>
+
+      <!-- Interactive Viewport -->
+      <div class='filter-viewport' id='viewport'>
+        <div class='suction-ring-glow'></div>
+        
+        <!-- Recycler suction grill -->
+        <div class='suction-vent'>
+          <svg class='fan-blades' viewBox='0 0 100 100'>
+            <circle cx='50' cy='50' r='10' fill='#555' />
+            <path d='M50 40 C35 15 10 30 25 50 C40 50 45 45 50 40 Z' fill='#333' />
+            <path d='M60 50 C85 35 70 10 50 25 C50 40 45 45 60 50 Z' fill='#333' />
+            <path d='M50 60 C65 85 90 70 75 50 C60 50 55 55 50 60 Z' fill='#333' />
+            <path d='M40 50 C15 65 30 90 50 75 C50 60 55 55 40 50 Z' fill='#333' />
+          </svg>
+        </div>
+
+        <!-- Leaf items generated programmatically -->
+      </div>
+
+      <div style='color: #a0aec0; font-size: 0.75rem; text-align: center; letter-spacing: 1px;'>
+        CLICK AND DRAG MOLDY DEBRIS INTO THE VACUUM RECOVERY VORTEX
+      </div>
+
+      <!-- Success slide -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Filter Cleaned</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Oxygen filtration bio-scrubbers active</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Bio-filtration humming looping engine
+    let filterHum = null;
+    let filterGain = null;
+
+    function startFilterHum() {
+      try {
+        initAudio();
+        filterHum = audioCtx.createOscillator();
+        filterGain = audioCtx.createGain();
+        
+        filterHum.type = 'triangle';
+        filterHum.frequency.setValueAtTime(65, audioCtx.currentTime);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 150;
+        
+        filterGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        
+        filterHum.connect(filter);
+        filter.connect(filterGain);
+        filterGain.connect(audioCtx.destination);
+        filterHum.start();
+      } catch (e) {}
+    }
+
+    function stopFilterHum() {
+      if (filterGain) {
+        try {
+          filterGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          setTimeout(() => {
+            if (filterHum) { filterHum.stop(); filterHum = null; }
+          }, 120);
+        } catch(e) {}
+      }
+    }
+
+    function playVortexWhoosh() {
+      try {
+        initAudio();
+        // Aerodynamic intake gust sweep
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(300, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch (e) {}
+    }
+
+    function playBioCompleteChime() {
+      try {
+        initAudio();
+        const melody = [392.00, 493.88, 587.33, 783.99, 987.77]; // Warm G major pentatonic
+        melody.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+          }, idx * 60);
+        });
+      } catch (e) {}
+    }
+
+    // Debris Vector paths (withered leaf designs)
+    const leafSVGs = [
+      // Star Maple Leaf (Brown)
+      '<path d="M25 5 L28 16 L38 12 L32 22 L45 25 L32 28 L38 38 L28 34 L25 45 L22 34 L12 38 L18 28 L5 25 L18 22 L12 12 L22 16 Z" fill="#9a3412" stroke="#451a03" stroke-width="2" />',
+      // Oak Leaf (Amber Orange)
+      '<path d="M10 25 C10 15, 18 5, 25 5 C32 5, 40 15, 40 25 C40 32, 35 38, 25 45 C15 38, 10 32, 10 25 Z" fill="#c2410c" stroke="#451a03" stroke-width="2" />',
+      // Birch Leaf (Withered Yellow)
+      '<path d="M25 5 C35 15, 38 32, 25 45 C12 32, 15 15, 25 5 Z" fill="#ca8a04" stroke="#422006" stroke-width="2" />',
+      // Elm Leaf (Earthy Dark-Green)
+      '<path d="M25 4 L40 15 L32 30 L45 35 L20 44 L15 25 L25 4 Z" fill="#166534" stroke="#14532d" stroke-width="2" />'
+    ];
+
+    const viewport = document.getElementById('viewport');
+    const statusLbl = document.getElementById('status-lbl');
+    const successScr = document.getElementById('success-scr');
+
+    let leaves = [];
+    const totalLeavesCount = 6;
+    let suckedCount = 0;
+    let completed = false;
+
+    // Suction Center point (Grill is situated at Left: 70px, VertCenter: 105px)
+    const VORTEX_X = 70;
+    const VORTEX_Y = 105;
+    const SUCTION_RADIUS = 95;
+
+    function initLeaves() {
+      for (let i = 0; i < totalLeavesCount; i++) {
+        const leaf = document.createElement('div');
+        leaf.className = 'leaf-debris';
+        leaf.id = 'leaf-' + i;
+        
+        // Scatter in the right 2/3 of viewport (avoiding the left suction zone)
+        const rx = Math.random() * 260 + 200;
+        const ry = Math.random() * 140 + 35;
+        const rot = Math.random() * 360;
+        
+        leaf.style.left = rx + 'px';
+        leaf.style.top = ry + 'px';
+        
+        leaf.innerHTML = `
+          <svg class="leaf-svg" style="transform: rotate(${rot}deg)" viewBox="0 0 50 50">
+            ${leafSVGs[i % leafSVGs.length]}
+          </svg>
+        `;
+        
+        viewport.appendChild(leaf);
+        
+        leaves.push({
+          el: leaf,
+          x: rx,
+          y: ry,
+          rotation: rot,
+          sucked: false,
+          isDragging: false
+        });
+
+        setupLeafInteraction(leaves[i]);
+      }
+      updateHUD();
+    }
+
+    function setupLeafInteraction(leafObj) {
+      const el = leafObj.el;
+      let dragOffset = { x: 0, y: 0 };
+
+      el.addEventListener('mousedown', (e) => {
+        if (completed || leafObj.sucked) return;
+        initAudio();
+        
+        leafObj.isDragging = true;
+        const rect = el.getBoundingClientRect();
+        const vpRect = viewport.getBoundingClientRect();
+        
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!leafObj.isDragging || completed) return;
+        
+        const vpRect = viewport.getBoundingClientRect();
+        const lx = e.clientX - vpRect.left - dragOffset.x;
+        const ly = e.clientY - vpRect.top - dragOffset.y;
+
+        // Constrain movement within frame bounds
+        leafObj.x = Math.max(-5, Math.min(500, lx));
+        leafObj.y = Math.max(-5, Math.min(180, ly));
+
+        el.style.left = leafObj.x + 'px';
+        el.style.top = leafObj.y + 'px';
+
+        // Physics Vortex check: distance from center of leaf to suction center
+        const dx = (leafObj.x + 23) - VORTEX_X;
+        const dy = (leafObj.y + 23) - VORTEX_Y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < SUCTION_RADIUS) {
+          // Grabbed by vortex! Trigger automated suck slide
+          leafObj.isDragging = false;
+          leafObj.sucked = true;
+          triggerVortexAnimation(leafObj);
+        }
+      });
+
+      document.addEventListener('mouseup', () => {
+        leafObj.isDragging = false;
+      });
+    }
+
+    function triggerVortexAnimation(leaf) {
+      playVortexWhoosh();
+      spawnBioSwirlParticles(leaf.x + 23, leaf.y + 23);
+
+      // Smooth animated path pulling into vortex center
+      const duration = 250;
+      const startX = leaf.x;
+      const startY = leaf.y;
+      const startScale = 1.0;
+      const startTime = Date.now();
+
+      function suckLoop() {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / duration;
+
+        if (progress >= 1.0) {
+          leaf.el.remove();
+          suckedCount++;
+          updateHUD();
+          checkCompletion();
+        } else {
+          // Interpolate to center
+          const currentX = startX + (VORTEX_X - 23 - startX) * progress;
+          const currentY = startY + (VORTEX_Y - 23 - startY) * progress;
+          const currentScale = startScale * (1 - progress);
+          
+          leaf.el.style.left = currentX + 'px';
+          leaf.el.style.top = currentY + 'px';
+          leaf.el.style.transform = `scale(${currentScale})`;
+          leaf.el.style.opacity = 1 - progress;
+          
+          requestAnimationFrame(suckLoop);
+        }
+      }
+      requestAnimationFrame(suckLoop);
+    }
+
+    function spawnBioSwirlParticles(x, y) {
+      for (let i = 0; i < 8; i++) {
+        const p = document.createElement('div');
+        p.className = 'bio-particle';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        viewport.appendChild(p);
+
+        // Spiral orbits velocity
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        
+        let px = x;
+        let py = y;
+        let op = 1.0;
+
+        function anim() {
+          // Attract towards vortex center
+          const dx = VORTEX_X - px;
+          const dy = VORTEX_Y - py;
+          
+          px += vx + dx * 0.15;
+          py += vy + dy * 0.15;
+          op -= 0.05;
+          
+          p.style.left = px + 'px';
+          p.style.top = py + 'px';
+          p.style.opacity = op;
+
+          if (op > 0) {
+            requestAnimationFrame(anim);
+          } else {
+            p.remove();
+          }
+        }
+        requestAnimationFrame(anim);
+      }
+    }
+
+    function updateHUD() {
+      const ratio = Math.floor((suckedCount / totalLeavesCount) * 100);
+      // Standard recycled starting is 18%, increments to 100% on done
+      const adjustedRatio = 18 + Math.floor((suckedCount / totalLeavesCount) * 82);
+      statusLbl.innerText = `FILTER RECYCLE RATIO: ${adjustedRatio}%`;
+    }
+
+    function checkCompletion() {
+      if (suckedCount >= totalLeavesCount) {
+        completed = true;
+        stopFilterHum();
+        statusLbl.innerText = 'FILTER SECURED & HYDROPONICS RESTORED';
+        statusLbl.style.color = '#10b981';
+
+        setTimeout(() => {
+          successScr.style.display = 'flex';
+          playBioCompleteChime();
+          
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Clean O2 Filter' }, '*');
+          }
+        }, 500);
+      }
+    }
+
+    // Start loop
+    window.addEventListener('load', () => {
+      startFilterHum();
+      initLeaves();
+    });
+  </script>
+</body>
+</html>

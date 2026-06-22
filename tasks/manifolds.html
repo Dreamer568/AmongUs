@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlock Manifolds</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e0e6ed;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Console Bezel */
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ffd700;
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+      text-transform: uppercase;
+    }
+
+    .status-msg {
+      font-size: 0.85rem;
+      color: #a5f3fc;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* Manifolds Grid Layout */
+    .manifolds-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 15px;
+      flex-grow: 1;
+      padding: 25px 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Interactive buttons */
+    .manifold-btn {
+      background: linear-gradient(135deg, #1f232b 0%, #111317 100%);
+      border: 3px solid #31363e;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1);
+      transition: transform 0.05s, box-shadow 0.1s;
+      position: relative;
+    }
+
+    .manifold-btn:hover {
+      border-color: #00d5ff;
+      box-shadow: 0 0 8px rgba(0, 213, 255, 0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+    }
+
+    .manifold-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Central neon numbers styling */
+    .btn-num {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #00d5ff;
+      text-shadow: 0 0 8px #00d5ff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* Clicked State: locks down in neon yellow-green or cyan-blue */
+    .manifold-btn.secured {
+      background: #00d5ff;
+      border-color: #0099cc;
+      box-shadow: 0 0 12px rgba(0, 213, 255, 0.6);
+      transform: translateY(2px);
+      cursor: default;
+    }
+
+    .manifold-btn.secured .btn-num {
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Red Fail Screen Flash */
+    .fail-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 59, 48, 0.25);
+      border-radius: 4px;
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+    }
+
+    /* Complete success view */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #34c759;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(52, 199, 89, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <div class="panel-bezel">
+      <!-- LED Header -->
+      <div class="header">
+        <h1>Unlock Manifolds</h1>
+        <div class="status-msg" id="status-txt">MANIFOLD PRESSURE: NORMAL</div>
+      </div>
+
+      <!-- Buttons Grid -->
+      <div class="manifolds-grid" id="grid">
+        <!-- 10 buttons populated programmatically -->
+      </div>
+
+      <div style="color: #8f9cae; font-size: 0.75rem; text-align: center; letter-spacing: 1px;">
+        PRESS BUTTONS IN ASCENDING NUMERICAL ORDER (1 - 10)
+      </div>
+
+      <!-- Red Flasher overlay on fail -->
+      <div class="fail-overlay" id="fail-flash"></div>
+
+      <!-- Completion Overlay -->
+      <div class="success-overlay" id="success-scr">
+        <div class="complete-banner">Task Complete!</div>
+        <div style="color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;">Manifold bypass valves secured</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playSecureBeep(step) {
+      try {
+        initAudio();
+        // Ascending frequency scale for each correct press
+        const baseFreq = 330;
+        const freq = baseFreq + (step * 55); // 385, 440, 495, etc. up to 880Hz
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    function playFailBuzz() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch(e) {}
+    }
+
+    function playSuccessSound() {
+      try {
+        initAudio();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+          }, idx * 75);
+        });
+      } catch (e) {}
+    }
+
+    // Game logic
+    const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let currentOrder = [];
+    let expectedNum = 1;
+    let completed = false;
+
+    const grid = document.getElementById('grid');
+    const failFlash = document.getElementById('fail-flash');
+    const successScr = document.getElementById('success-scr');
+    const statusTxt = document.getElementById('status-txt');
+
+    function setupManifolds() {
+      grid.innerHTML = '';
+      expectedNum = 1;
+      statusTxt.innerText = "MANIFOLD BYPASS: SECURING";
+      statusTxt.style.color = "#a5f3fc";
+
+      // Shuffle values 1 to 10
+      currentOrder = numbers.slice().sort(() => Math.random() - 0.5);
+
+      // Render keys
+      currentOrder.forEach(num => {
+        const button = document.createElement('div');
+        button.className = 'manifold-btn';
+        button.id = `btn-manifold-${num}`;
+        button.dataset.number = num;
+        button.innerHTML = `<span class="btn-num">${num}</span>`;
+        
+        button.addEventListener('mousedown', () => {
+          if (completed) return;
+          initAudio();
+          handleKeyClick(num);
+        });
+
+        grid.appendChild(button);
+      });
+    }
+
+    function handleKeyClick(num) {
+      const button = document.getElementById(`btn-manifold-${num}`);
+      if (button.classList.contains('secured')) return; // Already secured
+
+      if (num === expectedNum) {
+        // Correct key tapped!
+        button.classList.add('secured');
+        playSecureBeep(expectedNum);
+        expectedNum++;
+
+        if (expectedNum > 10) {
+          triggerComplete();
+        }
+      } else {
+        // Incorrect key tapped! Entire board resets!
+        playFailBuzz();
+        flashFailureScreen();
+        resetBoard();
+      }
+    }
+
+    function flashFailureScreen() {
+      failFlash.style.display = 'block';
+      setTimeout(() => {
+        failFlash.style.display = 'none';
+      }, 200);
+    }
+
+    function resetBoard() {
+      // Un-secure all buttons
+      const buttons = document.querySelectorAll('.manifold-btn');
+      buttons.forEach(btn => {
+        btn.classList.remove('secured');
+      });
+      expectedNum = 1;
+      statusTxt.innerText = "TRANSFERS INVALIDATED. RETRY FROM 1";
+      statusTxt.style.color = "#ff3b30";
+    }
+
+    function triggerComplete() {
+      completed = true;
+      statusTxt.innerText = "ALL MANIFOLDS VENTED";
+      statusTxt.style.color = "#00ff66";
+      
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        playSuccessSound();
+        
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Unlock Manifolds' }, '*');
+        }
+      }, 400);
+    }
+
+    // Start game
+    setupManifolds();
+  </script>
+</body>
+</html>

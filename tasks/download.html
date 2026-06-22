@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Data</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e0e6ed;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Bezel metal style */
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ffd700;
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+      text-transform: uppercase;
+    }
+
+    .terminal-title {
+      font-size: 0.8rem;
+      color: #a5f3fc;
+      font-weight: bold;
+    }
+
+    /* Transfer panel boxes */
+    .transfer-view {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-grow: 1;
+      width: 100%;
+      padding: 20px 10px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .data-box {
+      width: 130px;
+      height: 140px;
+      background: #181a1d;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.5);
+    }
+
+    .data-box-title {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #8f9cae;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* Flow arrow in between panels */
+    .transfer-bridge {
+      flex-grow: 1;
+      height: 100px;
+      position: relative;
+      margin: 0 15px;
+      overflow: hidden; /* Contains the flying file icons */
+    }
+
+    .bridge-arrow {
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 4px;
+      background: #2d3135;
+      transform: translateY(-50%);
+    }
+
+    /* Floating file document styles */
+    .flying-doc {
+      position: absolute;
+      width: 18px;
+      height: 24px;
+      background: #e2e8f0;
+      border: 1px solid #94a3b8;
+      border-radius: 2px;
+      top: 50%;
+      left: 0px;
+      transform: translateY(-50%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .flying-doc::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 10px; height: 1.5px;
+      background: #cbd5e1;
+      box-shadow: 0 4px #cbd5e1, 0 8px #cbd5e1;
+    }
+
+    /* Trigger interactive button */
+    .download-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ffcc00;
+      color: #11141a;
+      border: 3px solid #b38f00;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: background 0.15s, transform 0.1s;
+      text-transform: uppercase;
+    }
+
+    .download-btn:hover {
+      background: #ffe066;
+    }
+
+    .download-btn:active {
+      transform: scale(0.98);
+    }
+
+    .download-btn.disabled {
+      background: #2d3135;
+      border-color: #1a1c1e;
+      color: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Progress hud section */
+    .progress-section {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .progress-hud-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #8f9cae;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 22px;
+      background: #11141a;
+      border: 2px solid #2d3135;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff9900 0%, #ffcc00 100%);
+      box-shadow: 0 0 10px rgba(255, 204, 0, 0.4);
+      transition: width 0.1s linear;
+    }
+
+    .progress-bar-fill.finished {
+      background: linear-gradient(90deg, #00b33c 0%, #00ff66 100%);
+      box-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="task-container">
+    <div class="panel-bezel">
+      
+      <!-- Top header -->
+      <div class="header">
+        <h1>Download Data</h1>
+        <div class="terminal-title" id="panel-label">WIFI TOWER CONNECTED</div>
+      </div>
+
+      <!-- Main Visual Transfer Bridge -->
+      <div class="transfer-view">
+        
+        <!-- Left Box: Source -->
+        <div class="data-box">
+          <!-- File cabinet icon -->
+          <svg viewBox="0 0 100 100" width="65" height="65">
+            <path d="M20 15 L80 15 L80 85 L20 85 Z" fill="#ffd700" stroke="#8b6508" stroke-width="4" />
+            <!-- Drawer slots -->
+            <path d="M25 35 L75 35" stroke="#8b6508" stroke-width="4" />
+            <path d="M25 55 L75 55" stroke="#8b6508" stroke-width="4" />
+            <path d="M25 75 L75 75" stroke="#8b6508" stroke-width="4" />
+            <!-- Handles -->
+            <rect x="44" y="23" width="12" height="4" fill="#4a525d" rx="1" />
+            <rect x="44" y="43" width="12" height="4" fill="#4a525d" rx="1" />
+            <rect x="44" y="63" width="12" height="4" fill="#4a525d" rx="1" />
+          </svg>
+          <span class="data-box-title">Source Folder</span>
+        </div>
+
+        <!-- Middle Flow Bridge with particles -->
+        <div class="transfer-bridge" id="bridge">
+          <div class="bridge-arrow"></div>
+        </div>
+
+        <!-- Right Box: Target -->
+        <div class="data-box">
+          <!-- High fidelity core server console -->
+          <svg viewBox="0 0 100 100" width="65" height="65">
+            <rect x="15" y="15" width="70" height="70" fill="#2a2a2a" stroke="#151515" stroke-width="4" rx="4" />
+            <!-- Disk trays -->
+            <rect x="25" y="25" width="50" height="8" fill="#1a1a1a" />
+            <rect x="25" y="40" width="50" height="8" fill="#1a1a1a" />
+            <rect x="25" y="55" width="50" height="8" fill="#1a1a1a" />
+            <!-- Small server flashing LEDs -->
+            <circle cx="30" cy="29" r="2" fill="#34c759" />
+            <circle cx="36" cy="29" r="2" fill="#ff3b30" />
+            <circle cx="30" cy="44" r="2" fill="#34c759" />
+            <circle cx="36" cy="44" r="2" fill="#ff9900" />
+            <circle cx="30" cy="59" r="2" fill="#34c759" />
+            <circle cx="36" cy="59" r="2" fill="#ffd700" />
+          </svg>
+          <span class="data-box-title">Tablet Core</span>
+        </div>
+
+      </div>
+
+      <!-- Interactive HUD Progress section -->
+      <div class="progress-section">
+        <div class="progress-hud-text">
+          <span id="percentage-hud">READY TO TRANSFER</span>
+          <span id="rate-hud">0.00 MB/S</span>
+        </div>
+        
+        <div class="progress-bar-container">
+          <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+      </div>
+
+      <div style="width: 100%; margin-top: 15px;">
+        <button id="trigger-btn" class="download-btn">Download</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playSuccessSound() {
+      // Classic Among Us Download Finish dual beep
+      playTone(587.33, 'sine', 0.18, 0.25); // D5
+      setTimeout(() => {
+        playTone(783.99, 'sine', 0.35, 0.25); // G5
+      }, 100);
+    }
+
+    function playTick() {
+      // Soft high frequency transfer ticks
+      playTone(3000, 'sine', 0.02, 0.03);
+    }
+
+    const triggerBtn = document.getElementById('trigger-btn');
+    const progressFill = document.getElementById('progress-fill');
+    const percentageHud = document.getElementById('percentage-hud');
+    const rateHud = document.getElementById('rate-hud');
+    const bridge = document.getElementById('bridge');
+    const panelLabel = document.getElementById('panel-label');
+
+    let downloading = false;
+    let percent = 0;
+    let duration = 8700; // 8.7 seconds total download length
+    let rateInterval = null;
+    let docSpawnInterval = null;
+    let startTime = null;
+
+    triggerBtn.addEventListener('mousedown', () => {
+      if (downloading || percent >= 100) return;
+      
+      initAudio();
+      downloading = true;
+      triggerBtn.classList.add('disabled');
+      triggerBtn.innerText = "Transferring...";
+      
+      playTone(440, 'sine', 0.12, 0.15);
+      startTime = Date.now();
+      
+      // Start HUD and particle emitters
+      rateInterval = setInterval(updateProgress, 100);
+      docSpawnInterval = setInterval(spawnFlyingDoc, 250);
+    });
+
+    function updateProgress() {
+      const elapsed = Date.now() - startTime;
+      percent = Math.min(100, (elapsed / duration) * 100);
+      
+      progressFill.style.width = `${percent}%`;
+      
+      if (percent < 100) {
+        const remTime = ((duration - elapsed) / 1000).toFixed(1);
+        percentageHud.innerText = `DOWNLOADING... ${Math.floor(percent)}% (${remTime}s REMAINING)`;
+        
+        // Random authentic-looking fluctuate throughput
+        const randomSpeed = (Math.random() * 4 + 11.2).toFixed(2);
+        rateHud.innerText = `${randomSpeed} MB/S`;
+        
+        if (Math.random() < 0.35) {
+          playTick();
+        }
+      } else {
+        // Completion Sequence
+        clearInterval(rateInterval);
+        clearInterval(docSpawnInterval);
+        
+        progressFill.classList.add('finished');
+        percentageHud.innerText = "DOWNLOAD COMPLETE!";
+        percentageHud.style.color = "#00ff66";
+        rateHud.innerText = "0.00 MB/S";
+        rateHud.style.color = "#8f9cae";
+        
+        triggerBtn.innerText = "COMPLETED";
+        panelLabel.innerText = "CORE DATABASE REFRESHED";
+        panelLabel.style.color = "#00ff66";
+
+        playSuccessSound();
+        
+        setTimeout(() => {
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Download Data (Stage 1)' }, '*');
+          }
+        }, 700);
+      }
+    }
+
+    // Render flying files into the bridge div
+    function spawnFlyingDoc() {
+      if (percent >= 100) return;
+
+      const doc = document.createElement('div');
+      doc.className = 'flying-doc';
+      
+      // Start on left edge of bridge
+      const bridgeRect = bridge.getBoundingClientRect();
+      const bridgeWidth = bridgeRect.width;
+      
+      // Random vertical offset in the middle bridge
+      const randomY = Math.random() * 50 + 10;
+      doc.style.top = `${randomY}px`;
+      doc.style.left = '0px';
+      bridge.appendChild(doc);
+
+      let docX = 0;
+      const speed = Math.random() * 2 + 3.5;
+
+      function move() {
+        docX += speed;
+        doc.style.left = `${docX}px`;
+        
+        if (docX < bridgeWidth - 20) {
+          requestAnimationFrame(move);
+        } else {
+          doc.remove();
+        }
+      }
+      requestAnimationFrame(move);
+    }
+  </script>
+</body>
+</html>

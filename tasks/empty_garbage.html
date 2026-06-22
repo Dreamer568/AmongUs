@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Empty Garbage</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Chute Chamber */
+    .chute-container {
+      width: 320px;
+      height: 350px;
+      background: #111317;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 10px 20px rgba(0,0,0,0.8);
+    }
+
+    .chute-hatch-door {
+      position: absolute;
+      bottom: 0;
+      width: 50%;
+      height: 14px;
+      background: #3a3f47;
+      border-top: 2px solid #5a626e;
+      z-index: 4;
+      transition: transform 0.25s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    #hatch-left {
+      left: 0;
+      transform-origin: left;
+    }
+
+    #hatch-right {
+      right: 0;
+      transform-origin: right;
+    }
+
+    .chute-hatch-door.open {
+      transform: scaleX(0);
+    }
+
+    /* Lever control panel */
+    .lever-panel {
+      width: 150px;
+      height: 350px;
+      background: #20242b;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 10px;
+      box-sizing: border-box;
+      box-shadow: inset 0 3px 6px rgba(0,0,0,0.4);
+    }
+
+    .lever-label {
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+      text-align: center;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .lever-track {
+      width: 22px;
+      height: 230px;
+      background: #090b0e;
+      border-radius: 11px;
+      border: 2px solid #2d3135;
+      position: relative;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+    }
+
+    .lever-handle {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #ff5500 0%, #cc3300 100%);
+      border: 3px solid #1a0a05;
+      border-radius: 50%;
+      position: absolute;
+      left: -12px;
+      top: 0px;
+      cursor: grab;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: top 0.1s ease-out;
+    }
+
+    .lever-handle::after {
+      content: '';
+      width: 14px;
+      height: 14px;
+      background: repeating-linear-gradient(45deg, #000, #000 2px, #fff 2px, #fff 4px);
+      border-radius: 50%;
+    }
+
+    .lever-handle.dragging {
+      cursor: grabbing;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.6);
+      transition: none;
+    }
+
+    /* Debris falling style */
+    .garbage-piece {
+      position: absolute;
+      width: 45px;
+      height: 45px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .garbage-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Success display */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #34c759;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(52, 199, 89, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- Left: Chute Container -->
+      <div class='chute-container' id='chute'>
+        <!-- Left door -->
+        <div class='chute-hatch-door' id='hatch-left'></div>
+        <!-- Right door -->
+        <div class='chute-hatch-door' id='hatch-right'></div>
+      </div>
+
+      <!-- Right: Pull Lever Panel -->
+      <div class='lever-panel'>
+        <div class='lever-label'>Trash Release</div>
+        <div class='lever-track' id='track'>
+          <div class='lever-handle' id='handle'></div>
+        </div>
+        <div class='lever-label' style='font-size: 0.65rem; color: #a0aec0;'>Hold Down</div>
+      </div>
+
+      <!-- Success Board overlay -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Task Complete!</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Debris ejected into space</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Sucking vacuum sound synthesizer
+    let vacuumNoise = null;
+    let vacuumGain = null;
+
+    function startVacuumSound() {
+      try {
+        initAudio();
+        vacuumNoise = audioCtx.createOscillator();
+        vacuumGain = audioCtx.createGain();
+        
+        // Use a sawtooth oscillator swept with lowpass filter for aerodynamic hum
+        vacuumNoise.type = 'sawtooth';
+        vacuumNoise.frequency.setValueAtTime(80, audioCtx.currentTime);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 250;
+        
+        vacuumGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        vacuumGain.gain.exponentialRampToValueAtTime(0.15, audioCtx.currentTime + 0.15);
+        
+        vacuumNoise.connect(filter);
+        filter.connect(vacuumGain);
+        vacuumGain.connect(audioCtx.destination);
+        vacuumNoise.start();
+      } catch(e) {}
+    }
+
+    function stopVacuumSound() {
+      if (vacuumGain) {
+        try {
+          vacuumGain.gain.setValueAtTime(vacuumGain.gain.value, audioCtx.currentTime);
+          vacuumGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          setTimeout(() => {
+            if (vacuumNoise) { vacuumNoise.stop(); vacuumNoise = null; }
+          }, 120);
+        } catch(e) {}
+      }
+    }
+
+    function playHatchSound(open) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(open ? 160 : 110, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.12);
+        
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      } catch (e) {}
+    }
+
+    function playCompleteChime() {
+      try {
+        initAudio();
+        const melody = [523.25, 659.25, 783.99, 1046.50];
+        melody.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+          }, idx * 70);
+        });
+      } catch (e) {}
+    }
+
+    // Game variables
+    const handle = document.getElementById('handle');
+    const track = document.getElementById('track');
+    const hatchLeft = document.getElementById('hatch-left');
+    const hatchRight = document.getElementById('hatch-right');
+    const chute = document.getElementById('chute');
+    const successScr = document.getElementById('success-scr');
+
+    let isDragging = false;
+    let handleTop = 0;
+    let trackHeight = 188; // 230px track height minus 42px handle height
+    let dragStartY = 0;
+    
+    let hatchOpen = false;
+    let garbageList = [];
+    let completed = false;
+
+    // Visual designs for falling items
+    const garbageSVGs = [
+      // Red crushed soda can
+      '<rect x="10" y="5" width="25" height="35" fill="#ef4444" stroke="#7f1d1d" stroke-width="2" rx="2" /><line x1="8" y1="20" x2="37" y2="25" stroke="#5c1d1d" stroke-width="2" />',
+      // Blue container
+      '<polygon points="10,5 35,5 38,40 7,40" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2" />',
+      // Crumpled gray trash
+      '<path d="M5 15 L25 5 L40 18 L35 40 L12 35 Z" fill="#94a3b8" stroke="#475569" stroke-width="2" />',
+      // Yellow banana peel
+      '<path d="M20 5 C15 15, 5 25, 2 38 C15 35, 20 25, 25 20 C25 28, 35 32, 43 38 C35 25, 30 15, 20 5 Z" fill="#eab308" stroke="#854d0e" stroke-width="2" />',
+      // Brown leaf
+      '<path d="M20 5 C30 12, 35 25, 30 40 C15 35, 10 22, 20 5 Z" fill="#b45309" stroke="#78350f" stroke-width="2" />',
+      // Easter Egg: Diamond!
+      '<polygon points="20,5 35,20 20,35 5,20" fill="#22d3ee" stroke="#0891b2" stroke-width="2" />'
+    ];
+
+    // Generate 10 garbage elements inside chute
+    function initGarbage() {
+      for (let i = 0; i < 10; i++) {
+        const item = document.createElement('div');
+        item.className = 'garbage-piece';
+        item.id = 'garbage-' + i;
+        
+        // Random scatter coordinates at top half of chute
+        const rx = Math.random() * 260 + 10;
+        const ry = Math.random() * 160 + 40;
+        
+        item.style.left = rx + 'px';
+        item.style.top = ry + 'px';
+
+        const svgIndex = i === 9 ? 5 : Math.floor(Math.random() * 5); // Index 5 is rare diamond
+        const randomRot = Math.random() * 360;
+        item.innerHTML = `
+          <svg class='garbage-svg' style='transform: rotate(${randomRot}deg)' viewBox='0 0 50 50'>
+            ${garbageSVGs[svgIndex]}
+          </svg>
+        `;
+        
+        chute.appendChild(item);
+        
+        garbageList.push({
+          el: item,
+          x: rx,
+          y: ry,
+          vx: Math.random() * 2 - 1,
+          vy: 0,
+          rotation: randomRot,
+          rotSpeed: Math.random() * 4 - 2,
+          escaped: false
+        });
+      }
+    }
+
+    // Drag Lever logic
+    handle.addEventListener('mousedown', (e) => {
+      if (completed) return;
+      initAudio();
+      isDragging = true;
+      handle.classList.add('dragging');
+      dragStartY = e.clientY - handleTop;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || completed) return;
+      
+      const proposedY = e.clientY - dragStartY;
+      handleTop = Math.max(0, Math.min(trackHeight, proposedY));
+      handle.style.top = handleTop + 'px';
+
+      // Check if lever is pulled completely to the bottom
+      if (handleTop >= trackHeight - 6) {
+        if (!hatchOpen) {
+          hatchOpen = true;
+          hatchLeft.classList.add('open');
+          hatchRight.classList.add('open');
+          playHatchSound(true);
+          startVacuumSound();
+        }
+      } else {
+        if (hatchOpen) {
+          hatchOpen = false;
+          hatchLeft.classList.remove('open');
+          hatchRight.classList.remove('open');
+          playHatchSound(false);
+          stopVacuumSound();
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      handle.classList.remove('dragging');
+
+      if (completed) return;
+
+      // Spring physics reset: Smoothly snap lever back to top if released
+      if (handleTop > 0) {
+        hatchOpen = false;
+        hatchLeft.classList.remove('open');
+        hatchRight.classList.remove('open');
+        playHatchSound(false);
+        stopVacuumSound();
+
+        animateSpringBack();
+      }
+    });
+
+    function animateSpringBack() {
+      const duration = 250;
+      const startY = handleTop;
+      const startTime = Date.now();
+
+      function anim() {
+        if (isDragging) return; // Interrupted by clicking again
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / duration;
+
+        if (progress >= 1.0) {
+          handleTop = 0;
+          handle.style.top = '0px';
+        } else {
+          // Ease out cubic
+          const ease = 1 - Math.pow(1 - progress, 3);
+          handleTop = startY * (1 - ease);
+          handle.style.top = handleTop + 'px';
+          requestAnimationFrame(anim);
+        }
+      }
+      requestAnimationFrame(anim);
+    }
+
+    // Main Physics Loop for falling trash
+    function physicsUpdate() {
+      if (completed) return;
+
+      garbageList.forEach(g => {
+        if (g.escaped) return;
+
+        if (hatchOpen) {
+          // Apply gravity acceleration downward
+          g.vy += 0.4; 
+          g.y += g.vy;
+          g.x += g.vx;
+          g.rotation += g.rotSpeed;
+
+          g.el.style.left = g.x + 'px';
+          g.el.style.top = g.y + 'px';
+          g.el.querySelector('.garbage-svg').style.transform = `rotate(${g.rotation}deg)`;
+
+          // Check if piece fell out the bottom hatch
+          if (g.y > 350) {
+            g.el.remove();
+            g.escaped = true;
+            checkCompletion();
+          }
+        } else {
+          // Bounce/Settle friction if hatch is closed and doors lock debris
+          if (g.y < 310) {
+            // Float ambiently
+          } else {
+            // Rest on door
+            g.vy = 0;
+            g.vx = 0;
+            g.y = 300;
+            g.el.style.top = g.y + 'px';
+          }
+        }
+      });
+
+      requestAnimationFrame(physicsUpdate);
+    }
+
+    function checkCompletion() {
+      const allEscaped = garbageList.every(g => g.escaped === true);
+      if (allEscaped) {
+        completed = true;
+        stopVacuumSound();
+        
+        setTimeout(() => {
+          successScr.style.display = 'flex';
+          playCompleteChime();
+          
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Empty Garbage (Stage 1)' }, '*');
+          }
+        }, 500);
+      }
+    }
+
+    // Start components
+    initGarbage();
+    physicsUpdate();
+  </script>
+</body>
+</html>

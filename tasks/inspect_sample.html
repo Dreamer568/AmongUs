@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Inspect Sample</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #23272a;
+      border: 6px solid #1c2022;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .panel-bezel {
+      background: #4a525d;
+      border: 4px solid #31363e;
+      border-radius: 8px;
+      margin: 15px;
+      padding: 15px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 2px solid #31363e;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ea580c;
+      text-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
+      text-transform: uppercase;
+    }
+
+    .lab-status {
+      font-size: 0.8rem;
+      color: #a5f3fc;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Chemistry Vials Rack Board */
+    .rack-board {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      flex-grow: 1;
+      width: 100%;
+      padding: 30px 10px;
+      box-sizing: border-box;
+      background: #181a1d;
+      border: 3px solid #2d3135;
+      border-radius: 6px;
+      margin: 15px 0;
+      position: relative;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.9);
+    }
+
+    /* Test Tube glass styling */
+    .vial-dock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      width: 60px;
+    }
+
+    .glass-vial {
+      width: 28px;
+      height: 110px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2.5px solid #64748b;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Chemical liquid fluid inside */
+    .vial-fluid {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%; /* Fills dynamically */
+      background: #10b981;
+      transition: height 1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s;
+      box-shadow: inset 0 2px 5px rgba(255,255,255,0.3);
+    }
+
+    /* Fluid bubbles animation */
+    .fluid-bubbles {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px);
+      background-size: 8px 12px;
+      opacity: 0.8;
+      display: none;
+    }
+
+    .vial-fluid.bubbling .fluid-bubbles {
+      display: block;
+      animation: bubbleRise 1.5s linear infinite;
+    }
+
+    @keyframes bubbleRise {
+      0% { background-position: 0px 40px; }
+      100% { background-position: 0px 0px; }
+    }
+
+    /* Target selection button beneath vials */
+    .vial-trigger-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #331111;
+      border: 2px solid #1a0808;
+      cursor: pointer;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+      transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    }
+
+    .vial-trigger-btn.active-target {
+      background: #ef4444;
+      border-color: #7f1d1d;
+      box-shadow: 0 0 10px #ef4444, inset 0 1.5px 2px rgba(255,255,255,0.6);
+    }
+
+    .vial-trigger-btn.active-target:hover {
+      transform: scale(1.15);
+    }
+
+    /* Main action bottom bar */
+    .control-actions {
+      width: 100%;
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 12px;
+      background: #ea580c;
+      color: #11141a;
+      border: 3px solid #9a3412;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .action-btn:hover { background: #f97316; }
+    .action-btn:active { transform: scale(0.98); }
+    .action-btn.disabled {
+      background: #2d3135;
+      border-color: #1a1c1e;
+      color: #555;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Complete screen overlay */
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.95);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #10b981;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='panel-bezel'>
+      
+      <!-- Top header bar -->
+      <div class='header'>
+        <h1>Inspect Sample</h1>
+        <div class='lab-status' id='lab-lbl'>REAGENTS: EMPTY</div>
+      </div>
+
+      <!-- Main rack of vials -->
+      <div class='rack-board' id='rack'>
+        
+        <!-- Tube 1 -->
+        <div class='vial-dock'>
+          <div class='glass-vial'>
+            <div class='vial-fluid' id='fluid-0'>
+              <div class='fluid-bubbles'></div>
+            </div>
+          </div>
+          <div class='vial-trigger-btn' id='btn-0' data-id='0'></div>
+        </div>
+
+        <!-- Tube 2 -->
+        <div class='vial-dock'>
+          <div class='glass-vial'>
+            <div class='vial-fluid' id='fluid-1'>
+              <div class='fluid-bubbles'></div>
+            </div>
+          </div>
+          <div class='vial-trigger-btn' id='btn-1' data-id='1'></div>
+        </div>
+
+        <!-- Tube 3 -->
+        <div class='vial-dock'>
+          <div class='glass-vial'>
+            <div class='vial-fluid' id='fluid-2'>
+              <div class='fluid-bubbles'></div>
+            </div>
+          </div>
+          <div class='vial-trigger-btn' id='btn-2' data-id='2'></div>
+        </div>
+
+        <!-- Tube 4 -->
+        <div class='vial-dock'>
+          <div class='glass-vial'>
+            <div class='vial-fluid' id='fluid-3'>
+              <div class='fluid-bubbles'></div>
+            </div>
+          </div>
+          <div class='vial-trigger-btn' id='btn-3' data-id='3'></div>
+        </div>
+
+        <!-- Tube 5 -->
+        <div class='vial-dock'>
+          <div class='glass-vial'>
+            <div class='vial-fluid' id='fluid-4'>
+              <div class='fluid-bubbles'></div>
+            </div>
+          </div>
+          <div class='vial-trigger-btn' id='btn-4' data-id='4'></div>
+        </div>
+
+      </div>
+
+      <!-- Interactive Action bar -->
+      <div class='control-actions'>
+        <button class='action-btn' id='start-btn'>Start Reagent Analysis</button>
+      </div>
+
+      <!-- Success Screen -->
+      <div class='success-overlay' id='success-scr'>
+        <div class='complete-banner'>Task Complete!</div>
+        <div style='color: #8f9cae; font-size: 0.9rem; letter-spacing: 1.5px;'>Anomalous sample isolated and logged</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Lab reaction fluid bubbling synthesizer
+    let bubblingNoise = null;
+    let bubblingGain = null;
+
+    function startBubblingSound() {
+      try {
+        initAudio();
+        // Synthetic bubbling noise
+        const bufferSize = audioCtx.sampleRate * 2.0;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        noise.loop = true;
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(350, audioCtx.currentTime);
+        
+        // Sweeping filter core back/forth to simulate sloshing
+        const filterSweep = audioCtx.createOscillator();
+        filterSweep.type = 'sine';
+        filterSweep.frequency.value = 4.5; // sloshing rate
+        const sweepGain = audioCtx.createGain();
+        sweepGain.gain.value = 150;
+        
+        bubblingGain = audioCtx.createGain();
+        bubblingGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        bubblingGain.gain.exponentialRampToValueAtTime(0.14, audioCtx.currentTime + 0.3);
+        
+        filterSweep.connect(sweepGain);
+        sweepGain.connect(filter.frequency);
+        noise.connect(filter);
+        filter.connect(bubblingGain);
+        bubblingGain.connect(audioCtx.destination);
+        
+        noise.start();
+        filterSweep.start();
+        
+        bubblingNoise = { noise, filterSweep };
+      } catch (e) {}
+    }
+
+    function stopBubblingSound() {
+      if (bubblingGain) {
+        try {
+          bubblingGain.gain.setValueAtTime(bubblingGain.gain.value, audioCtx.currentTime);
+          bubblingGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          setTimeout(() => {
+            if (bubblingNoise) {
+              bubblingNoise.noise.stop();
+              bubblingNoise.filterSweep.stop();
+              bubblingNoise = null;
+            }
+          }, 120);
+        } catch(e) {}
+      }
+    }
+
+    function playDispenseSound() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+        
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    function playPositiveAlert() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+        osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08); // A5
+        
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    function playTone(freq, type, duration, volume = 0.1) {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // Game logic variables
+    const startBtn = document.getElementById('start-btn');
+    const labLbl = document.getElementById('lab-lbl');
+    const successScr = document.getElementById('success-scr');
+
+    let analyzing = false;
+    let anomalyIndex = null;
+    let reactionDuration = 5000; // 5-second accelerated countdown challenge
+    let countdownTimer = null;
+    let completed = false;
+
+    // Dispensing action triggers
+    startBtn.addEventListener('mousedown', () => {
+      if (analyzing || completed) return;
+      initAudio();
+      
+      analyzing = true;
+      startBtn.classList.add('disabled');
+      startBtn.innerText = 'Analyzing...';
+      
+      playDispenseSound();
+      
+      // 1. Fill test tubes with green liquid (height 68% representation)
+      for (let i = 0; i < 5; i++) {
+        const fluid = document.getElementById('fluid-' + i);
+        fluid.style.height = '70%';
+        
+        // Add some delayed staggered bubbling triggers
+        setTimeout(() => {
+          fluid.classList.add('bubbling');
+        }, i * 150);
+      }
+
+      startBubblingSound();
+      labLbl.innerText = 'DISPENSING CHEMICALS...';
+      labLbl.style.color = '#eab308';
+
+      // 2. Start Reaction Countdown
+      let remSeconds = reactionDuration / 1000;
+      countdownTimer = setInterval(() => {
+        remSeconds -= 0.1;
+        if (remSeconds > 0) {
+          labLbl.innerText = `ANALYSIS PROGRESS: ${remSeconds.toFixed(1)}S`;
+        } else {
+          clearInterval(countdownTimer);
+          triggerReactionComplete();
+        }
+      }, 100);
+    });
+
+    function triggerReactionComplete() {
+      stopBubblingSound();
+      playPositiveAlert();
+      
+      labLbl.innerText = 'SELECT ANOMALOUS RED SAMPLE';
+      labLbl.style.color = '#ef4444';
+      
+      // Choose one vial to be the anomalous red sample
+      anomalyIndex = Math.floor(Math.random() * 5);
+      
+      for (let i = 0; i < 5; i++) {
+        const fluid = document.getElementById('fluid-' + i);
+        fluid.classList.remove('bubbling');
+        
+        // Stiction change colors
+        if (i === anomalyIndex) {
+          fluid.style.backgroundColor = '#ef4444'; // Stark Anomalous RED
+        } else {
+          fluid.style.backgroundColor = '#22c55e'; // Normal healthy glowing green
+        }
+        
+        // Light up target click buttons underneath all tubes
+        const trigger = document.getElementById('btn-' + i);
+        trigger.classList.add('active-target');
+        
+        // Add click listener
+        trigger.addEventListener('mousedown', () => {
+          if (completed || anomalyIndex === null) return;
+          
+          if (i === anomalyIndex) {
+            // Selected correct anomalous sample!
+            triggerLabVictory();
+          } else {
+            // Clicked normal sample: simple error buzz
+            playTone(150, 'sawtooth', 0.2, 0.15);
+          }
+        });
+      }
+    }
+
+    function triggerLabVictory() {
+      completed = true;
+      labLbl.innerText = 'DIAGNOSTIC ARCHIVED';
+      labLbl.style.color = '#10b981';
+      
+      // Turn all indicators off
+      for (let i = 0; i < 5; i++) {
+        document.getElementById('btn-' + i).classList.remove('active-target');
+      }
+
+      playTone(523.25, 'sine', 0.15, 0.2); // C5
+      setTimeout(() => playTone(659.25, 'sine', 0.15, 0.2), 100); // E5
+      setTimeout(() => playTone(783.99, 'sine', 0.15, 0.2), 200); // G5
+      setTimeout(() => playTone(1046.50, 'sine', 0.4, 0.3), 300); // C6
+
+      setTimeout(() => {
+        successScr.style.display = 'flex';
+        if (window.parent) {
+          window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Inspect Sample' }, '*');
+        }
+      }, 650);
+    }
+  </script>
+</body>
+</html>

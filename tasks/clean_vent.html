@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Clean Vent</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #11141a;
+      color: #e2e8f0;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #task-container {
+      width: 580px;
+      height: 440px;
+      background: #181a1f;
+      border: 6px solid #2d3748;
+      border-radius: 16px;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .header {
+      background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+      padding: 10px 20px;
+      border-bottom: 3px solid #1a202c;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      color: #ecc94b;
+      text-shadow: 0 0 8px rgba(236, 201, 75, 0.4);
+      text-transform: uppercase;
+    }
+
+    .vent-status {
+      font-size: 0.8rem;
+      color: #ff3b30;
+      font-weight: bold;
+      text-transform: uppercase;
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .vent-chamber {
+      flex-grow: 1;
+      position: relative;
+      background: #090b0e;
+      overflow: hidden;
+    }
+
+    .vent-fan {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 220px;
+      height: 220px;
+      margin-top: -110px;
+      margin-left: -110px;
+      opacity: 0.08;
+      pointer-events: none;
+      animation: spin 3s linear infinite;
+      z-index: 1;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .grate-cover {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at 50% 50%, #4a5568 20%, #2d3748 100%);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 5px 15px rgba(255,255,255,0.15), 0 5px 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .grate-cover.opened {
+      transform: translateY(330px);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .grate-slits {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 40px 60px;
+      flex-grow: 1;
+      pointer-events: none;
+    }
+
+    .slit {
+      height: 15px;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 8px;
+      box-shadow: inset 0 3px 5px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.1);
+    }
+
+    .open-prompt {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      border: 2px solid #ecc94b;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #ecc94b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      pointer-events: none;
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    }
+
+    .trash-item {
+      position: absolute;
+      width: 65px;
+      height: 65px;
+      cursor: pointer;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.7));
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .trash-item:hover {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .trash-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .dust-particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background-color: #2f855a;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .success-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 16, 23, 0.96);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .complete-banner {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #ecc94b;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(236, 201, 75, 0.6);
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id='task-container'>
+    <div class='header'>
+      <h1>Clean Vent</h1>
+      <div class='vent-status' id='status-badge'>OBSTRUCTED</div>
+    </div>
+
+    <div class='vent-chamber' id='chamber'>
+      <svg class='vent-fan' viewBox='0 0 100 100'>
+        <circle cx='50' cy='50' r='8' fill='#555' />
+        <path d='M50 42 C40 25 20 35 30 50 C40 50 45 48 50 42 Z' fill='#444' />
+        <path d='M58 50 C75 40 65 20 50 30 C50 40 48 45 58 50 Z' fill='#444' />
+        <path d='M50 58 C60 75 80 65 70 50 C60 50 55 52 50 58 Z' fill='#444' />
+        <path d='M42 50 C25 60 35 80 50 70 C50 60 52 55 42 50 Z' fill='#444' />
+      </svg>
+
+      <div class='grate-cover' id='grate'>
+        <div class='open-prompt' id='prompt-txt'>Click to Open Vent</div>
+        <div class='grate-slits'>
+          <div class='slit'></div>
+          <div class='slit'></div>
+          <div class='slit'></div>
+          <div class='slit'></div>
+          <div class='slit'></div>
+          <div class='slit'></div>
+        </div>
+      </div>
+    </div>
+
+    <div class='success-overlay' id='success-scr'>
+      <div class='complete-banner'>Vent Clean!</div>
+      <div style='color: #a0aec0; font-size: 0.9rem; letter-spacing: 1.5px;'>Air filtration system fully restored</div>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playMetalGrind() {
+      try {
+        initAudio();
+        const bufferSize = audioCtx.sampleRate * 0.4;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 180;
+        filter.Q.value = 1.5;
+        
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.38);
+        
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+      } catch(e) {}
+    }
+
+    function playTrashCrunch() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+        
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      } catch (e) {}
+    }
+
+    function playVictoryChirp() {
+      try {
+        initAudio();
+        const notes = [392.00, 523.25, 659.25, 783.99, 1318.51];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+          }, idx * 70);
+        });
+      } catch(e) {}
+    }
+
+    const grate = document.getElementById('grate');
+    const statusBadge = document.getElementById('status-badge');
+    const promptTxt = document.getElementById('prompt-txt');
+    const chamber = document.getElementById('chamber');
+    const successScr = document.getElementById('success-scr');
+
+    let grateOpen = false;
+    let clearedTrashCount = 0;
+    const totalTrashCount = 5;
+    let completed = false;
+
+    grate.addEventListener('mousedown', () => {
+      if (grateOpen || completed) return;
+      initAudio();
+      grateOpen = true;
+      
+      playMetalGrind();
+      grate.classList.add('opened');
+      promptTxt.style.display = 'none';
+      
+      setTimeout(() => {
+        statusBadge.innerText = 'REMOVE DEBRIS';
+        statusBadge.style.color = '#ff3b30';
+        statusBadge.style.borderColor = 'rgba(255, 59, 48, 0.4)';
+        statusBadge.style.background = 'rgba(255, 59, 48, 0.1)';
+        spawnTrash();
+      }, 600);
+    });
+
+    const trashSVGs = [
+      '<path d="M10 15 L35 8 L45 25 L38 45 L15 40 L5 25 Z" fill="#a0aec0" stroke="#4a5568" stroke-width="2" />',
+      '<rect x="10" y="5" width="25" height="40" fill="#e53e3e" stroke="#9b2c2c" stroke-width="2" rx="2" /><path d="M8 12 L37 20 L37 28 L8 22" stroke="#5c1d1d" stroke-width="3" />',
+      '<path d="M25 5 L30 18 L45 20 L32 30 L38 45 L25 35 L12 45 L18 30 L5 20 L20 18 Z" fill="#2f855a" stroke="#1c5235" stroke-width="2" />',
+      '<path d="M5 35 L35 5 L45 15 L15 45 Z" fill="#718096" stroke="#4a5568" stroke-width="2" /><circle cx="40" cy="10" r="6" fill="#181a1f" stroke="#4a5568" stroke-width="2" />',
+      '<polygon points="25,5 5,45 45,45" fill="#dd6b20" stroke="#7b341e" stroke-width="2" /><circle cx="25" cy="30" r="3" fill="#38a169" />'
+    ];
+
+    function spawnTrash() {
+      for (let i = 0; i < totalTrashCount; i++) {
+        const item = document.createElement('div');
+        item.className = 'trash-item';
+        item.id = 'trash-' + i;
+        
+        const randomX = Math.random() * 380 + 50;
+        const randomY = Math.random() * 150 + 90;
+        
+        item.style.left = randomX + 'px';
+        item.style.top = randomY + 'px';
+        
+        const randomRot = Math.random() * 360;
+        item.innerHTML = `
+          <svg class="trash-svg" style="transform: rotate(${randomRot}deg)" viewBox="0 0 50 50">
+            ${trashSVGs[i % trashSVGs.length]}
+          </svg>
+        `;
+        
+        chamber.appendChild(item);
+
+        item.addEventListener('mousedown', (e) => {
+          if (completed) return;
+          playTrashCrunch();
+          spawnDustParticles(randomX + 30, randomY + 30);
+          item.style.opacity = '0';
+          item.style.transform = 'scale(0.2)';
+          
+          setTimeout(() => {
+            item.remove();
+          }, 150);
+          
+          clearedTrashCount++;
+          checkCompletion();
+        });
+      }
+    }
+
+    function spawnDustParticles(x, y) {
+      for (let i = 0; i < 8; i++) {
+        const p = document.createElement('div');
+        p.className = 'dust-particle';
+        p.style.left = x + 'px';
+        p.style.top = y + 'px';
+        chamber.appendChild(p);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        
+        let px = x;
+        let py = y;
+        let op = 1.0;
+
+        function anim() {
+          px += vx;
+          py += vy;
+          op -= 0.05;
+          p.style.left = px + 'px';
+          p.style.top = py + 'px';
+          p.style.opacity = op;
+
+          if (op > 0) {
+            requestAnimationFrame(anim);
+          } else {
+            p.remove();
+          }
+        }
+        requestAnimationFrame(anim);
+      }
+    }
+
+    function checkCompletion() {
+      if (clearedTrashCount >= totalTrashCount) {
+        completed = true;
+        statusBadge.innerText = 'VENT SECURED';
+        statusBadge.style.color = '#00ff66';
+        statusBadge.style.borderColor = 'rgba(0, 255, 102, 0.4)';
+        statusBadge.style.background = 'rgba(0, 255, 102, 0.1)';
+
+        setTimeout(() => {
+          successScr.style.display = 'flex';
+          playVictoryChirp();
+          
+          if (window.parent) {
+            window.parent.postMessage({ type: 'TASK_COMPLETE', task: 'Clean Vent' }, '*');
+          }
+        }, 500);
+      }
+    }
+  </script>
+</body>
+</html>
