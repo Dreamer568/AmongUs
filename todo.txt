@@ -1,16 +1,19 @@
 
 UI--ALMOST OK
 Map--add arrow to show ehre the player is facing
-
+two stage task removal from thast set
 
 multiplayer 
 promixity chat
 
 
-
-
-
-2 stage task problem
-
-
-cool i like it now can u add a host section so the host can like create the room and other can join with the code and it should even work if the game has started and host will have the option if he wana let them in mid game or nah so in the start the will be like a starting menu with host join and name ehre u can change your name and name is shoen above player and ya in the host add a option to select the number of playes and imposter and aslo make the start screen like the player and imposter and if the host left make other person host and remove the stat mission wasd button and aslo the iframes are not cloing after a task is completed
+cool i like it now can u add a host section so the 
+host can like create the room and other can join with
+ the code and it should even work if the game has started
+  and host will have the option if he wana let them in mid game
+   or nah so in the start the will be like a starting menu with host 
+   join and name ehre u can change your name and name is shoen above player
+    and ya in the host add a option to select the number of playes and imposter 
+    and aslo make the start screen like the player and imposter and if
+     the host left make other person host and remove the stat mission 
+     wasd button 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
+
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -40,10 +41,12 @@
 
     #crosshair {
       position: absolute;
-      top: 50%; left: 50%;
-      width: 10px; height: 10px;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
       transform: translate(-50%, -50%);
-      border: 2px solid rgba(255,255,255,0.4);
+      border: 2px solid rgba(255, 255, 255, 0.4);
       border-radius: 50%;
       z-index: 5;
       pointer-events: none;
@@ -52,7 +55,10 @@
     /* Authentic Among Us HUD Styling */
     .hud-layer {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 10;
       display: flex;
@@ -197,7 +203,7 @@
       border-radius: 50%;
       border: 2px solid #000000;
       transform: translate(-50%, -50%);
-      box-shadow: 0 0 5px rgba(255,255,255,0.8);
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
       pointer-events: none;
       z-index: 5;
     }
@@ -258,7 +264,10 @@
     /* Modal Styling */
     .modal-overlay {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(4px);
       z-index: 100;
@@ -289,7 +298,10 @@
       z-index: 110;
       text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, -2px 2px 0 #000;
     }
-    .close-modal-btn:hover { color: #ff1a1a; }
+
+    .close-modal-btn:hover {
+      color: #ff1a1a;
+    }
 
     iframe {
       width: 100%;
@@ -314,8 +326,11 @@
     /* Landing Screen Overlay */
     #click-lock-prompt {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -345,7 +360,10 @@
     /* Loader UI */
     #loader {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: #090c10;
       display: flex;
       flex-direction: column;
@@ -355,14 +373,19 @@
     }
 
     .spinner {
-      width: 60px; height: 60px;
+      width: 60px;
+      height: 60px;
       border: 6px solid rgba(255, 255, 255, 0.05);
       border-top-color: #ea580c;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
   </style>
   <!-- Load the Socket.io client script locally from Express (supports offline setups) -->
   <script src="/socket.io/socket.io.js"></script>
@@ -376,6 +399,7 @@
     }
   </script>
 </head>
+
 <body>
 
   <!-- Screen space vignette Overlay -->
@@ -384,7 +408,9 @@
   <!-- Loading Overlay -->
   <div id='loader'>
     <div class='spinner'></div>
-    <p style='color: #a0aec0; font-family: Fredoka One, sans-serif; font-size: 1rem; margin-top: 20px; letter-spacing: 1px;'>LOADING SKELD SYSTEMS...</p>
+    <p
+      style='color: #a0aec0; font-family: Fredoka One, sans-serif; font-size: 1rem; margin-top: 20px; letter-spacing: 1px;'>
+      LOADING SKELD SYSTEMS...</p>
   </div>
 
   <!-- Locked mouse context prompt -->
@@ -402,7 +428,7 @@
 
   <!-- HUD Interface -->
   <div class='hud-layer'>
-    
+
     <div class='hud-top'>
       <!-- Total Progress Tracker -->
       <div class='progress-hud cartoon-panel'>
@@ -458,12 +484,12 @@
 
     // Materials declared at top level
     const sphereNormalMaterial = new THREE.MeshStandardMaterial({
-      color: 0xeab308, 
+      color: 0xeab308,
       metalness: 0.4,
       roughness: 0.3,
       emissive: 0x332600
     });
-    
+
     const sphereActiveMaterial = new THREE.MeshStandardMaterial({
       color: 0x00e676,
       metalness: 0.4,
@@ -521,21 +547,21 @@
 
     // Player details
     let playerMesh = null;
-    let playerRadius = 0.35; 
+    let playerRadius = 0.35;
 
     // Calibration Defaults (Speed: 4.0, Vision: 95%, Strength: 1.0)
-    let playerSpeedSetting = 4.0; 
+    let playerSpeedSetting = 4.0;
     let lightStrengthValue = 1.0;
 
     // Adjusted Spawn on fixed Y level (5.90) to prevent any falling glitches
-    const playerPos = new THREE.Vector3(6.79, 5.90, -23.93); 
+    const playerPos = new THREE.Vector3(6.79, 5.90, -23.93);
 
     const keysPressed = {};
 
     // ----------------------------------------------------
     // PHYSICAL WALLS LOADER & PHYSICS ENGINE
     // ----------------------------------------------------
-    let physicalWalls = []; 
+    let physicalWalls = [];
     let physicsWorld = null;
     let playerBody = null;
 
@@ -577,8 +603,8 @@
       const mat = new THREE.MeshBasicMaterial({
         color: 0xff4d4d,
         transparent: true,
-        opacity: 0.0,      
-        visible: false,     
+        opacity: 0.0,
+        visible: false,
         wireframe: true
       });
 
@@ -598,12 +624,12 @@
       );
       const wallShape = new CANNON.Box(halfExtents);
       const wallBody = new CANNON.Body({
-        mass: 0, 
+        mass: 0,
         shape: wallShape,
         position: new CANNON.Vec3(wallData.position[0], wallData.position[1], wallData.position[2])
       });
       wallBody.quaternion.setFromEuler(wallData.rotation[0], wallData.rotation[1], wallData.rotation[2]);
-      
+
       physicsWorld.addBody(wallBody);
     }
 
@@ -631,7 +657,7 @@
       const mesh = new THREE.Mesh(playerGeo, playerMat);
       mesh.position.copy(startPos);
       mesh.castShadow = true;
-      
+
       sc.add(mesh);
       return mesh;
     }
@@ -639,9 +665,9 @@
     function calculateMovementVec(cam) {
       const moveDirection = new THREE.Vector3();
 
-      if (keysPressed['w'] || keysPressed['arrowup'])    moveDirection.z += 1;
-      if (keysPressed['s'] || keysPressed['arrowdown'])  moveDirection.z -= 1;
-      if (keysPressed['a'] || keysPressed['arrowleft'])  moveDirection.x -= 1;
+      if (keysPressed['w'] || keysPressed['arrowup']) moveDirection.z += 1;
+      if (keysPressed['s'] || keysPressed['arrowdown']) moveDirection.z -= 1;
+      if (keysPressed['a'] || keysPressed['arrowleft']) moveDirection.x -= 1;
       if (keysPressed['d'] || keysPressed['arrowright']) moveDirection.x += 1;
 
       if (moveDirection.lengthSq() === 0) return new THREE.Vector3(0, 0, 0);
@@ -660,7 +686,7 @@
       const worldStep = new THREE.Vector3();
       worldStep.addScaledVector(cameraForward, moveDirection.z);
       worldStep.addScaledVector(cameraRight, moveDirection.x);
-      
+
       return worldStep.normalize();
     }
 
@@ -682,7 +708,7 @@
 
       socket.on('connect', () => {
         console.log('Linked to Skeld Core Socket.io Network Hub.');
-        
+
         // Broadcast local profile
         socket.emit('join', {
           id: localPlayerId,
@@ -695,7 +721,7 @@
 
       socket.on('initial_state', (data) => {
         data.players.forEach(p => spawnOtherPlayer(p));
-        
+
         // Load the task set assigned by the server
         if (data.assignedTaskSet) {
           initializeTasksAndConfig(data.assignedTaskSet);
@@ -791,7 +817,7 @@
     function renderTaskListUI(chosenSet) {
       const listEl = document.getElementById('task-list-items');
       listEl.innerHTML = '';
-      
+
       if (!chosenSet) return;
 
       chosenSet.tasks.forEach((t, idx) => {
@@ -815,7 +841,7 @@
       taskSpheres.forEach(s => {
         const localTaskPos = new THREE.Vector3();
         map2DHelper.worldToLocal(localTaskPos.copy(s.mesh.position));
-        
+
         const u = localTaskPos.x + 0.5;
         const v = localTaskPos.y + 0.5;
 
@@ -833,7 +859,7 @@
         dot.style.top = `${(1 - v) * 100}%`;
         dot.style.transform = 'translate(-50%, -50%)';
         dot.style.pointerEvents = 'none';
-        
+
         container.appendChild(dot);
       });
     }
@@ -859,7 +885,7 @@
         }
 
         const loaderGLTF = new GLTFLoader();
-        
+
         // Initialize DRACOLoader mesh decoder
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath('https://unpkg.com/three@0.152.2/examples/jsm/libs/draco/');
@@ -867,7 +893,7 @@
 
         loaderGLTF.load('/among_us_-_map_the_skeld.glb', (gltf) => {
           mapModel = gltf.scene;
-          
+
           if (config.map) {
             mapModel.position.fromArray(config.map.position);
             mapModel.rotation.fromArray(config.map.rotation);
@@ -880,7 +906,7 @@
               node.material.roughness = 0.85;
             }
           });
-          
+
           scene.add(mapModel);
         });
 
@@ -888,11 +914,11 @@
           config.tasks.forEach(t => {
             // Find if this specific config task is listed in active checklist set
             const taskMatch = findMatchedTask(t, activeTaskSet);
-            
+
             if (taskMatch) {
               const sphereGeo = new THREE.SphereGeometry(0.35, 16, 16);
               const sphere = new THREE.Mesh(sphereGeo, sphereNormalMaterial.clone());
-              
+
               sphere.position.fromArray(t.position);
               sphere.frustumCulled = false;
 
@@ -901,7 +927,7 @@
               sphere.add(sphereGlow);
 
               scene.add(sphere);
-              
+
               taskSpheres.push({
                 id: t.id,
                 metadata: t,
@@ -911,7 +937,7 @@
             }
           });
         }
-        
+
         // Spawn active tasks on the Minimap HUD
         setupMinimapTasks();
 
@@ -969,9 +995,9 @@
     // ----------------------------------------------------
     function evaluateProximity() {
       if (completed) return;
-      
+
       let nearSphere = null;
-      let minDist = 3.2; 
+      let minDist = 3.2;
 
       taskSpheres.forEach(s => {
         if (s.completed) return; // Skip completed tasks
@@ -986,12 +1012,12 @@
         if (activeNearSphere && !activeNearSphere.completed) {
           activeNearSphere.mesh.material = sphereNormalMaterial;
         }
-        
+
         activeNearSphere = nearSphere;
-        
+
         if (activeNearSphere) {
           const taskMatch = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
-          
+
           if (taskMatch) {
             activeNearSphere.mesh.material = sphereActiveMaterial;
             useBtn.classList.remove('use-btn-disabled');
@@ -1018,24 +1044,24 @@
         const metaTaskClean = metadata.task.toLowerCase();
         // Try exact match first, then partial includes in either direction
         const nameMatch = metaTaskClean === taskNameClean ||
-                          metaTaskClean.includes(taskNameClean) ||
-                          taskNameClean.includes(metaTaskClean.split(' (')[0]);
+          metaTaskClean.includes(taskNameClean) ||
+          taskNameClean.includes(metaTaskClean.split(' (')[0]);
         return roomMatch && nameMatch;
       });
     }
 
     function openActiveTask() {
       if (!activeNearSphere || completed || activeNearSphere.completed) return;
-      
+
       const matchedTaskInSet = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
-      
+
       if (matchedTaskInSet) {
         currentlyOpenedTask = activeNearSphere; // Cache active task to prevent closure bugs
         const file = matchedTaskInSet.file;
         const params = matchedTaskInSet.params || '';
-        
-        controls.unlock(); 
-        
+
+        controls.unlock();
+
         taskIframe.src = file + params;
         modal.style.display = 'flex';
       }
@@ -1044,7 +1070,7 @@
     function closeModal() {
       modal.style.display = 'none';
       taskIframe.src = 'about:blank';
-      
+
       // Reset task cache
       currentlyOpenedTask = null;
 
@@ -1052,7 +1078,7 @@
       window.focus();
       document.body.focus();
       renderer.domElement.focus();
-      
+
       setTimeout(() => {
         if (!completed && !devMode) {
           controls.lock();
@@ -1119,7 +1145,7 @@
       initPhysicsEngine();
 
       controls = new PointerLockControls(camera, renderer.domElement);
-      
+
       clickPrompt.addEventListener('click', () => {
         if (modal.style.display !== 'flex' && !devMode) {
           controls.lock();
@@ -1163,7 +1189,7 @@
       closeBtn.addEventListener('mousedown', closeModal);
 
       document.addEventListener('mousedown', (e) => {
-        if (controls.isLocked && activeNearSphere && e.button === 0) { 
+        if (controls.isLocked && activeNearSphere && e.button === 0) {
           openActiveTask();
         }
       });
@@ -1182,7 +1208,7 @@
       playerSpeedSetting = parseFloat(document.getElementById('player-speed-slider').value);
       lightStrengthValue = parseFloat(document.getElementById('strength-slider').value);
       const initialVision = parseInt(document.getElementById('vision-slider').value);
-      
+
       await loadInvisibleWalls();
 
       // Update vision overlay values
@@ -1192,15 +1218,15 @@
       initMultiplayerArray();
 
       loader.style.display = 'none';
-      
-      clock.getDelta(); 
+
+      clock.getDelta();
       animate();
     }
 
     function updatePlayerMovement() {
       // Safety checks: Skip movement evaluations until physics systems are initialized
       if (!physicsWorld || !playerBody) return;
-      if (completed || devMode) return; 
+      if (completed || devMode) return;
       if (modal.style.display === 'flex') return;
       if (!controls.isLocked) return;
 
@@ -1234,10 +1260,10 @@
           const matchedTaskInSet = findMatchedTask(activeSphere.metadata, activeTaskSet);
           if (matchedTaskInSet) {
             const idx = activeTaskSet.tasks.indexOf(matchedTaskInSet);
-            
+
             if (idx !== -1 && !completedTaskIds.has(idx)) {
               completedTaskIds.add(idx);
-              
+
               const item = document.getElementById('task-item-' + idx);
               if (item) {
                 item.classList.add('done');
@@ -1247,7 +1273,7 @@
               activeSphere.completed = true;
               activeSphere.mesh.material = sphereActiveMaterial;
               activeSphere.mesh.position.y = -500; // Move underground out of sight
-              
+
               // Remove completed task marker on HUD Minimap
               const dot = document.getElementById(`minimap-task-dot-${activeSphere.id}`);
               if (dot) dot.remove();
@@ -1268,7 +1294,7 @@
       } catch (err) {
         console.error('Task closure verification exception:', err);
       }
-      
+
       // Close modal immediately
       closeModal();
     }
@@ -1303,12 +1329,12 @@
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function updateMinimapPosition() {
       if (!map2DHelper) return;
-      
+
       const localPlayerPos = new THREE.Vector3();
       map2DHelper.worldToLocal(localPlayerPos.copy(playerPos));
 
@@ -1333,15 +1359,15 @@
     function animate() {
       requestAnimationFrame(animate);
       const deltaTime = Math.min(clock.getDelta(), 0.1);
-      
+
       // ABSOLUTE PROTECTION FOR ASYNC REFRESH CRASHES
       if (!physicsWorld || !playerBody || !playerMesh || !renderer || !scene || !camera) {
-        return; 
+        return;
       }
 
       // Step the Physics World simulation only if active
       physicsWorld.step(deltaTime);
-      
+
       // Lock player strictly to the fixed plane Y: 5.90 to disable gravity falls entirely
       playerBody.position.y = 5.90;
       playerBody.velocity.y = 0;
@@ -1377,7 +1403,7 @@
       updateAmbientSpheres();
       updatePlayerMovement();
       evaluateProximity();
-      
+
       renderer.render(scene, camera);
       coordLbl.innerText = `COORDINATES: X: ${playerPos.x.toFixed(2)} | Y: ${playerPos.y.toFixed(2)} | Z: ${playerPos.z.toFixed(2)}`;
     }
@@ -1417,32 +1443,42 @@
 
   <!-- Options Drawer -->
   <div style='position: absolute; bottom: 25px; left: 25px; z-index: 10; pointer-events: auto;'>
-    <button id='settings-btn' style='background: rgba(0, 0, 0, 0.7); border: 3px solid #000; font-family: Lexend Deca, sans-serif; color: #a0aec0; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 3px 3px 0 #000;'>Settings</button>
+    <button id='settings-btn'
+      style='background: rgba(0, 0, 0, 0.7); border: 3px solid #000; font-family: Lexend Deca, sans-serif; color: #a0aec0; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 3px 3px 0 #000;'>Settings</button>
   </div>
 
-  <div id='settings-drawer' style='position: absolute; bottom: 85px; left: 25px; z-index: 15; background: #1e293b; border: 4px solid #000; border-radius: 12px; padding: 15px; width: 220px; display: none; flex-direction: column; gap: 15px; box-shadow: 4px 4px 0px #000; pointer-events: auto;'>
-    <h3 style='margin: 0; font-size: 0.85rem; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; font-family: Fredoka One, sans-serif; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>Settings</h3>
-    
+  <div id='settings-drawer'
+    style='position: absolute; bottom: 85px; left: 25px; z-index: 15; background: #1e293b; border: 4px solid #000; border-radius: 12px; padding: 15px; width: 220px; display: none; flex-direction: column; gap: 15px; box-shadow: 4px 4px 0px #000; pointer-events: auto;'>
+    <h3
+      style='margin: 0; font-size: 0.85rem; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; font-family: Fredoka One, sans-serif; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>
+      Settings</h3>
+
     <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Player Speed: <span id="speed-val">4.0</span></label>
-      <input type='range' id='player-speed-slider' min='3' max='20' step='0.5' value='4.0' style='cursor: pointer; accent-color: #ea580c;' />
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Player Speed:
+        <span id="speed-val">4.0</span></label>
+      <input type='range' id='player-speed-slider' min='3' max='20' step='0.5' value='4.0'
+        style='cursor: pointer; accent-color: #ea580c;' />
     </div>
 
     <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Vision Range: <span id="vision-val">95</span>%</label>
-      <input type='range' id='vision-slider' min='15' max='100' step='5' value='95' style='cursor: pointer; accent-color: #ea580c;' />
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Vision Range:
+        <span id="vision-val">95</span>%</label>
+      <input type='range' id='vision-slider' min='15' max='100' step='5' value='95'
+        style='cursor: pointer; accent-color: #ea580c;' />
     </div>
 
     <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Light Strength: <span id="strength-val">1.0</span></label>
-      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='1.0' style='cursor: pointer; accent-color: #ea580c;' />
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Light Strength:
+        <span id="strength-val">1.0</span></label>
+      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='1.0'
+        style='cursor: pointer; accent-color: #ea580c;' />
     </div>
   </div>
 
   <script type='module'>
     const sBtn = document.getElementById('settings-btn');
     const sDrawer = document.getElementById('settings-drawer');
-    
+
     sBtn.addEventListener('mousedown', (e) => {
       e.stopPropagation();
       sDrawer.style.display = sDrawer.style.display === 'flex' ? 'none' : 'flex';
@@ -1477,4 +1513,5 @@
     });
   </script>
 </body>
+
 </html>
