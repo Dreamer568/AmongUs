@@ -671,6 +671,9 @@
       // Safe guard checking if local socket.io script loaded successfully (supports standalone offline)
       if (typeof io === 'undefined') {
         console.warn('Socket.io library not detected (running offline/single-player mode).');
+        loadActiveTaskSet().then(fallbackSet => {
+          initializeTasksAndConfig(fallbackSet);
+        });
         return;
       }
 
@@ -692,6 +695,20 @@
 
       socket.on('initial_state', (data) => {
         data.players.forEach(p => spawnOtherPlayer(p));
+        
+        // Load the task set assigned by the server
+        if (data.assignedTaskSet) {
+          initializeTasksAndConfig(data.assignedTaskSet);
+        } else {
+          loadActiveTaskSet().then(fallbackSet => {
+            initializeTasksAndConfig(fallbackSet);
+          });
+        }
+
+        // Initialize progress bar
+        if (typeof data.globalProgress !== 'undefined') {
+          updateProgressBar(data.globalProgress);
+        }
       });
 
       socket.on('player_joined', (data) => {
@@ -704,6 +721,13 @@
 
       socket.on('player_left', (data) => {
         removeOtherPlayer(data.id);
+      });
+
+      // Handle server updates for progress bar
+      socket.on('progress_update', (data) => {
+        if (typeof data.progress !== 'undefined') {
+          updateProgressBar(data.progress);
+        }
       });
     }
 
@@ -1030,6 +1054,31 @@
       }, 100);
     }
 
+    let tasksInitialized = false;
+    async function initializeTasksAndConfig(taskSet) {
+      if (tasksInitialized) return;
+      tasksInitialized = true;
+      activeTaskSet = taskSet;
+      renderTaskListUI(activeTaskSet);
+      await loadProjectConfig();
+    }
+
+    function updateProgressBar(progress) {
+      const progressFill = document.getElementById('progress-fill');
+      if (progressFill) {
+        progressFill.style.width = progress + '%';
+      }
+
+      if (progress >= 100 && !completed) {
+        completed = true;
+        controls.unlock();
+        setTimeout(() => {
+          playIgnitionChime();
+          alert('MISSION SECURED! SKELD POWER CORES COMPLETED.');
+        }, 800);
+      }
+    }
+
     // ----------------------------------------------------
     // SYSTEM ENGINE LOOPS
     // ----------------------------------------------------
@@ -1116,19 +1165,24 @@
       setupInputListeners();
       setupSettingsListeners();
 
+      // Listen for task completion messages from iframe minigames
+      window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'TASK_COMPLETE') {
+          resolveTaskCompleted();
+        }
+      });
+
       // Retrieve default slider values from HTML inputs on load to prevent refresh mismatch
       playerSpeedSetting = parseFloat(document.getElementById('player-speed-slider').value);
       lightStrengthValue = parseFloat(document.getElementById('strength-slider').value);
       const initialVision = parseInt(document.getElementById('vision-slider').value);
       
-      activeTaskSet = await loadActiveTaskSet();
-      await loadProjectConfig();
       await loadInvisibleWalls();
 
       // Update vision overlay values
       updateVisionOverlay(initialVision);
 
-      // Connect to multiplayer socket lobby
+      // Connect to multiplayer socket lobby (this will load tasks and configs either from server or offline fallback)
       initMultiplayerArray();
 
       loader.style.display = 'none';
@@ -1214,22 +1268,12 @@
     }
 
     function updateTotalProgress() {
-      const total = activeTaskSet.tasks.length;
-      const compCount = completedTaskIds.size;
-      const ratio = (compCount / total) * 100;
-      
-      const progressFill = document.getElementById('progress-fill');
-      if (progressFill) {
-        progressFill.style.width = ratio + '%';
-      }
-
-      if (compCount === total) {
-        completed = true;
-        controls.unlock();
-        setTimeout(() => {
-          playIgnitionChime();
-          alert('MISSION SECURED! SKELD POWER CORES COMPLETED.');
-        }, 800);
+      // If we are offline or server socket is disconnected, update progress bar locally
+      if (!socket || !socket.connected) {
+        const total = activeTaskSet.tasks.length;
+        const compCount = completedTaskIds.size;
+        const ratio = (compCount / total) * 100;
+        updateProgressBar(ratio);
       }
     }
 
