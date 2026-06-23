@@ -1,0 +1,7 @@
+- [x] Implement server-side task set loading and assignment in `multiplayer.js`
+- [x] Implement server-side global progress tracking and broadcasting in `multiplayer.js`
+- [x] Add postMessage listener for task completion in `game.html`
+- [x] Decouple active task list setup and project configuration initialization in `game.html`
+- [x] Wire up server-driven progress bar update socket event inside `game.html`
+- [x] Verify offline fallback mechanism works
+- [x] Manually test task completion, iframe closure, and progress tracking
