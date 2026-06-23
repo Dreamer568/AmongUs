@@ -386,6 +386,373 @@
         transform: rotate(360deg);
       }
     }
+
+    /* Main Menu Styles */
+    #main-menu-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .space-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background-image: 
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+      background-size: 550px 550px, 350px 350px, 250px 250px;
+      background-position: 0 0, 40px 60px, 130px 270px;
+      animation: spaceMove 60s linear infinite;
+      opacity: 0.4;
+    }
+
+    @keyframes spaceMove {
+      from { background-position: 0 0, 40px 60px, 130px 270px; }
+      to { background-position: 550px 550px, 350px 350px, 250px 250px; }
+    }
+
+    .menu-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 3.5rem;
+      color: #ea580c;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 25px;
+      text-shadow: 
+        -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
+        6px 6px 0px rgba(0, 0, 0, 0.4);
+      animation: floatTitle 4s ease-in-out infinite;
+      z-index: 10;
+      text-align: center;
+    }
+
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .menu-box {
+      width: 100%;
+      max-width: 480px;
+      padding: 30px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-sizing: border-box;
+    }
+
+    .menu-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .menu-input-group label {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.9rem;
+      color: #f6e05e;
+      text-transform: uppercase;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    .menu-input {
+      background: #0f172a;
+      border: 3px solid #000;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Lexend Deca', sans-serif;
+      font-size: 1.1rem;
+      font-weight: bold;
+      padding: 12px 15px;
+      outline: none;
+      box-shadow: 2px 2px 0px #000;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .menu-input:focus {
+      border-color: #ea580c;
+      box-shadow: 4px 4px 0px #000;
+    }
+
+    .menu-button-row {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .menu-btn {
+      flex: 1;
+      padding: 14px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: #fff;
+      border: 4px solid #000;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px #000;
+      text-transform: uppercase;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+      transition: transform 0.05s, box-shadow 0.05s;
+    }
+
+    .menu-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .btn-host {
+      background: #ea580c;
+    }
+    .btn-host:hover {
+      background: #f97316;
+    }
+
+    .btn-join {
+      background: #10b981;
+    }
+    .btn-join:hover {
+      background: #34d399;
+    }
+
+    .btn-action {
+      background: #3b82f6;
+    }
+    .btn-action:hover {
+      background: #60a5fa;
+    }
+
+    .btn-back {
+      background: #64748b;
+    }
+    .btn-back:hover {
+      background: #94a3b8;
+    }
+
+    .btn-start {
+      background: #ef4444;
+    }
+    .btn-start:hover {
+      background: #f87171;
+    }
+
+    .menu-panel {
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .menu-panel.active {
+      display: flex;
+    }
+
+    .setting-slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .setting-slider-container label {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .setting-checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #a0aec0;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+
+    .setting-checkbox-container input {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: #ea580c;
+    }
+
+    /* Lobby styles */
+    .lobby-header {
+      text-align: center;
+      border-bottom: 3px solid #000;
+      padding-bottom: 15px;
+      margin-bottom: 10px;
+    }
+
+    .lobby-code-box {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: #f6e05e;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+
+    .lobby-players-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      color: #ea580c;
+      text-transform: uppercase;
+      margin: 5px 0;
+    }
+
+    .lobby-players-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 3px solid #000;
+      background: rgba(0,0,0,0.3);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .lobby-player-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid #000;
+      border-radius: 8px;
+      font-weight: bold;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    .player-color-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #000;
+      box-shadow: 0 0 4px rgba(255,255,255,0.4);
+      flex-shrink: 0;
+    }
+
+    .lobby-settings-summary {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #a0aec0;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 10px;
+      border-radius: 8px;
+      line-height: 1.4;
+      border: 2px solid #000;
+    }
+
+    .lobby-waiting-text {
+      text-align: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: #3b82f6;
+      animation: rolePulse 1s ease-in-out infinite alternate;
+      margin-top: 10px;
+    }
+
+    /* Impostor / Crewmate Intro Screen */
+    #role-screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 600;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+
+    .role-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 4rem;
+      margin-bottom: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: rolePulse 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes rolePulse {
+      from { transform: scale(0.96); text-shadow: 0 0 10px currentColor; }
+      to { transform: scale(1.04); text-shadow: 0 0 25px currentColor; }
+    }
+
+    .role-desc {
+      font-family: 'Lexend Deca', sans-serif;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #94a3b8;
+      text-align: center;
+      max-width: 500px;
+      margin-top: 10px;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    .impostor-list-intro {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #ef4444;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    /* System messages */
+    .system-notification {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      border: 3px solid #000;
+      box-shadow: 3px 3px 0 #000;
+      border-radius: 8px;
+      padding: 10px 20px;
+      z-index: 1000;
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.95rem;
+      color: #f6e05e;
+      pointer-events: none;
+      animation: notificationSlide 3.5s forwards;
+      text-align: center;
+    }
+
+    @keyframes notificationSlide {
+      0% { transform: translate(-50%, -40px); opacity: 0; }
+      10% { transform: translate(-50%, 0); opacity: 1; }
+      90% { transform: translate(-50%, 0); opacity: 1; }
+      100% { transform: translate(-50%, -40px); opacity: 0; }
+    }
   </style>
   <!-- Load the Socket.io client script locally from Express (supports offline setups) -->
   <script src="/socket.io/socket.io.js"></script>
@@ -401,6 +768,95 @@
 </head>
 
 <body>
+
+  <!-- Main Menu Overlay -->
+  <div id="main-menu-overlay">
+    <div class="space-background"></div>
+    <h1 class="menu-title">AMONG US 3D</h1>
+    
+    <div class="menu-box cartoon-panel">
+      <!-- Username Input Section -->
+      <div class="menu-input-group">
+        <label for="username-input">Enter Username</label>
+        <input type="text" id="username-input" class="menu-input" placeholder="Crewmate" maxlength="15" value="Crewmate">
+      </div>
+
+      <!-- Main Actions Panel -->
+      <div id="panel-main" class="menu-panel active">
+        <div class="menu-button-row">
+          <button id="menu-btn-host-panel" class="menu-btn btn-host">Host Game</button>
+          <button id="menu-btn-join-panel" class="menu-btn btn-join">Join Game</button>
+        </div>
+      </div>
+
+      <!-- Host Settings Panel -->
+      <div id="panel-host" class="menu-panel">
+        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #ea580c; text-transform: uppercase;">Host Settings</h3>
+        
+        <div class="setting-slider-container">
+          <label>Max Players: <span id="host-max-players-val">10</span></label>
+          <input type="range" id="host-max-players" min="2" max="15" value="10" style="cursor: pointer; accent-color: #ea580c;">
+        </div>
+
+        <div class="setting-slider-container">
+          <label>Impostors: <span id="host-impostors-val">1</span></label>
+          <input type="range" id="host-impostors" min="1" max="3" value="1" style="cursor: pointer; accent-color: #ea580c;">
+        </div>
+
+        <div class="setting-checkbox-container">
+          <input type="checkbox" id="host-midjoin" checked>
+          <label for="host-midjoin">Allow Mid-Game Join</label>
+        </div>
+
+        <div class="menu-button-row">
+          <button id="menu-btn-back-host" class="menu-btn btn-back">Back</button>
+          <button id="menu-btn-create-lobby" class="menu-btn btn-host">Create Room</button>
+        </div>
+      </div>
+
+      <!-- Join Room Panel -->
+      <div id="panel-join" class="menu-panel">
+        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #10b981; text-transform: uppercase;">Join Game</h3>
+        
+        <div class="menu-input-group">
+          <label for="join-code-input">Enter 5-Letter Room Code</label>
+          <input type="text" id="join-code-input" class="menu-input" placeholder="ABCDE" style="text-transform: uppercase; text-align: center; letter-spacing: 4px;" maxlength="5">
+        </div>
+
+        <div class="menu-button-row">
+          <button id="menu-btn-back-join" class="menu-btn btn-back">Back</button>
+          <button id="menu-btn-join-lobby" class="menu-btn btn-join">Join Lobby</button>
+        </div>
+      </div>
+
+      <!-- Lobby Room Panel -->
+      <div id="panel-lobby" class="menu-panel">
+        <div class="lobby-header">
+          <div class="lobby-code-box" id="lobby-code-display">ROOM CODE: ABCDE</div>
+          <div class="lobby-settings-summary" id="lobby-settings-display">Max Players: 10 | Impostors: 1 | Mid-Join: Yes</div>
+        </div>
+
+        <div class="lobby-players-title">Players in Lobby (<span id="lobby-count-display">1</span>)</div>
+        <ul class="lobby-players-list" id="lobby-players-list">
+          <!-- Populated dynamically -->
+        </ul>
+
+        <div id="lobby-waiting-msg" class="lobby-waiting-text" style="display: none;">Waiting for Host to start...</div>
+
+        <div class="menu-button-row">
+          <button id="menu-btn-leave-lobby" class="menu-btn btn-back">Leave</button>
+          <button id="menu-btn-start-game" class="menu-btn btn-start" style="display: none;">Start Game</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crewmate / Impostor Intro Screen -->
+  <div id="role-screen-overlay">
+    <div class="role-title" id="role-title-text">CREWMATE</div>
+    <div class="role-desc" id="role-desc-text">There is 1 Impostor among us. Complete all tasks!</div>
+    <div class="impostor-list-intro" id="impostor-list-text" style="display: none;">Impostors: HostPlayer</div>
+  </div>
 
   <!-- Screen space vignette Overlay -->
   <div id="vision-overlay"></div>
@@ -482,6 +938,24 @@
     import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     import * as CANNON from 'cannon-es';
 
+    // Intercept native requestPointerLock to catch SecurityError rejections (e.g. locks triggered immediately after exiting)
+    const origRequestPointerLock = HTMLElement.prototype.requestPointerLock;
+    if (origRequestPointerLock) {
+      HTMLElement.prototype.requestPointerLock = function() {
+        try {
+          const promise = origRequestPointerLock.apply(this, arguments);
+          if (promise && typeof promise.catch === 'function') {
+            promise.catch((err) => {
+              console.warn("Pointer lock request rejected by browser security restrictions:", err.message);
+            });
+          }
+          return promise;
+        } catch (e) {
+          console.warn("Synchronous pointer lock request error caught:", e.message);
+        }
+      };
+    }
+
     // Materials declared at top level
     const sphereNormalMaterial = new THREE.MeshStandardMaterial({
       color: 0xeab308,
@@ -528,11 +1002,21 @@
     const map2DHelper = new THREE.Object3D();
 
     // Multiplayer Networking
+    const standardColors = [
+      '#c51111', '#132ed1', '#117f2d', '#ed54ba',
+      '#f07d0d', '#f5f557', '#3f474e', '#d6e0f0',
+      '#6b2fbb', '#71491e', '#38fedc', '#50ef39'
+    ];
     let socket = null;
     let localPlayerId = 'player_' + Math.random().toString(36).substr(2, 9);
     let localUsername = 'Crewmate_' + Math.floor(Math.random() * 100);
-    let localColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
-    let remotePlayers = {}; // id -> { mesh, targetPos }
+    let localColor = standardColors[Math.floor(Math.random() * standardColors.length)];
+    let remotePlayers = {}; // id -> { mesh, targetPos, nameSprite }
+
+    let isLocalHost = false;
+    let currentRoomCode = '';
+    let localPlayerRole = 'Crewmate';
+    let currentLobbyPlayers = [];
 
     const clock = new THREE.Clock();
 
@@ -693,10 +1177,175 @@
     // ----------------------------------------------------
     // MULTIPLAYER NETWORKING & PROXIMITY VOICE SIGNALS
     // ----------------------------------------------------
+    function showNotification(text) {
+      const oldNotif = document.querySelector('.system-notification');
+      if (oldNotif) oldNotif.remove();
+      
+      const el = document.createElement('div');
+      el.className = 'system-notification';
+      el.innerText = text;
+      document.body.appendChild(el);
+      
+      setTimeout(() => {
+        el.remove();
+      }, 3500);
+    }
+
+    function showMenuPanel(panelId) {
+      document.querySelectorAll('.menu-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    function updateLobbyUI(roomState) {
+      const listEl = document.getElementById('lobby-players-list');
+      listEl.innerHTML = '';
+      
+      currentLobbyPlayers = roomState.players;
+      
+      document.getElementById('lobby-count-display').innerText = currentLobbyPlayers.length;
+      document.getElementById('lobby-code-display').innerText = 'ROOM CODE: ' + roomState.code;
+      
+      const midJoinText = roomState.settings.allowMidGameJoin ? 'Yes' : 'No';
+      document.getElementById('lobby-settings-display').innerText = 
+        `Max Players: ${roomState.settings.maxPlayers} | Impostors: ${roomState.settings.impostors} | Mid-Join: ${midJoinText}`;
+      
+      currentLobbyPlayers.forEach(p => {
+        const item = document.createElement('li');
+        item.className = 'lobby-player-item';
+        
+        const dot = document.createElement('div');
+        dot.className = 'player-color-dot';
+        dot.style.backgroundColor = p.color;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.innerText = p.username + (p.isHost ? ' (Host)' : '');
+        nameSpan.style.color = '#ffffff';
+        
+        item.appendChild(dot);
+        item.appendChild(nameSpan);
+        listEl.appendChild(item);
+      });
+      
+      // Toggle host start game button vs waiting message
+      const isHost = roomState.hostId === socket.id;
+      const startBtn = document.getElementById('menu-btn-start-game');
+      const waitMsg = document.getElementById('lobby-waiting-msg');
+      
+      if (isHost) {
+        startBtn.style.display = 'block';
+        waitMsg.style.display = 'none';
+      } else {
+        startBtn.style.display = 'none';
+        waitMsg.style.display = 'block';
+      }
+    }
+
+    function setupMainMenuListeners() {
+      // Toggle screens
+      document.getElementById('menu-btn-host-panel').addEventListener('click', () => {
+        showMenuPanel('panel-host');
+      });
+      
+      document.getElementById('menu-btn-join-panel').addEventListener('click', () => {
+        showMenuPanel('panel-join');
+      });
+      
+      document.getElementById('menu-btn-back-host').addEventListener('click', () => {
+        showMenuPanel('panel-main');
+      });
+      
+      document.getElementById('menu-btn-back-join').addEventListener('click', () => {
+        showMenuPanel('panel-main');
+      });
+
+      // Settings sliders
+      const maxPlayersSlider = document.getElementById('host-max-players');
+      const maxPlayersVal = document.getElementById('host-max-players-val');
+      maxPlayersSlider.addEventListener('input', (e) => {
+        maxPlayersVal.innerText = e.target.value;
+      });
+
+      const impostorsSlider = document.getElementById('host-impostors');
+      const impostorsVal = document.getElementById('host-impostors-val');
+      impostorsSlider.addEventListener('input', (e) => {
+        impostorsVal.innerText = e.target.value;
+      });
+
+      // Create Room
+      document.getElementById('menu-btn-create-lobby').addEventListener('click', () => {
+        const username = document.getElementById('username-input').value.trim() || 'Host';
+        localUsername = username;
+        
+        const maxP = parseInt(maxPlayersSlider.value);
+        const imp = parseInt(impostorsSlider.value);
+        const midJ = document.getElementById('host-midjoin').checked;
+        
+        if (socket && socket.connected) {
+          socket.emit('create_room', {
+            username: username,
+            color: localColor,
+            settings: {
+              maxPlayers: maxP,
+              impostors: imp,
+              allowMidGameJoin: midJ
+            }
+          });
+        } else {
+          showNotification('Offline mode. Cannot create lobby.');
+        }
+      });
+
+      // Join Room
+      document.getElementById('menu-btn-join-lobby').addEventListener('click', () => {
+        const username = document.getElementById('username-input').value.trim() || 'Crewmate';
+        localUsername = username;
+        
+        const codeInput = document.getElementById('join-code-input');
+        const code = codeInput.value.trim().toUpperCase();
+        
+        if (code.length !== 5) {
+          showNotification('Room code must be exactly 5 letters.');
+          return;
+        }
+        
+        if (socket && socket.connected) {
+          socket.emit('join_room', {
+            roomCode: code,
+            username: username,
+            color: localColor
+          });
+        } else {
+          showNotification('Offline mode. Cannot join lobby.');
+        }
+      });
+
+      // Leave Room
+      document.getElementById('menu-btn-leave-lobby').addEventListener('click', () => {
+        if (socket && socket.connected) {
+          socket.emit('leave_room');
+        } else {
+          showMenuPanel('panel-main');
+        }
+      });
+
+      // Start Game
+      document.getElementById('menu-btn-start-game').addEventListener('click', () => {
+        if (socket && socket.connected) {
+          socket.emit('start_game');
+        }
+      });
+      
+      // Auto-uppercase join room code input and filter letters
+      document.getElementById('join-code-input').addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+      });
+    }
+
     function initMultiplayerArray() {
       // Safe guard checking if local socket.io script loaded successfully (supports standalone offline)
       if (typeof io === 'undefined') {
         console.warn('Socket.io library not detected (running offline/single-player mode).');
+        document.getElementById('main-menu-overlay').style.display = 'none';
         loadActiveTaskSet().then(fallbackSet => {
           initializeTasksAndConfig(fallbackSet);
         });
@@ -708,21 +1357,230 @@
 
       socket.on('connect', () => {
         console.log('Linked to Skeld Core Socket.io Network Hub.');
-
-        // Broadcast local profile
-        socket.emit('join', {
-          id: localPlayerId,
-          username: localUsername,
-          color: localColor,
-          position: { x: playerPos.x, y: playerPos.y, z: playerPos.z },
-          rotation: camera.rotation.y
-        });
+        localPlayerId = socket.id;
       });
 
-      socket.on('initial_state', (data) => {
-        data.players.forEach(p => spawnOtherPlayer(p));
+      socket.on('room_created', (data) => {
+        console.log('Lobby Created:', data.roomCode);
+        currentRoomCode = data.roomCode;
+        updateLobbyUI(data.roomState);
+        showMenuPanel('panel-lobby');
+      });
 
-        // Load the task set assigned by the server
+      socket.on('room_joined', (data) => {
+        console.log('Joined Lobby:', data.roomCode);
+        currentRoomCode = data.roomCode;
+        
+        if (data.roomState.gameStarted) {
+          // Mid-game join: hide menu and launch active scene
+          document.getElementById('main-menu-overlay').style.display = 'none';
+          
+          // Clear and spawn current players
+          for (const id in remotePlayers) {
+            removeOtherPlayer(id);
+          }
+          data.roomState.players.forEach(p => {
+            if (p.id !== socket.id) {
+              spawnOtherPlayer(p);
+            }
+          });
+          
+          const myProfile = data.roomState.players.find(p => p.id === socket.id);
+          localPlayerRole = myProfile ? myProfile.role : 'Crewmate';
+          
+          if (myProfile && myProfile.assignedTaskSet) {
+            initializeTasksAndConfig(myProfile.assignedTaskSet);
+          } else {
+            loadActiveTaskSet().then(fallbackSet => {
+              initializeTasksAndConfig(fallbackSet);
+            });
+          }
+          
+          // Enable HUD
+          document.querySelector('.hud-layer').style.display = 'flex';
+          if (document.getElementById('settings-btn')) {
+            document.getElementById('settings-btn').parentElement.style.display = 'block';
+          }
+          showNotification('Joined mid-game as Crewmate!');
+        } else {
+          updateLobbyUI(data.roomState);
+          showMenuPanel('panel-lobby');
+        }
+      });
+
+      socket.on('join_error', (data) => {
+        showNotification(data.message);
+      });
+
+      socket.on('player_joined', (p) => {
+        // If game is started, spawn their mesh. If not, refresh lobby UI
+        const room = {
+          code: currentRoomCode,
+          hostId: currentLobbyPlayers.find(pl => pl.isHost)?.id,
+          settings: {
+            maxPlayers: 10,
+            impostors: 1,
+            allowMidGameJoin: true
+          },
+          players: [...currentLobbyPlayers, p]
+        };
+        
+        const summary = document.getElementById('lobby-settings-display').innerText;
+        const maxM = summary.match(/Max Players:\s*(\d+)/);
+        const impM = summary.match(/Impostors:\s*(\d+)/);
+        const midM = summary.match(/Mid-Join:\s*(\w+)/);
+        if (maxM) room.settings.maxPlayers = parseInt(maxM[1]);
+        if (impM) room.settings.impostors = parseInt(impM[1]);
+        if (midM) room.settings.allowMidGameJoin = (midM[1] === 'Yes');
+        if (currentLobbyPlayers.find(pl => pl.isHost)) {
+          room.hostId = currentLobbyPlayers.find(pl => pl.isHost).id;
+        }
+
+        updateLobbyUI(room);
+        
+        // Spawn mesh if game already active
+        const mainOverlay = document.getElementById('main-menu-overlay');
+        if (mainOverlay.style.display === 'none') {
+          spawnOtherPlayer(p);
+          showNotification(`${p.username} entered the ship.`);
+        } else {
+          playTone(660, 'triangle', 0.1, 0.05); // Subtle join chime
+        }
+      });
+
+      socket.on('player_left', (data) => {
+        // Remove from list and update lobby UI
+        const leftPlayer = currentLobbyPlayers.find(p => p.id === data.id);
+        const username = leftPlayer ? leftPlayer.username : 'Someone';
+        const updatedList = currentLobbyPlayers.filter(p => p.id !== data.id);
+        
+        const room = {
+          code: currentRoomCode,
+          hostId: currentLobbyPlayers.find(pl => pl.isHost)?.id,
+          settings: {
+            maxPlayers: 10,
+            impostors: 1,
+            allowMidGameJoin: true
+          },
+          players: updatedList
+        };
+        
+        const summary = document.getElementById('lobby-settings-display').innerText;
+        const maxM = summary.match(/Max Players:\s*(\d+)/);
+        const impM = summary.match(/Impostors:\s*(\d+)/);
+        const midM = summary.match(/Mid-Join:\s*(\w+)/);
+        if (maxM) room.settings.maxPlayers = parseInt(maxM[1]);
+        if (impM) room.settings.impostors = parseInt(impM[1]);
+        if (midM) room.settings.allowMidGameJoin = (midM[1] === 'Yes');
+        if (currentLobbyPlayers.find(pl => pl.isHost)) {
+          room.hostId = currentLobbyPlayers.find(pl => pl.isHost).id;
+        }
+
+        updateLobbyUI(room);
+        
+        // Clean up from 3D scene
+        removeOtherPlayer(data.id);
+        
+        const mainOverlay = document.getElementById('main-menu-overlay');
+        if (mainOverlay.style.display === 'none') {
+          showNotification(`${username} departed the ship.`);
+        }
+      });
+
+      socket.on('host_migrated', (data) => {
+        // Find player and update host status
+        currentLobbyPlayers.forEach(p => {
+          p.isHost = (p.id === data.hostId);
+        });
+        
+        const room = {
+          code: currentRoomCode,
+          hostId: data.hostId,
+          settings: {
+            maxPlayers: 10,
+            impostors: 1,
+            allowMidGameJoin: true
+          },
+          players: currentLobbyPlayers
+        };
+        
+        const summary = document.getElementById('lobby-settings-display').innerText;
+        const maxM = summary.match(/Max Players:\s*(\d+)/);
+        const impM = summary.match(/Impostors:\s*(\d+)/);
+        const midM = summary.match(/Mid-Join:\s*(\w+)/);
+        if (maxM) room.settings.maxPlayers = parseInt(maxM[1]);
+        if (impM) room.settings.impostors = parseInt(impM[1]);
+        if (midM) room.settings.allowMidGameJoin = (midM[1] === 'Yes');
+        
+        updateLobbyUI(room);
+        showNotification(data.hostId === socket.id ? 'You are now the Host!' : 'Host migrated to another astronaut.');
+      });
+
+      socket.on('left_room', () => {
+        currentRoomCode = '';
+        isLocalHost = false;
+        showMenuPanel('panel-main');
+      });
+
+      socket.on('game_started', (data) => {
+        console.log('Game starting. My role is:', data.localRole);
+        localPlayerRole = data.localRole;
+        
+        // Hide menu overlay
+        document.getElementById('main-menu-overlay').style.display = 'none';
+        
+        // Display role reveal intro screen
+        const roleOverlay = document.getElementById('role-screen-overlay');
+        const roleTitle = document.getElementById('role-title-text');
+        const roleDesc = document.getElementById('role-desc-text');
+        const impostorList = document.getElementById('impostor-list-text');
+        
+        roleOverlay.style.display = 'flex';
+        roleOverlay.style.opacity = '1';
+        
+        if (data.localRole === 'Impostor') {
+          roleTitle.innerText = 'IMPOSTOR';
+          roleTitle.style.color = '#ef4444';
+          roleOverlay.style.background = 'radial-gradient(circle, #3f0000 0%, #000000 100%)';
+          roleDesc.innerText = 'Sabotage and eliminate the crewmates. Do not get caught!';
+          
+          const impostors = data.players.filter(p => p.role === 'Impostor');
+          if (impostors.length > 0) {
+            impostorList.style.display = 'block';
+            impostorList.innerText = 'Impostors: ' + impostors.map(imp => imp.username).join(', ');
+          } else {
+            impostorList.style.display = 'none';
+          }
+          
+          // Play ominous sound
+          playTone(150, 'sawtooth', 0.6, 0.2);
+          setTimeout(() => playTone(120, 'sawtooth', 0.8, 0.2), 300);
+        } else {
+          roleTitle.innerText = 'CREWMATE';
+          roleTitle.style.color = '#38fedc';
+          roleOverlay.style.background = 'radial-gradient(circle, #002d3f 0%, #000000 100%)';
+          roleDesc.innerText = 'Complete all tasks or vote out the Impostors!';
+          impostorList.style.display = 'none';
+          
+          // Play high pitch sci-fi chord
+          playTone(523.25, 'sine', 0.2, 0.1);
+          setTimeout(() => playTone(659.25, 'sine', 0.2, 0.1), 100);
+          setTimeout(() => playTone(783.99, 'sine', 0.4, 0.1), 200);
+        }
+        
+        // Clean up from previous rounds
+        for (const id in remotePlayers) {
+          removeOtherPlayer(id);
+        }
+        
+        // Spawn players returned by server
+        data.players.forEach(p => {
+          if (p.id !== socket.id) {
+            spawnOtherPlayer(p);
+          }
+        });
+        
+        // Initialize tasks checklist
         if (data.assignedTaskSet) {
           initializeTasksAndConfig(data.assignedTaskSet);
         } else {
@@ -730,23 +1588,32 @@
             initializeTasksAndConfig(fallbackSet);
           });
         }
-
+        
         // Initialize progress bar
         if (typeof data.globalProgress !== 'undefined') {
           updateProgressBar(data.globalProgress);
         }
-      });
-
-      socket.on('player_joined', (data) => {
-        spawnOtherPlayer(data);
+        
+        // Wait 4 seconds, then fade out the role reveal screen
+        setTimeout(() => {
+          roleOverlay.style.opacity = '0';
+          setTimeout(() => {
+            roleOverlay.style.display = 'none';
+            // Enable controls and HUD interactions
+            document.querySelector('.hud-layer').style.display = 'flex';
+            if (document.getElementById('settings-btn')) {
+              document.getElementById('settings-btn').parentElement.style.display = 'block';
+            }
+            clickPrompt.style.display = 'flex';
+            if (!completed && !devMode) {
+              controls.lock();
+            }
+          }, 500);
+        }, 4000);
       });
 
       socket.on('player_moved', (data) => {
         updateOtherPlayer(data);
-      });
-
-      socket.on('player_left', (data) => {
-        removeOtherPlayer(data.id);
       });
 
       // Handle server updates for progress bar
@@ -755,6 +1622,38 @@
           updateProgressBar(data.progress);
         }
       });
+    }
+
+    function createNameSprite(username, color = '#ffffff') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Font settings
+      ctx.font = 'bold 44px "Fredoka One", "Lexend Deca", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Shadow/Outline
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 10;
+      ctx.strokeText(username, canvas.width / 2, canvas.height / 2);
+      
+      // Fill
+      ctx.fillStyle = color;
+      ctx.fillText(username, canvas.width / 2, canvas.height / 2);
+      
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+      const sprite = new THREE.Sprite(material);
+      
+      // Scale sprite to fit nicely
+      sprite.scale.set(1.5, 0.375, 1);
+      return sprite;
     }
 
     function spawnOtherPlayer(p) {
@@ -772,10 +1671,16 @@
       mesh.position.set(p.position.x, p.position.y, p.position.z);
       scene.add(mesh);
 
+      // Create and attach floating name tag
+      const nameSprite = createNameSprite(p.username || 'Crewmate', '#ffffff');
+      nameSprite.position.set(0, 0.7, 0); // Position slightly above player dome
+      mesh.add(nameSprite);
+
       remotePlayers[p.id] = {
         id: p.id,
         mesh: mesh,
-        targetPos: new THREE.Vector3(p.position.x, p.position.y, p.position.z)
+        targetPos: new THREE.Vector3(p.position.x, p.position.y, p.position.z),
+        nameSprite: nameSprite
       };
     }
 
@@ -1157,7 +2062,9 @@
       });
 
       controls.addEventListener('unlock', () => {
-        if (modal.style.display !== 'flex' && !devMode) {
+        const menu = document.getElementById('main-menu-overlay');
+        const inMenu = menu && menu.style.display !== 'none';
+        if (modal.style.display !== 'flex' && !devMode && !inMenu) {
           clickPrompt.style.display = 'flex';
         }
       });
@@ -1196,6 +2103,14 @@
 
       setupInputListeners();
       setupSettingsListeners();
+      setupMainMenuListeners();
+
+      // Hide HUD & settings drawer triggers until game starts
+      document.querySelector('.hud-layer').style.display = 'none';
+      if (document.getElementById('settings-btn')) {
+        document.getElementById('settings-btn').parentElement.style.display = 'none';
+      }
+      clickPrompt.style.display = 'none';
 
       // Listen for task completion messages from iframe minigames
       window.addEventListener('message', (e) => {
