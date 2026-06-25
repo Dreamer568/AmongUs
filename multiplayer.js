@@ -1,7 +1,3 @@
-/**
- * multiplayer.js
- * Scalable Express & Socket.io Real-Time Multiplayer Communications Hub
- */
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -109,7 +105,9 @@ io.on('connection', (socket) => {
       assignedTaskSet: null,
       completedTasks: [],
       role: 'Crewmate',
-      isHost: true
+      isHost: true,
+      isAlive: true,
+      lastKillTime: 0
     };
 
     const room = {
@@ -167,7 +165,9 @@ io.on('connection', (socket) => {
       assignedTaskSet: null,
       completedTasks: [],
       role: 'Crewmate',
-      isHost: false
+      isHost: false,
+      isAlive: true,
+      lastKillTime: 0
     };
 
     // If game has already started, assign random task set and standard role
@@ -229,6 +229,7 @@ io.on('connection', (socket) => {
     room.players.forEach((p, index) => {
       p.role = impostorIndices.has(index) ? 'Impostor' : 'Crewmate';
       p.completedTasks = [];
+      p.lastKillTime = 0; // Initialize server-side tracker
       if (taskSets.length > 0) {
         p.assignedTaskSet = taskSets[Math.floor(Math.random() * taskSets.length)];
       }
@@ -309,6 +310,57 @@ io.on('connection', (socket) => {
           progress: getRoomProgress(room)
         });
       }
+    }
+  });
+
+  // Combat actions: Kill player (Server-side validation)
+  socket.on('kill_player', (data) => {
+    if (socket.roomCode && socket.playerProfile) {
+      const room = rooms.get(socket.roomCode);
+      if (!room || !room.gameStarted) return;
+
+      const killer = room.players.find(p => p.id === socket.id);
+      if (!killer || killer.role !== 'Impostor' || !killer.isAlive) return;
+
+      const victim = room.players.find(p => p.id === data.victimId);
+      if (!victim || victim.role !== 'Crewmate' || !victim.isAlive) return;
+
+      // Enforce the 25-second cooldown programmatically on the server
+      const now = Date.now();
+      if (killer.lastKillTime && (now - killer.lastKillTime < 25000)) {
+        console.log(`Rejected kill: Cooldown is active for ${killer.username}`);
+        return;
+      }
+
+      killer.lastKillTime = now;
+      victim.isAlive = false;
+      console.log(`Room ${room.code}: [${victim.username}] was eliminated by [${killer.username}]`);
+
+      // Broadcast verified death event with both killerId and position payloads
+      io.to(room.code).emit('player_died', {
+        victimId: victim.id,
+        killerId: killer.id,
+        position: victim.position
+      });
+    }
+  });
+
+  // Combat actions: Report body / emergency meeting (Server-side validation)
+  socket.on('report_body', () => {
+    if (socket.roomCode && socket.playerProfile) {
+      const room = rooms.get(socket.roomCode);
+      if (!room || !room.gameStarted) return;
+
+      const reporter = room.players.find(p => p.id === socket.id);
+      if (!reporter || !reporter.isAlive) return;
+
+      console.log(`Room ${room.code}: Emergency meeting called by [${reporter.username}]`);
+
+      // Broadcast report alarm matching 'meeting_called' client event expectation
+      io.to(room.code).emit('meeting_called', {
+        reporterName: reporter.username,
+        reporterColor: reporter.color
+      });
     }
   });
 

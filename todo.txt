@@ -7,14 +7,12 @@ multiplayer
 promixity chat
 
 
-cool i like it now can u add a host section so the 
-host can like create the room and other can join with
- the code and it should even work if the game has started
-  and host will have the option if he wana let them in mid game
-   or nah so in the start the will be like a starting menu with host 
-   join and name ehre u can change your name and name is shoen above player
-    and ya in the host add a option to select the number of playes and imposter 
-    and aslo make the start screen like the player and imposter and if
-     the host left make other person host and remove the stat mission 
-     wasd button 
-
+ok very cool now can u remove the start mission button so
+ mobile user can just directly start and aslo just use the
+  screen to move the camera like normal mobile games and
+   aslo remove the start mission for pc players too it should
+    be always running with a pointer lock and user can just force
+     exit using esc and aslo if someone is killed can u add
+      a ui to their screen and then just change their pov to the imposter
+       pov and aslo the arrow in the mini map just make sure the arrow
+ is stick to the mini circle player and the circle shoud rotate

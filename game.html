@@ -208,6 +208,19 @@
       z-index: 5;
     }
 
+    #minimap-player-arrow {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 8px solid #ffffff;
+      filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
+    }
+
     #minimap-toggle-btn {
       background: rgba(0, 0, 0, 0.7);
       border: 3px solid #000;
@@ -605,7 +618,7 @@
       font-family: 'Fredoka One', cursive;
       font-size: 1.8rem;
       color: #f6e05e;
-      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, -2px 2px 0 #000;
       margin: 10px 0;
       letter-spacing: 2px;
     }
@@ -909,16 +922,39 @@
     <!-- Right HUD: Dynamic Minimap with HUD marker overlays -->
     <div id="minimap-anchor">
       <div id="minimap-container" class="cartoon-panel">
-        <div id="minimap-player-dot"></div>
+        <div id="minimap-player-dot">
+          <div id="minimap-player-arrow"></div>
+        </div>
       </div>
       <button id="minimap-toggle-btn">Hide Minimap</button>
     </div>
 
     <!-- Interactive action buttons -->
-    <div class='action-hud-bay'>
+    <div class='action-hud-bay' style='display: flex; gap: 15px;'>
       <button class='use-action-btn use-btn-disabled' id='use-btn' disabled>Use</button>
+      <button class='use-action-btn use-btn-disabled' id='kill-btn' style='display: none; background: #dc2626;' disabled>Kill</button>
+      <button class='use-action-btn use-btn-disabled' id='report-btn' style='display: none; background: #ca8a04;' disabled>Report</button>
     </div>
 
+  </div>
+
+  <!-- Virtual Mobile Joystick -->
+  <div id="joystick-container" style="position: absolute; bottom: 35px; left: 35px; width: 120px; height: 120px; z-index: 20; display: none; touch-action: none; pointer-events: auto;">
+    <div id="joystick-base" style="width: 100%; height: 100%; border-radius: 50%; background: rgba(0, 0, 0, 0.4); border: 4px solid #000; box-shadow: 4px 4px 0 #000; position: relative;">
+      <div id="joystick-knob" style="width: 50px; height: 50px; border-radius: 50%; background: #ea580c; border: 3px solid #000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transition: transform 0.05s ease-out; box-shadow: 0 4px 0 #802000;"></div>
+    </div>
+  </div>
+
+  <!-- Emergency meeting Alarm Screen -->
+  <div id="meeting-alarm-overlay" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.9); z-index: 700; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; box-sizing: border-box; padding: 20px;">
+    <div style="font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: #fff; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 0.8s ease-in-out infinite alternate; text-align: center;">DEAD BODY REPORTED!</div>
+    <div id="meeting-reporter-text" style="font-family: 'Lexend Deca', sans-serif; font-size: 1.5rem; font-weight: bold; color: #f6e05e; margin-top: 15px; text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000; text-align: center;">Called by HostPlayer</div>
+  </div>
+
+  <!-- Wasted / Killed screen overlay -->
+  <div id="eliminated-overlay" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, rgba(139, 9, 9, 0.95) 0%, rgba(0, 0, 0, 0.99) 100%); z-index: 550; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; box-sizing: border-box; padding: 20px;">
+    <div style="font-family: 'Fredoka One', cursive; font-size: 4rem; color: #dc2626; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 1s ease-in-out infinite alternate;">ELIMINATED</div>
+    <div style="font-family: 'Lexend Deca', sans-serif; font-size: 1.3rem; font-weight: bold; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center;">You were eliminated by an Impostor.</div>
   </div>
 
   <!-- Dynamic Iframe Overlay Terminal modal -->
@@ -992,6 +1028,10 @@
     let devMode = false;
     let showWalls = false;
 
+    // Network emission throttle tracker
+    let lastEmitTime = 0;
+    const EMIT_INTERVAL = 1000 / 30; // 30Hz replication update rate (~33.3ms)
+
     // Local light attached directly to player center
     let playerLight;
 
@@ -1028,6 +1068,24 @@
     const modal = document.getElementById('modal-overlay');
     const taskIframe = document.getElementById('task-iframe');
     const closeBtn = document.getElementById('close-btn');
+
+    // Combat & Role state
+    let isLocalAlive = true;
+    let killCooldown = 0;          // seconds remaining
+    let killCooldownMax = 25;      // seconds between kills
+    let nearestKillTarget = null;  // { id, mesh } of the closest alive crewmate within range
+    let nearestDeadBody = null;    // { id } of closest dead body in report range
+    const deadBodies = {};         // id -> { mesh, position }
+
+    // DOM refs for combat buttons
+    const killBtn  = document.getElementById('kill-btn');
+    const reportBtn = document.getElementById('report-btn');
+    const eliminatedOverlay = document.getElementById('eliminated-overlay');
+    const meetingAlarm = document.getElementById('meeting-alarm-overlay');
+    const meetingReporterText = document.getElementById('meeting-reporter-text');
+
+    // Joystick input vector (normalised -1..1)
+    let joystickDelta = { x: 0, y: 0 };
 
     // Player details
     let playerMesh = null;
@@ -1599,7 +1657,7 @@
           roleOverlay.style.opacity = '0';
           setTimeout(() => {
             roleOverlay.style.display = 'none';
-            // Enable controls and HUD interactions
+            // Enable HUD layers
             document.querySelector('.hud-layer').style.display = 'flex';
             if (document.getElementById('settings-btn')) {
               document.getElementById('settings-btn').parentElement.style.display = 'block';
@@ -1607,6 +1665,28 @@
             clickPrompt.style.display = 'flex';
             if (!completed && !devMode) {
               controls.lock();
+            }
+
+            // ── Combat initialization after role reveal ──────
+            isLocalAlive = true;
+            localPlayerRole = data.localRole || 'Crewmate';
+            killCooldown = killCooldownMax;
+
+            if (killBtn) {
+              if (localPlayerRole === 'Impostor') {
+                killBtn.style.display = 'flex';
+              } else {
+                killBtn.style.display = 'none';
+              }
+            }
+
+            if (reportBtn) reportBtn.style.display = 'none';
+            if (eliminatedOverlay) eliminatedOverlay.style.display = 'none';
+
+            // Show joystick on touch-capable devices
+            const joyContainer = document.getElementById('joystick-container');
+            if (joyContainer && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+              joyContainer.style.display = 'block';
             }
           }, 500);
         }, 4000);
@@ -1622,7 +1702,148 @@
           updateProgressBar(data.progress);
         }
       });
+
+      // ── COMBAT: kill_player (impostor pressed kill) ─────────────
+      socket.on('player_died', (data) => {
+        const { victimId, position } = data;
+
+        if (victimId === socket.id) {
+          // ── WE are the victim ─────────────────────────────────
+          isLocalAlive = false;
+          playerBody.velocity.x = 0;
+          playerBody.velocity.z = 0;
+
+          if (playerMesh) {
+            playerMesh.rotation.z = Math.PI / 2; // Lay flat
+          }
+
+          if (eliminatedOverlay) {
+            eliminatedOverlay.style.display = 'flex';
+          }
+
+          // Hide kill button if we had it
+          if (killBtn) killBtn.style.display = 'none';
+
+        } else {
+          // ── A remote player was killed ────────────────────────
+          const rp = remotePlayers[victimId];
+          if (rp) {
+            rp.isDead = true;
+            rp.mesh.rotation.z = Math.PI / 2; // Lay the mesh flat
+            if (rp.nameSprite) rp.nameSprite.visible = false;
+            // Register as dead body for proximity report
+            deadBodies[victimId] = { mesh: rp.mesh, position: rp.mesh.position };
+          }
+        }
+
+        // Impostor who killed: start cooldown
+        if (localPlayerRole === 'Impostor' && killCooldown > 0) {
+          killCooldown = killCooldownMax;
+        }
+      });
+
+      // ── COMBAT: report_body / meeting_called ─────────────────────
+      socket.on('meeting_called', (data) => {
+        const { reporterName, reporterColor } = data;
+
+        // Play alarm sound
+        for (let i = 0; i < 3; i++) {
+          setTimeout(() => {
+            playTone(880, 'square', 0.25, 0.3);
+            setTimeout(() => playTone(440, 'square', 0.25, 0.3), 130);
+          }, i * 500);
+        }
+
+        if (meetingAlarm) {
+          if (meetingReporterText) {
+            meetingReporterText.innerText = `${reporterName} reported a body!`;
+          }
+          meetingAlarm.style.display = 'flex';
+          setTimeout(() => {
+            meetingAlarm.style.display = 'none';
+            // Clear dead bodies after meeting starts (new round / vote phase)
+            for (const id in deadBodies) delete deadBodies[id];
+            if (reportBtn) reportBtn.style.display = 'none';
+          }, 4500);
+        }
+      });
+
+      // ── Player left the room ──────────────────────────────────────
+      socket.on('player_left', (data) => {
+        removeOtherPlayer(data.id);
+        delete deadBodies[data.id];
+      });
+
+      // ── Wire up KILL button click ──────────────────────────────────
+      if (killBtn) {
+        killBtn.addEventListener('click', () => {
+          if (nearestKillTarget && killCooldown <= 0 && isLocalAlive) {
+            socket.emit('kill_player', { victimId: nearestKillTarget.id });
+            killCooldown = killCooldownMax;
+            nearestKillTarget = null;
+          }
+        });
+      }
+
+      // ── Wire up REPORT button click ─────────────────────────────────
+      if (reportBtn) {
+        reportBtn.addEventListener('click', () => {
+          if (nearestDeadBody && isLocalAlive) {
+            socket.emit('report_body', {
+              bodyId: nearestDeadBody.id,
+              reporterName: localUsername,
+              reporterColor: localColor
+            });
+            nearestDeadBody = null;
+          }
+        });
+      }
+
+      // ── Virtual Joystick Touch Handlers ────────────────────────────
+      const joyContainer = document.getElementById('joystick-container');
+      const joyStick = document.getElementById('joystick-knob');
+      if (joyContainer && joyStick) {
+        const JOY_RADIUS = 50;
+        let joyOriginX = 0, joyOriginY = 0, joyTouchId = null;
+
+        joyContainer.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          const touch = e.changedTouches[0];
+          joyTouchId = touch.identifier;
+          const rect = joyContainer.getBoundingClientRect();
+          joyOriginX = rect.left + rect.width / 2;
+          joyOriginY = rect.top + rect.height / 2;
+        }, { passive: false });
+
+        joyContainer.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier !== joyTouchId) continue;
+            const dx = touch.clientX - joyOriginX;
+            const dy = touch.clientY - joyOriginY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const clamped = Math.min(dist, JOY_RADIUS);
+            const angle = Math.atan2(dy, dx);
+            const knobX = Math.cos(angle) * clamped;
+            const knobY = Math.sin(angle) * clamped;
+            joyStick.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+            joystickDelta.x = knobX / JOY_RADIUS;  // -1..1 strafe
+            joystickDelta.y = knobY / JOY_RADIUS;  // -1..1 forward/back
+          }
+        }, { passive: false });
+
+        const endJoy = () => {
+          joyTouchId = null;
+          joystickDelta.x = 0;
+          joystickDelta.y = 0;
+          joyStick.style.transform = 'translate(-50%, -50%)';
+        };
+        joyContainer.addEventListener('touchend', endJoy, { passive: true });
+        joyContainer.addEventListener('touchcancel', endJoy, { passive: true });
+      }
     }
+
 
     function createNameSprite(username, color = '#ffffff') {
       const canvas = document.createElement('canvas');
@@ -1899,13 +2120,14 @@
     // PROXIMITY DETECTION
     // ----------------------------------------------------
     function evaluateProximity() {
-      if (completed) return;
+      if (completed || !isLocalAlive) return;
 
+      // ── Task sphere proximity ──────────────────────────────
       let nearSphere = null;
       let minDist = 3.2;
 
       taskSpheres.forEach(s => {
-        if (s.completed) return; // Skip completed tasks
+        if (s.completed) return;
         const dist = playerPos.distanceTo(s.mesh.position);
         if (dist < minDist) {
           minDist = dist;
@@ -1937,6 +2159,59 @@
           useBtn.classList.add('use-btn-disabled');
           useBtn.disabled = true;
           useBtn.innerText = 'USE';
+        }
+      }
+
+      // ── Impostor: scan for nearby killable crewmates ───────
+      if (localPlayerRole === 'Impostor' && killBtn) {
+        let bestTarget = null;
+        let bestDist = 2.5; // kill range radius
+
+        for (const id in remotePlayers) {
+          const rp = remotePlayers[id];
+          if (rp.isDead) continue; // skip dead
+          const dist = playerPos.distanceTo(rp.mesh.position);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestTarget = { id, mesh: rp.mesh };
+          }
+        }
+
+        nearestKillTarget = bestTarget;
+
+        if (nearestKillTarget && killCooldown <= 0) {
+          killBtn.classList.remove('use-btn-disabled');
+          killBtn.disabled = false;
+          killBtn.innerText = 'Kill';
+        } else {
+          killBtn.classList.add('use-btn-disabled');
+          killBtn.disabled = true;
+          killBtn.innerText = killCooldown > 0 ? Math.ceil(killCooldown) + 's' : 'Kill';
+        }
+      }
+
+      // ── Dead body report proximity scan ────────────────────
+      if (reportBtn) {
+        let foundBody = null;
+        for (const id in deadBodies) {
+          const body = deadBodies[id];
+          const dist = playerPos.distanceTo(body.mesh.position);
+          if (dist < 3.0) {
+            foundBody = { id };
+            break;
+          }
+        }
+
+        nearestDeadBody = foundBody;
+
+        if (nearestDeadBody) {
+          reportBtn.style.display = 'flex';
+          reportBtn.classList.remove('use-btn-disabled');
+          reportBtn.disabled = false;
+        } else {
+          reportBtn.style.display = 'none';
+          reportBtn.classList.add('use-btn-disabled');
+          reportBtn.disabled = true;
         }
       }
     }
@@ -2138,19 +2413,61 @@
       animate();
     }
 
-    function updatePlayerMovement() {
+    function updatePlayerMovement(deltaTime) {
       // Safety checks: Skip movement evaluations until physics systems are initialized
       if (!physicsWorld || !playerBody) return;
       if (completed || devMode) return;
       if (modal.style.display === 'flex') return;
-      if (!controls.isLocked) return;
 
+      // Dead players cannot move
+      if (!isLocalAlive) {
+        playerBody.velocity.x = 0;
+        playerBody.velocity.z = 0;
+        return;
+      }
+
+      // Tick kill cooldown
+      if (localPlayerRole === 'Impostor' && killCooldown > 0) {
+        killCooldown = Math.max(0, killCooldown - deltaTime);
+      }
+
+      // Get keyboard direction
       const moveDirection = calculateMovementVec(camera);
+      let velX = moveDirection.x * playerSpeedSetting;
+      let velZ = moveDirection.z * playerSpeedSetting;
 
-      // Map move controls straight into Cannon physics engine velocities
-      if (moveDirection.lengthSq() > 0) {
-        playerBody.velocity.x = moveDirection.x * playerSpeedSetting;
-        playerBody.velocity.z = moveDirection.z * playerSpeedSetting;
+      // Blend in joystick input when no keyboard is pressed and joystick is active
+      const joystickActive = joystickDelta.x !== 0 || joystickDelta.y !== 0;
+      if (joystickActive && moveDirection.lengthSq() === 0) {
+        const cameraForward = new THREE.Vector3();
+        camera.getWorldDirection(cameraForward);
+        cameraForward.y = 0;
+        cameraForward.normalize();
+
+        const cameraRight = new THREE.Vector3();
+        cameraRight.crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
+
+        // joystickDelta.y = forward/back, joystickDelta.x = strafe
+        const joyDir = new THREE.Vector3();
+        joyDir.addScaledVector(cameraForward, -joystickDelta.y);
+        joyDir.addScaledVector(cameraRight, joystickDelta.x);
+
+        velX = joyDir.x * playerSpeedSetting;
+        velZ = joyDir.z * playerSpeedSetting;
+      }
+
+      // Allow movement even if pointerlock is temporarily disengaged (e.g. after modals)
+      const menu = document.getElementById('main-menu-overlay');
+      const inMenu = menu && menu.style.display !== 'none';
+      if (inMenu) {
+        playerBody.velocity.x = 0;
+        playerBody.velocity.z = 0;
+        return;
+      }
+
+      if (velX !== 0 || velZ !== 0) {
+        playerBody.velocity.x = velX;
+        playerBody.velocity.z = velZ;
       } else {
         playerBody.velocity.x = 0;
         playerBody.velocity.z = 0;
@@ -2258,10 +2575,16 @@
 
       const playerMarker = document.getElementById('minimap-player-dot');
       if (playerMarker) {
-        // Draw matching colored player dot on HUD canvas coordinates
         playerMarker.style.background = localColor;
         playerMarker.style.left = `${u * 100}%`;
         playerMarker.style.top = `${(1 - v) * 100}%`;
+      }
+
+      // Rotate the facing arrow to match camera Y rotation
+      const arrow = document.getElementById('minimap-player-arrow');
+      if (arrow && camera) {
+        const deg = -(camera.rotation.y * (180 / Math.PI));
+        arrow.style.transform = `translateX(-50%) rotate(${deg}deg)`;
       }
     }
 
@@ -2278,6 +2601,13 @@
       // ABSOLUTE PROTECTION FOR ASYNC REFRESH CRASHES
       if (!physicsWorld || !playerBody || !playerMesh || !renderer || !scene || !camera) {
         return;
+      }
+
+      // Sanity coordinate checks to protect against static collider NaN/Void errors
+      if (isNaN(playerBody.position.x) || isNaN(playerBody.position.y) || isNaN(playerBody.position.z)) {
+        console.warn("Physics body coordinate error caught. Resetting coordinates.");
+        playerBody.position.set(6.79, 5.90, -23.93);
+        playerBody.velocity.set(0, 0, 0);
       }
 
       // Step the Physics World simulation only if active
@@ -2307,16 +2637,20 @@
         op.mesh.position.lerp(op.targetPos, 0.15);
       }
 
-      // Broadcast position parameters to other players (Socket.io)
-      if (socket && socket.connected) {
-        socket.emit('move', {
-          position: { x: playerPos.x, y: playerPos.y, z: playerPos.z },
-          rotation: camera.rotation.y
-        });
+      // Broadcast position parameters to other players (Socket.io) - throttled at 30Hz tick rate
+      const now = performance.now();
+      if (now - lastEmitTime >= EMIT_INTERVAL) {
+        if (socket && socket.connected) {
+          socket.emit('move', {
+            position: { x: playerPos.x, y: playerPos.y, z: playerPos.z },
+            rotation: camera.rotation.y
+          });
+        }
+        lastEmitTime = now;
       }
 
       updateAmbientSpheres();
-      updatePlayerMovement();
+      updatePlayerMovement(deltaTime);
       evaluateProximity();
 
       renderer.render(scene, camera);
