@@ -136,7 +136,9 @@ io.on('connection', (socket) => {
         allowMidGameJoin: data.settings?.allowMidGameJoin !== false
       },
       players: [socket.playerProfile],
-      gameStarted: false
+      gameStarted: false,
+      votes: {},
+      inMeeting: false
     };
 
     rooms.set(roomCode, room);
@@ -187,7 +189,6 @@ io.on('connection', (socket) => {
       lastKillTime: 0
     };
 
-    // If game has already started, assign random task set and standard role
     if (room.gameStarted) {
       if (taskSets.length > 0) {
         socket.playerProfile.assignedTaskSet = taskSets[Math.floor(Math.random() * taskSets.length)];
@@ -200,17 +201,14 @@ io.on('connection', (socket) => {
 
     console.log(`Player joined room ${code}: ${socket.playerProfile.username}`);
 
-    // Let the joining player know
     socket.emit('room_joined', {
       roomCode: code,
       roomState: room,
       playerProfile: socket.playerProfile
     });
 
-    // Notify other players in the room
     socket.to(code).emit('player_joined', socket.playerProfile);
 
-    // If game started, broadcast new progress since player joined
     if (room.gameStarted) {
       io.to(code).emit('progress_update', {
         progress: getRoomProgress(room)
@@ -224,7 +222,6 @@ io.on('connection', (socket) => {
     const room = rooms.get(socket.roomCode);
     if (!room || room.hostId !== socket.id || room.gameStarted) return;
 
-    // Assign roles: pick Impostors
     let impostorCount = parseInt(room.settings.impostors) || 1;
     if (room.players.length > 1) {
       impostorCount = Math.max(1, Math.min(impostorCount, room.players.length - 1));
@@ -232,7 +229,6 @@ io.on('connection', (socket) => {
       impostorCount = 0; // Solo player cannot be impostor
     }
 
-    // Shuffle players to assign roles randomly
     const shuffledIndex = Array.from({ length: room.players.length }, (_, i) => i);
     for (let i = shuffledIndex.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -241,11 +237,12 @@ io.on('connection', (socket) => {
 
     const impostorIndices = new Set(shuffledIndex.slice(0, impostorCount));
 
-    // Assign roles & task sets
     room.players.forEach((p, index) => {
       p.role = impostorIndices.has(index) ? 'Impostor' : 'Crewmate';
       p.completedTasks = [];
       p.lastKillTime = 0;
+      p.isAlive = true;
+      p.position = { x: 6.79, y: 5.90, z: -23.93 };
       if (taskSets.length > 0) {
         p.assignedTaskSet = taskSets[Math.floor(Math.random() * taskSets.length)];
       }
@@ -254,13 +251,11 @@ io.on('connection', (socket) => {
     room.gameStarted = true;
     console.log(`Game starting in Room ${room.code} with ${impostorCount} impostor(s).`);
 
-    // Retrieve active sockets in this room to emit customized game_started payloads
     const connectedSockets = getConnectedSockets();
     connectedSockets.forEach((s) => {
       if (s.roomCode === room.code && s.playerProfile) {
         const profile = room.players.find(p => p.id === s.id);
         if (profile) {
-          // Mask roles: Impostor knows all other Impostors. Crewmate knows nothing.
           const sanitizedPlayers = room.players.map(p => {
             const showRole = profile.role === 'Impostor' && p.role === 'Impostor';
             return {
@@ -326,6 +321,20 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Emergency Button Meeting Trigger
+  socket.on('call_emergency_meeting', () => {
+    if (socket.roomCode && socket.playerProfile) {
+      const room = rooms.get(socket.roomCode);
+      if (!room || !room.gameStarted || room.inMeeting) return;
+
+      const caller = room.players.find(p => p.id === socket.id);
+      if (!caller || !caller.isAlive) return;
+
+      console.log(`Room ${room.code}: Emergency Meeting called by button!`);
+      triggerMeetingSequence(room, caller.username, caller.color);
+    }
+  });
+
   // Combat actions: Kill player (Server-side validation)
   socket.on('kill_player', (data) => {
     if (socket.roomCode && socket.playerProfile) {
@@ -338,7 +347,6 @@ io.on('connection', (socket) => {
       const victim = room.players.find(p => p.id === data.victimId);
       if (!victim || victim.role !== 'Crewmate' || !victim.isAlive) return;
 
-      // Enforce the 25-second cooldown programmatically on the server
       const now = Date.now();
       if (killer.lastKillTime && (now - killer.lastKillTime < 25000)) {
         console.log(`Rejected kill: Cooldown is active for ${killer.username}`);
@@ -358,20 +366,44 @@ io.on('connection', (socket) => {
   });
 
   // Combat actions: Report body / emergency meeting (Server-side validation)
-  socket.on('report_body', () => {
+  socket.on('report_body', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
-      if (!room || !room.gameStarted) return;
+      if (!room || !room.gameStarted || room.inMeeting) return;
 
       const reporter = room.players.find(p => p.id === socket.id);
       if (!reporter || !reporter.isAlive) return;
 
-      console.log(`Room ${room.code}: Emergency meeting called by [${reporter.username}]`);
+      console.log(`Room ${room.code}: Body reported by [${reporter.username}]`);
+      triggerMeetingSequence(room, reporter.username, reporter.color);
+    }
+  });
 
-      io.to(room.code).emit('meeting_called', {
-        reporterName: reporter.username,
-        reporterColor: reporter.color
+  // Cast meeting vote
+  socket.on('cast_vote', (data) => {
+    if (socket.roomCode && socket.playerProfile) {
+      const room = rooms.get(socket.roomCode);
+      if (!room || !room.inMeeting) return;
+
+      const voter = room.players.find(p => p.id === socket.id);
+      if (!voter || !voter.isAlive) return;
+
+      room.votes[socket.id] = data.targetId; // 'skip' or player target id
+      console.log(`Room ${room.code}: [${voter.username}] voted for [${data.targetId}]`);
+
+      // Broadcast update
+      io.to(room.code).emit('vote_update', {
+        voters: Object.keys(room.votes),
+        votes: room.votes
       });
+
+      // Count living players
+      const alivePlayers = room.players.filter(p => p.isAlive);
+
+      // End voting early if all living players have cast their ballot
+      if (Object.keys(room.votes).length >= alivePlayers.length) {
+        processVotingResults(room);
+      }
     }
   });
 
@@ -440,6 +472,81 @@ io.on('connection', (socket) => {
     }
   });
 });
+
+function triggerMeetingSequence(room, reporterName, reporterColor) {
+  room.inMeeting = true;
+  room.votes = {};
+
+  // Teleport all players to Spawn on Server records
+  room.players.forEach(p => {
+    p.position = { x: 6.79, y: 5.90, z: -23.93 };
+  });
+
+  const aliveList = room.players.map(p => ({
+    id: p.id,
+    username: p.username,
+    color: p.color,
+    isAlive: p.isAlive
+  }));
+
+  io.to(room.code).emit('meeting_started', {
+    reporterName,
+    reporterColor,
+    alivePlayers: aliveList
+  });
+}
+
+function processVotingResults(room) {
+  room.inMeeting = false;
+
+  const voteCounts = {};
+  let maxVotes = 0;
+  let ejectedId = null;
+  let isTie = false;
+
+  // Tally votes
+  Object.values(room.votes).forEach(targetId => {
+    if (targetId !== 'skip') {
+      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+      if (voteCounts[targetId] > maxVotes) {
+        maxVotes = voteCounts[targetId];
+        ejectedId = targetId;
+        isTie = false;
+      } else if (voteCounts[targetId] === maxVotes) {
+        isObstructed = true;
+        isObstructed = true;
+        isTie = true;
+      }
+    }
+  });
+
+  const skipCount = Object.values(room.votes).filter(v => v === 'skip').length;
+  if (skipCount >= maxVotes) {
+    ejectedId = null;
+  } else if (isTie) {
+    ejectedId = null; // Tie results in skipped ejection
+  }
+
+  let ejectedPlayer = null;
+  if (ejectedId) {
+    ejectedPlayer = room.players.find(p => p.id === ejectedId);
+    if (ejectedPlayer) {
+      ejectedPlayer.isAlive = false;
+    }
+  }
+
+  // Count remaining Impostors
+  const remainingImpostors = room.players.filter(p => p.isAlive && p.role === 'Impostor').length;
+
+  io.to(room.code).emit('meeting_ended', {
+    ejectedPlayer: ejectedPlayer ? {
+      id: ejectedPlayer.id,
+      username: ejectedPlayer.username,
+      role: ejectedPlayer.role
+    } : null,
+    remainingImpostors: remainingImpostors
+  });
+}
 
 server.listen(PORT, () => {
   console.log(`\n======================================================`);

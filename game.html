@@ -758,7 +758,103 @@
       }
     }
 
-    /* --- RESPONSIVE MOBILE UI SCALING DRAWERS --- */
+    /* Voting Overlay */
+    #voting-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.96);
+      z-index: 800;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+
+    .voting-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.2rem;
+      color: #f6e05e;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .voting-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 25px;
+    }
+
+    .vote-card-btn {
+      background: #1e293b;
+      border: 4px solid #000;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      color: white;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      box-shadow: 4px 4px 0px #000;
+      transition: transform 0.05s;
+      position: relative;
+    }
+
+    .vote-card-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .vote-card-btn.dead {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #475569;
+    }
+
+    .vote-badge {
+      position: absolute;
+      right: 15px;
+      background: #dc2626;
+      border: 2px solid #000;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #ejected-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000000;
+      z-index: 850;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
     @media (max-width: 768px) {
       .task-card {
         width: 180px;
@@ -796,6 +892,16 @@
         font-size: 0.65rem;
         left: 20px;
         bottom: 110px;
+      }
+
+      .voting-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .vote-card-btn {
+        font-size: 0.9rem;
+        padding: 8px;
       }
     }
   </style>
@@ -892,6 +998,25 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Voting System Interface Overlay -->
+  <div id="voting-overlay">
+    <div class="voting-title">WHO IS THE IMPOSTOR?</div>
+    <div class="voting-grid" id="voting-players-grid"></div>
+    <button id="skip-vote-btn" class="menu-btn btn-back" style="max-width: 200px; width: 100%;">SKIP VOTE</button>
+    <div id="voted-status-list"
+      style="margin-top: 20px; font-weight: bold; color: #94a3b8; font-size: 0.9rem; text-align: center;"></div>
+  </div>
+
+  <!-- Ejection Splash Screen Overlay -->
+  <div id="ejected-overlay">
+    <div id="ejected-animation-text"
+      style="font-family: 'Fredoka One', cursive; font-size: 2.5rem; color: #fff; text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; text-align: center; animation: floatTitle 3s ease-in-out infinite;">
+      HostPlayer was ejected.</div>
+    <div id="impostors-remaining-text"
+      style="font-family: 'Lexend Deca', sans-serif; font-size: 1.2rem; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;">
+      1 Impostor remains.</div>
   </div>
 
   <div id="role-screen-overlay">
@@ -1015,8 +1140,8 @@
 
     <div style='display: flex; flex-direction: column; gap: 4px;'>
       <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Light Strength:
-        <span id="strength-val">1.0</span></label>
-      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='1.0'
+        <span id="strength-val">2.0</span></label>
+      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='2.0'
         style='cursor: pointer; accent-color: #ea580c;' />
     </div>
   </div>
@@ -1130,7 +1255,7 @@
     let playerRadius = 0.35;
 
     let playerSpeedSetting = 4.0;
-    let lightStrengthValue = 1.0;
+    let lightStrengthValue = 2.0; // Default Light Strength raised to 2.0
 
     const playerPos = new THREE.Vector3(6.79, 5.90, -23.93);
     const keysPressed = {};
@@ -1409,10 +1534,10 @@
       scene.add(mesh);
       physicalWalls.push(mesh);
 
-      // Programmatic Wall-tunneling solution: Clamp collider width to a minimum of 0.8
-      const colX = Math.max(wallData.scale[0], 0.8);
+      // Programmatic Wall-tunneling solution: Clamp collider width to a minimum of 1.2 for rigid bounds
+      const colX = Math.max(wallData.scale[0], 1.2);
       const colY = wallData.scale[1];
-      const colZ = Math.max(wallData.scale[2], 0.8);
+      const colZ = Math.max(wallData.scale[2], 1.2);
 
       const halfExtents = new CANNON.Vec3(colX / 2, colY / 2, colZ / 2);
       const wallShape = new CANNON.Box(halfExtents);
@@ -1959,10 +2084,12 @@
         if (victimId === socket.id) {
           isLocalAlive = false;
 
-          // Disable Local Player physics collider on elimination to prevent trapping other players
           if (physicsWorld && playerBody) {
             physicsWorld.removeBody(playerBody);
           }
+
+          // Spawn local body statically on ground at coordinates of elimination
+          spawnStaticDeadBody(playerPos, localColor);
 
           if (eliminatedOverlay) {
             eliminatedOverlay.style.display = 'flex';
@@ -1976,13 +2103,123 @@
             rp.isDead = true;
             rp.mesh.rotation.z = Math.PI / 2; // Lay model flat on ground
             if (rp.nameSprite) rp.nameSprite.visible = false;
-            deadBodies[victimId] = { mesh: rp.mesh, position: rp.mesh.position };
+            deadBodies[victimId] = { mesh: rp.mesh, position: rp.mesh.position.clone() };
           }
         }
 
         if (localPlayerRole === 'Impostor' && killCooldown > 0) {
           killCooldown = Math.max(0, killCooldownMax);
         }
+      });
+
+      // Voting Systems signaling relays
+      socket.on('meeting_started', (data) => {
+        controls.unlock();
+        closeModal();
+
+        // Teleport client position representations to Spawn coordinates
+        if (isLocalAlive && playerBody) {
+          playerBody.position.set(6.79, 5.90, -23.93);
+          playerBody.velocity.set(0, 0, 0);
+          playerPos.copy(playerBody.position);
+        } else {
+          playerPos.set(6.79, 5.90, -23.93);
+        }
+
+        const overlay = document.getElementById('voting-overlay');
+        const grid = document.getElementById('voting-players-grid');
+        grid.innerHTML = '';
+
+        // Dynamically build Voting GUI cards
+        data.alivePlayers.forEach(p => {
+          const btn = document.createElement('button');
+          btn.className = 'vote-card-btn' + (!p.isAlive ? ' dead' : '');
+          btn.style.borderLeft = `12px solid ${p.color}`;
+          btn.innerHTML = `${p.username} <div class="vote-badge" id="badge-${p.id}">0</div>`;
+
+          if (p.isAlive && isLocalAlive) {
+            btn.onclick = () => {
+              socket.emit('cast_vote', { targetId: p.id });
+              disableVotingButtons();
+            };
+          }
+          grid.appendChild(btn);
+        });
+
+        const status = document.getElementById('voted-status-list');
+        status.innerText = "Cast your vote or skip.";
+
+        overlay.style.display = 'flex';
+      });
+
+      socket.on('vote_update', (data) => {
+        const counts = {};
+        Object.values(data.votes).forEach(targetId => {
+          counts[targetId] = (counts[targetId] || 0) + 1;
+        });
+
+        // Update card vote tally badges
+        document.querySelectorAll('.vote-card-btn').forEach(btn => {
+          const badge = btn.querySelector('.vote-badge');
+          if (badge) badge.style.display = 'none';
+        });
+
+        for (const targetId in counts) {
+          const badge = document.getElementById(`badge-${targetId}`);
+          if (badge) {
+            badge.innerText = counts[targetId];
+            badge.style.display = 'flex';
+          }
+        }
+
+        const status = document.getElementById('voted-status-list');
+        status.innerText = `${data.voters.length} player(s) have voted.`;
+      });
+
+      socket.on('meeting_ended', (data) => {
+        const overlay = document.getElementById('voting-overlay');
+        overlay.style.display = 'none';
+
+        const ejectOverlay = document.getElementById('ejected-overlay');
+        const ejectText = document.getElementById('ejected-animation-text');
+        const remainText = document.getElementById('impostors-remaining-text');
+
+        if (data.ejectedPlayer) {
+          ejectText.innerText = `${data.ejectedPlayer.username} was ejected.`;
+          remainText.innerText = `${data.remainingImpostors} Impostor(s) remain.`;
+
+          if (data.ejectedPlayer.id === socket.id) {
+            isLocalAlive = false;
+            if (physicsWorld && playerBody) {
+              physicsWorld.removeBody(playerBody);
+            }
+            spawnStaticDeadBody(playerPos, localColor);
+            eliminatedOverlay.style.display = 'flex';
+          } else {
+            const rp = remotePlayers[data.ejectedPlayer.id];
+            if (rp) {
+              rp.isDead = true;
+              rp.mesh.rotation.z = Math.PI / 2;
+              if (rp.nameSprite) rp.nameSprite.visible = false;
+            }
+          }
+        } else {
+          ejectText.innerText = "No one was ejected. (Tie/Skipped)";
+          remainText.innerText = `${data.remainingImpostors} Impostor(s) remain.`;
+        }
+
+        ejectOverlay.style.display = 'flex';
+        ejectOverlay.style.opacity = '1';
+
+        setTimeout(() => {
+          ejectOverlay.style.opacity = '0';
+          setTimeout(() => {
+            ejectOverlay.style.display = 'none';
+            if (!completed && !devMode) {
+              controls.lock();
+            }
+          }, 500);
+        }, 4000);
       });
 
       socket.on('meeting_called', (data) => {
@@ -2254,14 +2491,14 @@
           config.tasks.forEach(t => {
             const taskMatch = findMatchedTask(t, activeTaskSet);
 
-            if (taskMatch) {
+            if (taskMatch || t.id === "task_1781670415706_757") { // Include Emergency meeting task strictly
               const sphereGeo = new THREE.SphereGeometry(0.35, 16, 16);
               const sphere = new THREE.Mesh(sphereGeo, sphereNormalMaterial.clone());
 
               sphere.position.fromArray(t.position);
               sphere.frustumCulled = false;
 
-              const sphereGlow = new THREE.PointLight(0xeab308, 0.8, 6);
+              const sphereGlow = new THREE.PointLight(t.id === "task_1781670415706_757" ? 0xef4444 : 0xeab308, 0.8, 6);
               sphere.add(sphereGlow);
 
               scene.add(sphere);
@@ -2328,17 +2565,24 @@
         activeNearSphere = nearSphere;
 
         if (activeNearSphere) {
-          const taskMatch = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
-
-          if (taskMatch) {
+          // Check if this task is the emergency meeting button
+          if (activeNearSphere.id === "task_1781670415706_757") {
             activeNearSphere.mesh.material = sphereActiveMaterial;
             useBtn.classList.remove('use-btn-disabled');
             useBtn.disabled = false;
-            useBtn.innerText = 'USE';
+            useBtn.innerText = 'EMERGENCY';
           } else {
-            useBtn.classList.add('use-btn-disabled');
-            useBtn.disabled = true;
-            useBtn.innerText = 'LOCKED';
+            const taskMatch = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
+            if (taskMatch) {
+              activeNearSphere.mesh.material = sphereActiveMaterial;
+              useBtn.classList.remove('use-btn-disabled');
+              useBtn.disabled = false;
+              useBtn.innerText = 'USE';
+            } else {
+              useBtn.classList.add('use-btn-disabled');
+              useBtn.disabled = true;
+              useBtn.innerText = 'LOCKED';
+            }
           }
         } else {
           useBtn.classList.add('use-btn-disabled');
@@ -2415,6 +2659,14 @@
     function openActiveTask() {
       if (!activeNearSphere || completed || activeNearSphere.completed) return;
 
+      // Special action: Emergency Meeting Button Call
+      if (activeNearSphere.id === "task_1781670415706_757") {
+        if (socket && socket.connected) {
+          socket.emit('call_emergency_meeting');
+        }
+        return;
+      }
+
       const matchedTaskInSet = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
 
       if (matchedTaskInSet) {
@@ -2444,6 +2696,46 @@
         }
       }, 100);
     }
+
+    function spawnStaticDeadBody(pos, color) {
+      const bodyGeo = new THREE.SphereGeometry(playerRadius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: color,
+        metalness: 0.1,
+        roughness: 0.4,
+        side: THREE.DoubleSide
+      });
+      const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+      bodyMesh.position.copy(pos);
+      bodyMesh.rotation.z = Math.PI / 2; // Flat body on deck
+      scene.add(bodyMesh);
+
+      // Store in dead body cache for report action targeting
+      const bodyId = 'dead_local_' + Math.random().toString(36).substr(2, 9);
+      deadBodies[bodyId] = { mesh: bodyMesh, position: pos.clone() };
+    }
+
+    function disableVotingButtons() {
+      document.querySelectorAll('.vote-card-btn').forEach(btn => {
+        btn.onclick = null;
+        btn.style.cursor = 'not-allowed';
+        btn.style.opacity = '0.6';
+      });
+      const skipBtn = document.getElementById('skip-vote-btn');
+      if (skipBtn) {
+        skipBtn.onclick = null;
+        skipBtn.style.cursor = 'not-allowed';
+        skipBtn.style.opacity = '0.6';
+      }
+    }
+
+    // Trigger Skip voting action
+    document.getElementById('skip-vote-btn').onclick = () => {
+      if (socket && socket.connected) {
+        socket.emit('cast_vote', { targetId: 'skip' });
+        disableVotingButtons();
+      }
+    };
 
     let tasksInitialized = false;
     async function initializeTasksAndConfig(taskSet) {
@@ -2503,8 +2795,8 @@
       // Directly acquire cursor pointer lock on canvas clicks (no Start Mission prompt)
       renderer.domElement.addEventListener('click', () => {
         triggerFullscreen();
-        if (modal.style.display !== 'flex' && !devMode && !isTrackingLook && isLocalAlive) {
-          controls.lock();
+        if (modal.style.display !== 'flex' && !devMode && !isTrackingLook) {
+          controls.lock(); // Controls now actively lock even when dead
         }
       });
 
@@ -2552,7 +2844,7 @@
       window.addEventListener('touchstart', (e) => {
         for (let i = 0; i < e.changedTouches.length; i++) {
           const touch = e.changedTouches[i];
-          // Skip if touch occurs inside the virtual joystick quadrant
+          // Skip if touch occurs inside virtual joystick quadrant
           if (touch.clientX < window.innerWidth / 3 && touch.clientY > window.innerHeight / 2) {
             continue;
           }
@@ -2630,42 +2922,39 @@
     }
 
     function updatePlayerMovement(deltaTime) {
+      if (!physicsWorld || !playerBody) return;
       if (completed || devMode) return;
       if (modal.style.display === 'flex') return;
 
-      // 3D FREE CAMERA FLY GHOST MODE: Allow flying, bypass Cannon-es colliders completely on death
       if (!isLocalAlive) {
-        const speed = playerSpeedSetting * deltaTime * 1.5;
-        const forwardDir = new THREE.Vector3();
-        camera.getWorldDirection(forwardDir);
+        // GHOST FLYING ACTION: Flying speeds and controls updated
+        const speed = playerSpeedSetting * 1.5;
+        const direction = new THREE.Vector3();
 
-        const rightDir = new THREE.Vector3();
-        rightDir.crossVectors(forwardDir, new THREE.Vector3(0, 1, 0)).normalize();
+        if (keysPressed['w']) direction.z += 1;
+        if (keysPressed['s']) direction.z -= 1;
+        if (keysPressed['a']) direction.x -= 1;
+        if (keysPressed['d']) direction.x += 1;
 
-        const moveDir = new THREE.Vector3();
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
 
-        if (keysPressed['w'] || keysPressed['arrowup']) moveDir.add(forwardDir);
-        if (keysPressed['s'] || keysPressed['arrowdown']) moveDir.sub(forwardDir);
-        if (keysPressed['a'] || keysPressed['arrowleft']) moveDir.sub(rightDir);
-        if (keysPressed['d'] || keysPressed['arrowright']) moveDir.add(rightDir);
-        if (keysPressed[' ']) moveDir.y += 0.8; // Space to ascend
-        if (keysPressed['shift']) moveDir.y -= 0.8; // Shift to descend
+        const right = new THREE.Vector3();
+        right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
-        // Virtual Joystick Ghost controls
-        const joystickActive = joystickDelta.x !== 0 || joystickDelta.y !== 0;
-        if (joystickActive && moveDir.lengthSq() === 0) {
-          moveDir.addScaledVector(forwardDir, -joystickDelta.y);
-          moveDir.addScaledVector(rightDir, joystickDelta.x);
-        }
+        const moveStep = new THREE.Vector3();
+        moveStep.addScaledVector(forward, direction.z);
+        moveStep.addScaledVector(right, direction.x);
+        moveStep.normalize();
 
-        if (moveDir.lengthSq() > 0) {
-          moveDir.normalize();
-          playerPos.addScaledVector(moveDir, speed);
-        }
+        // Ascent/Descent bounds
+        if (keysPressed[' ']) moveStep.y += 0.8;
+        if (keysPressed['shift']) moveStep.y -= 0.8;
+
+        playerPos.addScaledVector(moveStep, speed * deltaTime);
         return;
       }
 
-      // Physics-locked movement loops for Alive Players
       if (localPlayerRole === 'Impostor' && killCooldown > 0) {
         killCooldown = Math.max(0, killCooldown - deltaTime);
       }
