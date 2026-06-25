@@ -76,14 +76,14 @@ function getUniqueRoomCode() {
 function getRoomProgress(room) {
   let totalTasks = 0;
   let completedTasksCount = 0;
-  
+
   room.players.forEach((p) => {
     if (p.assignedTaskSet) {
       totalTasks += p.assignedTaskSet.tasks.length;
       completedTasksCount += p.completedTasks.length;
     }
   });
-  
+
   return totalTasks > 0 ? parseFloat(((completedTasksCount / totalTasks) * 100).toFixed(2)) : 0;
 }
 
@@ -91,10 +91,27 @@ function getRoomProgress(room) {
 io.on('connection', (socket) => {
   console.log('Astronaut linked via Socket.io secure connection.');
 
+  // Relay WebRTC signaling messages between peers
+  socket.on('webrtc_signal', (data) => {
+    if (socket.roomCode) {
+      io.to(data.targetId).emit('webrtc_signal', {
+        senderId: socket.id,
+        signalData: data.signalData
+      });
+    }
+  });
+
+  // Let other players know they should initiate a peer connection with a newly joined player
+  socket.on('initiate_peer_connection', (data) => {
+    io.to(data.targetId).emit('initiate_peer_connection', {
+      senderId: socket.id
+    });
+  });
+
   // Host creates a room
   socket.on('create_room', (data) => {
     const roomCode = getUniqueRoomCode();
-    
+
     socket.roomCode = roomCode;
     socket.playerProfile = {
       id: socket.id,
@@ -126,7 +143,7 @@ io.on('connection', (socket) => {
     socket.join(roomCode);
 
     console.log(`Room created: ${roomCode} by ${socket.playerProfile.username} with settings:`, room.settings);
-    
+
     socket.emit('room_created', {
       roomCode: roomCode,
       roomState: room,
@@ -175,7 +192,6 @@ io.on('connection', (socket) => {
       if (taskSets.length > 0) {
         socket.playerProfile.assignedTaskSet = taskSets[Math.floor(Math.random() * taskSets.length)];
       }
-      // Note: joined mid-game defaults to Crewmate to avoid skewing game balance
       socket.playerProfile.role = 'Crewmate';
     }
 
@@ -213,7 +229,7 @@ io.on('connection', (socket) => {
     if (room.players.length > 1) {
       impostorCount = Math.max(1, Math.min(impostorCount, room.players.length - 1));
     } else {
-      impostorCount = 0; // Solo player cannot be impostor (no targets)
+      impostorCount = 0; // Solo player cannot be impostor
     }
 
     // Shuffle players to assign roles randomly
@@ -229,7 +245,7 @@ io.on('connection', (socket) => {
     room.players.forEach((p, index) => {
       p.role = impostorIndices.has(index) ? 'Impostor' : 'Crewmate';
       p.completedTasks = [];
-      p.lastKillTime = 0; // Initialize server-side tracker
+      p.lastKillTime = 0;
       if (taskSets.length > 0) {
         p.assignedTaskSet = taskSets[Math.floor(Math.random() * taskSets.length)];
       }
@@ -258,7 +274,6 @@ io.on('connection', (socket) => {
             };
           });
 
-          // Sync local socket profile with role details
           s.playerProfile.role = profile.role;
           s.playerProfile.assignedTaskSet = profile.assignedTaskSet;
 
@@ -298,14 +313,12 @@ io.on('connection', (socket) => {
         profile.completedTasks.push(data.taskName);
         console.log(`Task verified in Room ${room.code}: [${data.taskName}] completed by ${data.username}`);
 
-        // Broadcast task completion to other players in the room
         io.to(room.code).emit('task_broadcast', {
           id: socket.id,
           username: data.username,
           taskName: data.taskName
         });
 
-        // Broadcast room-specific progress update
         io.to(room.code).emit('progress_update', {
           progress: getRoomProgress(room)
         });
@@ -336,7 +349,6 @@ io.on('connection', (socket) => {
       victim.isAlive = false;
       console.log(`Room ${room.code}: [${victim.username}] was eliminated by [${killer.username}]`);
 
-      // Broadcast verified death event with both killerId and position payloads
       io.to(room.code).emit('player_died', {
         victimId: victim.id,
         killerId: killer.id,
@@ -356,7 +368,6 @@ io.on('connection', (socket) => {
 
       console.log(`Room ${room.code}: Emergency meeting called by [${reporter.username}]`);
 
-      // Broadcast report alarm matching 'meeting_called' client event expectation
       io.to(room.code).emit('meeting_called', {
         reporterName: reporter.username,
         reporterColor: reporter.color
@@ -378,7 +389,6 @@ io.on('connection', (socket) => {
         room.players = room.players.filter(p => p.id !== socket.id);
         io.to(code).emit('player_left', { id: socket.id });
 
-        // Host migration
         if (room.hostId === socket.id && room.players.length > 0) {
           const newHost = room.players[0];
           room.hostId = newHost.id;
@@ -410,7 +420,6 @@ io.on('connection', (socket) => {
         room.players = room.players.filter(p => p.id !== socket.id);
         socket.to(code).emit('player_left', { id: socket.id });
 
-        // Host migration
         if (room.hostId === socket.id && room.players.length > 0) {
           const newHost = room.players[0];
           room.hostId = newHost.id;

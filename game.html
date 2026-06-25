@@ -26,7 +26,6 @@
       z-index: 1;
     }
 
-    /* Screen-space Limited Vision Overlay (Spotlight effect) */
     #vision-overlay {
       position: absolute;
       top: 0;
@@ -52,7 +51,6 @@
       pointer-events: none;
     }
 
-    /* Authentic Among Us HUD Styling */
     .hud-layer {
       position: absolute;
       top: 0;
@@ -76,7 +74,6 @@
       width: 100%;
     }
 
-    /* Cartoon Bold UI Elements */
     .cartoon-panel {
       background: rgba(0, 0, 0, 0.65);
       border: 4px solid #000000;
@@ -85,7 +82,6 @@
       pointer-events: auto;
     }
 
-    /* Top Center Progress Meter */
     .progress-hud {
       align-self: center;
       width: 90%;
@@ -122,7 +118,6 @@
       transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1);
     }
 
-    /* Left Checklist */
     .task-card {
       padding: 15px;
       width: 280px;
@@ -175,7 +170,6 @@
       background: #00e676;
     }
 
-    /* 2D HUD Minimap Box (Top Right Corner) */
     #minimap-anchor {
       position: absolute;
       top: 20px;
@@ -218,7 +212,7 @@
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       border-bottom: 8px solid #ffffff;
-      filter: drop-shadow(0 0 2px rgba(0,0,0,0.8));
+      filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.8));
     }
 
     #minimap-toggle-btn {
@@ -235,7 +229,6 @@
       text-transform: uppercase;
     }
 
-    /* Use Button (Bottom Right) */
     .action-hud-bay {
       position: absolute;
       bottom: 25px;
@@ -274,7 +267,6 @@
       cursor: not-allowed;
     }
 
-    /* Modal Styling */
     .modal-overlay {
       position: absolute;
       top: 0;
@@ -323,11 +315,10 @@
       background: #000;
     }
 
-    /* Coordinates Panel */
     .pos-readout {
       position: absolute;
       bottom: 25px;
-      left: 200px;
+      left: 280px;
       padding: 6px 12px;
       font-size: 0.8rem;
       font-weight: 900;
@@ -336,41 +327,6 @@
       pointer-events: none;
     }
 
-    /* Landing Screen Overlay */
-    #click-lock-prompt {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 8;
-      cursor: pointer;
-    }
-
-    .prompt-box {
-      border: 5px solid #000;
-      border-radius: 16px;
-      padding: 25px 40px;
-      text-align: center;
-      background: #1e293b;
-      box-shadow: 8px 8px 0px #000000;
-    }
-
-    .prompt-box h2 {
-      margin: 0 0 10px 0;
-      color: #ea580c;
-      font-family: 'Fredoka One', cursive;
-      font-size: 1.8rem;
-      text-transform: uppercase;
-      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, -2px 2px 0 #000;
-    }
-
-    /* Loader UI */
     #loader {
       position: absolute;
       top: 0;
@@ -400,7 +356,6 @@
       }
     }
 
-    /* Main Menu Styles */
     #main-menu-overlay {
       position: absolute;
       top: 0;
@@ -425,10 +380,10 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      background-image: 
-        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+      background-image:
+        radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 40px),
+        radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 30px),
+        radial-gradient(white, rgba(255, 255, 255, .1) 2px, transparent 40px);
       background-size: 550px 550px, 350px 350px, 250px 250px;
       background-position: 0 0, 40px 60px, 130px 270px;
       animation: spaceMove 60s linear infinite;
@@ -436,8 +391,13 @@
     }
 
     @keyframes spaceMove {
-      from { background-position: 0 0, 40px 60px, 130px 270px; }
-      to { background-position: 550px 550px, 350px 350px, 250px 250px; }
+      from {
+        background-position: 0 0, 40px 60px, 130px 270px;
+      }
+
+      to {
+        background-position: 550px 550px, 350px 350px, 250px 250px;
+      }
     }
 
     .menu-title {
@@ -447,7 +407,7 @@
       text-transform: uppercase;
       letter-spacing: 2px;
       margin-bottom: 25px;
-      text-shadow: 
+      text-shadow:
         -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000,
         6px 6px 0px rgba(0, 0, 0, 0.4);
       animation: floatTitle 4s ease-in-out infinite;
@@ -456,8 +416,15 @@
     }
 
     @keyframes floatTitle {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
     }
 
     .menu-box {
@@ -521,7 +488,7 @@
       cursor: pointer;
       box-shadow: 4px 4px 0px #000;
       text-transform: uppercase;
-      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, -2px 2px 0 #000;
       transition: transform 0.05s, box-shadow 0.05s;
     }
 
@@ -533,6 +500,7 @@
     .btn-host {
       background: #ea580c;
     }
+
     .btn-host:hover {
       background: #f97316;
     }
@@ -540,6 +508,7 @@
     .btn-join {
       background: #10b981;
     }
+
     .btn-join:hover {
       background: #34d399;
     }
@@ -547,6 +516,7 @@
     .btn-action {
       background: #3b82f6;
     }
+
     .btn-action:hover {
       background: #60a5fa;
     }
@@ -554,6 +524,7 @@
     .btn-back {
       background: #64748b;
     }
+
     .btn-back:hover {
       background: #94a3b8;
     }
@@ -561,6 +532,7 @@
     .btn-start {
       background: #ef4444;
     }
+
     .btn-start:hover {
       background: #f87171;
     }
@@ -606,7 +578,6 @@
       accent-color: #ea580c;
     }
 
-    /* Lobby styles */
     .lobby-header {
       text-align: center;
       border-bottom: 3px solid #000;
@@ -641,7 +612,7 @@
       max-height: 180px;
       overflow-y: auto;
       border: 3px solid #000;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0, 0, 0, 0.3);
       padding: 10px;
       border-radius: 8px;
     }
@@ -663,7 +634,7 @@
       height: 14px;
       border-radius: 50%;
       border: 2px solid #000;
-      box-shadow: 0 0 4px rgba(255,255,255,0.4);
+      box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
       flex-shrink: 0;
     }
 
@@ -687,7 +658,6 @@
       margin-top: 10px;
     }
 
-    /* Impostor / Crewmate Intro Screen */
     #role-screen-overlay {
       position: absolute;
       top: 0;
@@ -716,8 +686,15 @@
     }
 
     @keyframes rolePulse {
-      from { transform: scale(0.96); text-shadow: 0 0 10px currentColor; }
-      to { transform: scale(1.04); text-shadow: 0 0 25px currentColor; }
+      from {
+        transform: scale(0.96);
+        text-shadow: 0 0 10px currentColor;
+      }
+
+      to {
+        transform: scale(1.04);
+        text-shadow: 0 0 25px currentColor;
+      }
     }
 
     .role-desc {
@@ -740,7 +717,6 @@
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
-    /* System messages */
     .system-notification {
       position: absolute;
       top: 20px;
@@ -761,13 +737,27 @@
     }
 
     @keyframes notificationSlide {
-      0% { transform: translate(-50%, -40px); opacity: 0; }
-      10% { transform: translate(-50%, 0); opacity: 1; }
-      90% { transform: translate(-50%, 0); opacity: 1; }
-      100% { transform: translate(-50%, -40px); opacity: 0; }
+      0% {
+        transform: translate(-50%, -40px);
+        opacity: 0;
+      }
+
+      10% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+
+      90% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(-50%, -40px);
+        opacity: 0;
+      }
     }
   </style>
-  <!-- Load the Socket.io client script locally from Express (supports offline setups) -->
   <script src="/socket.io/socket.io.js"></script>
   <script type='importmap'>
     {
@@ -782,19 +772,17 @@
 
 <body>
 
-  <!-- Main Menu Overlay -->
   <div id="main-menu-overlay">
     <div class="space-background"></div>
     <h1 class="menu-title">AMONG US 3D</h1>
-    
+
     <div class="menu-box cartoon-panel">
-      <!-- Username Input Section -->
       <div class="menu-input-group">
         <label for="username-input">Enter Username</label>
-        <input type="text" id="username-input" class="menu-input" placeholder="Crewmate" maxlength="15" value="Crewmate">
+        <input type="text" id="username-input" class="menu-input" placeholder="Crewmate" maxlength="15"
+          value="Crewmate">
       </div>
 
-      <!-- Main Actions Panel -->
       <div id="panel-main" class="menu-panel active">
         <div class="menu-button-row">
           <button id="menu-btn-host-panel" class="menu-btn btn-host">Host Game</button>
@@ -802,18 +790,20 @@
         </div>
       </div>
 
-      <!-- Host Settings Panel -->
       <div id="panel-host" class="menu-panel">
-        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #ea580c; text-transform: uppercase;">Host Settings</h3>
-        
+        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #ea580c; text-transform: uppercase;">Host
+          Settings</h3>
+
         <div class="setting-slider-container">
           <label>Max Players: <span id="host-max-players-val">10</span></label>
-          <input type="range" id="host-max-players" min="2" max="15" value="10" style="cursor: pointer; accent-color: #ea580c;">
+          <input type="range" id="host-max-players" min="2" max="15" value="10"
+            style="cursor: pointer; accent-color: #ea580c;">
         </div>
 
         <div class="setting-slider-container">
           <label>Impostors: <span id="host-impostors-val">1</span></label>
-          <input type="range" id="host-impostors" min="1" max="3" value="1" style="cursor: pointer; accent-color: #ea580c;">
+          <input type="range" id="host-impostors" min="1" max="3" value="1"
+            style="cursor: pointer; accent-color: #ea580c;">
         </div>
 
         <div class="setting-checkbox-container">
@@ -827,13 +817,14 @@
         </div>
       </div>
 
-      <!-- Join Room Panel -->
       <div id="panel-join" class="menu-panel">
-        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #10b981; text-transform: uppercase;">Join Game</h3>
-        
+        <h3 style="margin: 0; font-family: 'Fredoka One', cursive; color: #10b981; text-transform: uppercase;">Join Game
+        </h3>
+
         <div class="menu-input-group">
           <label for="join-code-input">Enter 5-Letter Room Code</label>
-          <input type="text" id="join-code-input" class="menu-input" placeholder="ABCDE" style="text-transform: uppercase; text-align: center; letter-spacing: 4px;" maxlength="5">
+          <input type="text" id="join-code-input" class="menu-input" placeholder="ABCDE"
+            style="text-transform: uppercase; text-align: center; letter-spacing: 4px;" maxlength="5">
         </div>
 
         <div class="menu-button-row">
@@ -842,17 +833,15 @@
         </div>
       </div>
 
-      <!-- Lobby Room Panel -->
       <div id="panel-lobby" class="menu-panel">
         <div class="lobby-header">
           <div class="lobby-code-box" id="lobby-code-display">ROOM CODE: ABCDE</div>
-          <div class="lobby-settings-summary" id="lobby-settings-display">Max Players: 10 | Impostors: 1 | Mid-Join: Yes</div>
+          <div class="lobby-settings-summary" id="lobby-settings-display">Max Players: 10 | Impostors: 1 | Mid-Join: Yes
+          </div>
         </div>
 
         <div class="lobby-players-title">Players in Lobby (<span id="lobby-count-display">1</span>)</div>
-        <ul class="lobby-players-list" id="lobby-players-list">
-          <!-- Populated dynamically -->
-        </ul>
+        <ul class="lobby-players-list" id="lobby-players-list"></ul>
 
         <div id="lobby-waiting-msg" class="lobby-waiting-text" style="display: none;">Waiting for Host to start...</div>
 
@@ -864,17 +853,14 @@
     </div>
   </div>
 
-  <!-- Crewmate / Impostor Intro Screen -->
   <div id="role-screen-overlay">
     <div class="role-title" id="role-title-text">CREWMATE</div>
     <div class="role-desc" id="role-desc-text">There is 1 Impostor among us. Complete all tasks!</div>
     <div class="impostor-list-intro" id="impostor-list-text" style="display: none;">Impostors: HostPlayer</div>
   </div>
 
-  <!-- Screen space vignette Overlay -->
   <div id="vision-overlay"></div>
 
-  <!-- Loading Overlay -->
   <div id='loader'>
     <div class='spinner'></div>
     <p
@@ -882,24 +868,11 @@
       LOADING SKELD SYSTEMS...</p>
   </div>
 
-  <!-- Locked mouse context prompt -->
-  <div id='click-lock-prompt'>
-    <div class='prompt-box'>
-      <h2>Start Mission</h2>
-      <p style='margin: 0; font-size: 0.85rem; font-weight: 900; color: #a0aec0;'>Mouse to Look | W, A, S, D to Walk</p>
-    </div>
-  </div>
-
   <div id='crosshair'></div>
-
-  <!-- Render Window -->
   <div id='canvas-container'></div>
 
-  <!-- HUD Interface -->
   <div class='hud-layer'>
-
     <div class='hud-top'>
-      <!-- Total Progress Tracker -->
       <div class='progress-hud cartoon-panel'>
         <span class='progress-lbl'>TOTAL PROGRESS</span>
         <div class='progress-bar-track'>
@@ -907,19 +880,14 @@
         </div>
       </div>
 
-      <!-- Left Active Objectives checklist -->
       <div class='task-card cartoon-panel'>
         <h2>Task Checklist</h2>
-        <ul class='task-checklist' id='task-list-items'>
-          <!-- Loaded dynamically -->
-        </ul>
+        <ul class='task-checklist' id='task-list-items'></ul>
       </div>
     </div>
 
-    <!-- Active coordinate tracking values -->
     <div class='pos-readout cartoon-panel' id='coord-lbl'>COORDINATES: X: 0.00 | Y: 0.00 | Z: 0.00</div>
 
-    <!-- Right HUD: Dynamic Minimap with HUD marker overlays -->
     <div id="minimap-anchor">
       <div id="minimap-container" class="cartoon-panel">
         <div id="minimap-player-dot">
@@ -929,35 +897,45 @@
       <button id="minimap-toggle-btn">Hide Minimap</button>
     </div>
 
-    <!-- Interactive action buttons -->
     <div class='action-hud-bay' style='display: flex; gap: 15px;'>
       <button class='use-action-btn use-btn-disabled' id='use-btn' disabled>Use</button>
-      <button class='use-action-btn use-btn-disabled' id='kill-btn' style='display: none; background: #dc2626;' disabled>Kill</button>
-      <button class='use-action-btn use-btn-disabled' id='report-btn' style='display: none; background: #ca8a04;' disabled>Report</button>
-    </div>
-
-  </div>
-
-  <!-- Virtual Mobile Joystick -->
-  <div id="joystick-container" style="position: absolute; bottom: 35px; left: 35px; width: 120px; height: 120px; z-index: 20; display: none; touch-action: none; pointer-events: auto;">
-    <div id="joystick-base" style="width: 100%; height: 100%; border-radius: 50%; background: rgba(0, 0, 0, 0.4); border: 4px solid #000; box-shadow: 4px 4px 0 #000; position: relative;">
-      <div id="joystick-knob" style="width: 50px; height: 50px; border-radius: 50%; background: #ea580c; border: 3px solid #000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transition: transform 0.05s ease-out; box-shadow: 0 4px 0 #802000;"></div>
+      <button class='use-action-btn use-btn-disabled' id='kill-btn' style='display: none; background: #dc2626;'
+        disabled>Kill</button>
+      <button class='use-action-btn use-btn-disabled' id='report-btn' style='display: none; background: #ca8a04;'
+        disabled>Report</button>
     </div>
   </div>
 
-  <!-- Emergency meeting Alarm Screen -->
-  <div id="meeting-alarm-overlay" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.9); z-index: 700; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; box-sizing: border-box; padding: 20px;">
-    <div style="font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: #fff; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 0.8s ease-in-out infinite alternate; text-align: center;">DEAD BODY REPORTED!</div>
-    <div id="meeting-reporter-text" style="font-family: 'Lexend Deca', sans-serif; font-size: 1.5rem; font-weight: bold; color: #f6e05e; margin-top: 15px; text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000; text-align: center;">Called by HostPlayer</div>
+  <div id="joystick-container"
+    style="position: absolute; bottom: 35px; left: 35px; width: 120px; height: 120px; z-index: 20; display: none; touch-action: none; pointer-events: auto;">
+    <div id="joystick-base"
+      style="width: 100%; height: 100%; border-radius: 50%; background: rgba(0, 0, 0, 0.4); border: 4px solid #000; box-shadow: 4px 4px 0 #000; position: relative;">
+      <div id="joystick-knob"
+        style="width: 50px; height: 50px; border-radius: 50%; background: #ea580c; border: 3px solid #000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transition: transform 0.05s ease-out; box-shadow: 0 4px 0 #802000;">
+      </div>
+    </div>
   </div>
 
-  <!-- Wasted / Killed screen overlay -->
-  <div id="eliminated-overlay" style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, rgba(139, 9, 9, 0.95) 0%, rgba(0, 0, 0, 0.99) 100%); z-index: 550; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; box-sizing: border-box; padding: 20px;">
-    <div style="font-family: 'Fredoka One', cursive; font-size: 4rem; color: #dc2626; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 1s ease-in-out infinite alternate;">ELIMINATED</div>
-    <div style="font-family: 'Lexend Deca', sans-serif; font-size: 1.3rem; font-weight: bold; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center;">You were eliminated by an Impostor.</div>
+  <div id="meeting-alarm-overlay"
+    style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.9); z-index: 700; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; box-sizing: border-box; padding: 20px;">
+    <div
+      style="font-family: 'Fredoka One', cursive; font-size: 3.5rem; color: #fff; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 0.8s ease-in-out infinite alternate; text-align: center;">
+      DEAD BODY REPORTED!</div>
+    <div id="meeting-reporter-text"
+      style="font-family: 'Lexend Deca', sans-serif; font-size: 1.5rem; font-weight: bold; color: #f6e05e; margin-top: 15px; text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000; text-align: center;">
+      Called by HostPlayer</div>
   </div>
 
-  <!-- Dynamic Iframe Overlay Terminal modal -->
+  <div id="eliminated-overlay"
+    style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, rgba(139, 9, 9, 0.95) 0%, rgba(0, 0, 0, 0.99) 100%); z-index: 550; display: none; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; box-sizing: border-box; padding: 20px;">
+    <div
+      style="font-family: 'Fredoka One', cursive; font-size: 4rem; color: #dc2626; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000; animation: rolePulse 1s ease-in-out infinite alternate;">
+      ELIMINATED</div>
+    <div
+      style="font-family: 'Lexend Deca', sans-serif; font-size: 1.3rem; font-weight: bold; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center;">
+      You are spectating the Impostor.</div>
+  </div>
+
   <div class='modal-overlay' id='modal-overlay'>
     <div class='modal-viewport'>
       <div class='close-modal-btn' id='close-btn'>&times;</div>
@@ -965,7 +943,43 @@
     </div>
   </div>
 
-  <!-- Main Game Script Module (Consolidated logic) -->
+  <div
+    style='position: absolute; bottom: 25px; left: 25px; z-index: 10; pointer-events: auto; display: flex; gap: 10px;'>
+    <button id='settings-btn'
+      style='background: rgba(0, 0, 0, 0.7); border: 3px solid #000; font-family: Lexend Deca, sans-serif; color: #a0aec0; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 3px 3px 0 #000;'>Settings</button>
+    <button id='mute-btn'
+      style='background: #10b981; border: 3px solid #000; font-family: Lexend Deca, sans-serif; color: #fff; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 3px 3px 0 #000;'>Mute
+      Mic</button>
+  </div>
+
+  <div id='settings-drawer'
+    style='position: absolute; bottom: 85px; left: 25px; z-index: 15; background: #1e293b; border: 4px solid #000; border-radius: 12px; padding: 15px; width: 220px; display: none; flex-direction: column; gap: 15px; box-shadow: 4px 4px 0px #000; pointer-events: auto;'>
+    <h3
+      style='margin: 0; font-size: 0.85rem; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; font-family: Fredoka One, sans-serif; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>
+      Settings</h3>
+
+    <div style='display: flex; flex-direction: column; gap: 4px;'>
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Player Speed:
+        <span id="speed-val">4.0</span></label>
+      <input type='range' id='player-speed-slider' min='3' max='20' step='0.5' value='4.0'
+        style='cursor: pointer; accent-color: #ea580c;' />
+    </div>
+
+    <div style='display: flex; flex-direction: column; gap: 4px;'>
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Vision Range:
+        <span id="vision-val">95</span>%</label>
+      <input type='range' id='vision-slider' min='15' max='100' step='5' value='95'
+        style='cursor: pointer; accent-color: #ea580c;' />
+    </div>
+
+    <div style='display: flex; flex-direction: column; gap: 4px;'>
+      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Light Strength:
+        <span id="strength-val">1.0</span></label>
+      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='1.0'
+        style='cursor: pointer; accent-color: #ea580c;' />
+    </div>
+  </div>
+
   <script type='module'>
     import * as THREE from 'three';
     import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
@@ -974,10 +988,9 @@
     import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
     import * as CANNON from 'cannon-es';
 
-    // Intercept native requestPointerLock to catch SecurityError rejections (e.g. locks triggered immediately after exiting)
     const origRequestPointerLock = HTMLElement.prototype.requestPointerLock;
     if (origRequestPointerLock) {
-      HTMLElement.prototype.requestPointerLock = function() {
+      HTMLElement.prototype.requestPointerLock = function () {
         try {
           const promise = origRequestPointerLock.apply(this, arguments);
           if (promise && typeof promise.catch === 'function') {
@@ -992,7 +1005,6 @@
       };
     }
 
-    // Materials declared at top level
     const sphereNormalMaterial = new THREE.MeshStandardMaterial({
       color: 0xeab308,
       metalness: 0.4,
@@ -1007,7 +1019,6 @@
       emissive: 0x003311
     });
 
-    // Safeguarded global declaration
     function updateVisionOverlay(value) {
       const visionOverlay = document.getElementById('vision-overlay');
       if (visionOverlay) {
@@ -1017,7 +1028,6 @@
       }
     }
 
-    // Context objects
     let scene, camera, renderer, controls, transformControls;
     let mapModel = null;
     let taskSpheres = [];
@@ -1028,20 +1038,13 @@
     let devMode = false;
     let showWalls = false;
 
-    // Network emission throttle tracker
     let lastEmitTime = 0;
-    const EMIT_INTERVAL = 1000 / 30; // 30Hz replication update rate (~33.3ms)
+    const EMIT_INTERVAL = 1000 / 30;
 
-    // Local light attached directly to player center
     let playerLight;
-
-    // Cached active task state to prevent scope clearing conflicts on async task calls
     let currentlyOpenedTask = null;
-
-    // Minimap projection matrix helper
     const map2DHelper = new THREE.Object3D();
 
-    // Multiplayer Networking
     const standardColors = [
       '#c51111', '#132ed1', '#117f2d', '#ed54ba',
       '#f07d0d', '#f5f557', '#3f474e', '#d6e0f0',
@@ -1051,7 +1054,7 @@
     let localPlayerId = 'player_' + Math.random().toString(36).substr(2, 9);
     let localUsername = 'Crewmate_' + Math.floor(Math.random() * 100);
     let localColor = standardColors[Math.floor(Math.random() * standardColors.length)];
-    let remotePlayers = {}; // id -> { mesh, targetPos, nameSprite }
+    let remotePlayers = {};
 
     let isLocalHost = false;
     let currentRoomCode = '';
@@ -1062,60 +1065,259 @@
 
     const container = document.getElementById('canvas-container');
     const loader = document.getElementById('loader');
-    const clickPrompt = document.getElementById('click-lock-prompt');
     const coordLbl = document.getElementById('coord-lbl');
     const useBtn = document.getElementById('use-btn');
     const modal = document.getElementById('modal-overlay');
     const taskIframe = document.getElementById('task-iframe');
     const closeBtn = document.getElementById('close-btn');
 
-    // Combat & Role state
     let isLocalAlive = true;
-    let killCooldown = 0;          // seconds remaining
-    let killCooldownMax = 25;      // seconds between kills
-    let nearestKillTarget = null;  // { id, mesh } of the closest alive crewmate within range
-    let nearestDeadBody = null;    // { id } of closest dead body in report range
-    const deadBodies = {};         // id -> { mesh, position }
+    let localSpectateTargetId = null;
+    let killCooldown = 0;
+    let killCooldownMax = 25;
+    let nearestKillTarget = null;
+    let nearestDeadBody = null;
+    const deadBodies = {};
 
-    // DOM refs for combat buttons
-    const killBtn  = document.getElementById('kill-btn');
+    const killBtn = document.getElementById('kill-btn');
     const reportBtn = document.getElementById('report-btn');
     const eliminatedOverlay = document.getElementById('eliminated-overlay');
     const meetingAlarm = document.getElementById('meeting-alarm-overlay');
     const meetingReporterText = document.getElementById('meeting-reporter-text');
 
-    // Joystick input vector (normalised -1..1)
     let joystickDelta = { x: 0, y: 0 };
-
-    // Player details
     let playerMesh = null;
     let playerRadius = 0.35;
 
-    // Calibration Defaults (Speed: 4.0, Vision: 95%, Strength: 1.0)
     let playerSpeedSetting = 4.0;
     let lightStrengthValue = 1.0;
 
-    // Adjusted Spawn on fixed Y level (5.90) to prevent any falling glitches
     const playerPos = new THREE.Vector3(6.79, 5.90, -23.93);
-
     const keysPressed = {};
 
-    // ----------------------------------------------------
-    // PHYSICAL WALLS LOADER & PHYSICS ENGINE
-    // ----------------------------------------------------
+    // Voice Chat & Proximity Systems
+    let localAudioStream = null;
+    let audioContext = null;
+    let isMuted = false;
+    const peerConnections = {};
+    const peerGainNodes = {};
+    const peerFilterNodes = {};
+    const peerStreams = {};
+
+    const MAX_HEARING_DISTANCE = 20.0;
+    const MIN_HEARING_DISTANCE = 3.0;
+
+    const voiceRaycaster = new THREE.Raycaster();
+    const targetDirection = new THREE.Vector3();
+
+    // Mobile Look Trackers
+    let touchStartX = 0, touchStartY = 0;
+    let isTrackingLook = false;
+    let lookTouchId = null;
+
+    async function initLocalVoice() {
+      try {
+        localAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        console.log("Microphone hardware access acquired.");
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (err) {
+        console.warn("Local Microphone initialization failed:", err.message);
+      }
+    }
+
+    const rtcConfig = {
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    };
+
+    function createPeerConnection(targetId, isInitiator) {
+      if (peerConnections[targetId]) return peerConnections[targetId];
+
+      const pc = new RTCPeerConnection(rtcConfig);
+      peerConnections[targetId] = pc;
+
+      if (localAudioStream) {
+        localAudioStream.getTracks().forEach(track => pc.addTrack(track, localAudioStream));
+      }
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socket && socket.connected) {
+          socket.emit('webrtc_signal', {
+            targetId: targetId,
+            signalData: { candidate: event.candidate }
+          });
+        }
+      };
+
+      pc.ontrack = (event) => {
+        const remoteStream = event.streams[0];
+        setupRemoteAudioNode(targetId, remoteStream);
+      };
+
+      if (isInitiator) {
+        pc.createOffer()
+          .then(offer => pc.setLocalDescription(offer))
+          .then(() => {
+            socket.emit('webrtc_signal', {
+              targetId: targetId,
+              signalData: { sdp: pc.localDescription }
+            });
+          })
+          .catch(err => console.error("Error creating WebRTC offer:", err));
+      }
+
+      return pc;
+    }
+
+    function setupRemoteAudioNode(targetId, stream) {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      const audio = document.createElement('audio');
+      document.body.appendChild(audio);
+      audio.style.display = 'none';
+      audio.srcObject = stream;
+      audio.muted = false; // Resolved Chromium bypass node pipe silencing issue
+      audio.volume = 0;    // Prevent raw audio doubling, pipes strictly through target context graph instead
+
+      audio.play().catch(e => console.warn("Audio play blocked by browser:", e));
+
+      const source = audioContext.createMediaStreamSource(stream);
+
+      const filterNode = audioContext.createBiquadFilter();
+      filterNode.type = 'lowpass';
+      filterNode.frequency.setValueAtTime(20000, audioContext.currentTime);
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+
+      source.connect(filterNode);
+      filterNode.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      peerGainNodes[targetId] = gainNode;
+      peerFilterNodes[targetId] = filterNode;
+      peerStreams[targetId] = stream;
+    }
+
+    function updateProximityVoiceVolumes() {
+      if (!audioContext) return;
+
+      const localHeadHeight = playerPos.clone().setY(playerPos.y + 0.5);
+
+      // SILENCE GHOSTS/DEAD: If local player is dead, completely mute outbound mic and inbound channels
+      if (!isLocalAlive) {
+        if (localAudioStream) {
+          localAudioStream.getTracks().forEach(track => {
+            track.enabled = false;
+          });
+        }
+        const mBtn = document.getElementById('mute-btn');
+        if (mBtn) {
+          mBtn.innerText = "MUTED (DEAD)";
+          mBtn.style.backgroundColor = "#555555";
+          mBtn.style.cursor = "not-allowed";
+        }
+        for (const id in peerGainNodes) {
+          const gainNode = peerGainNodes[id];
+          const stream = peerStreams[id];
+          if (gainNode) gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+          if (stream) {
+            stream.getAudioTracks().forEach(t => { t.enabled = false; });
+          }
+        }
+        return;
+      }
+
+      // Lobby Mode voice override (Allows complete pre-game discussion when activeTaskSet is unassigned)
+      if (!activeTaskSet) {
+        for (const id in peerGainNodes) {
+          const gainNode = peerGainNodes[id];
+          const stream = peerStreams[id];
+          if (gainNode) gainNode.gain.setTargetAtTime(1.0, audioContext.currentTime, 0.1);
+          if (stream) {
+            stream.getAudioTracks().forEach(t => { t.enabled = true; });
+          }
+        }
+        return;
+      }
+
+      // Proximity Calculation Logic
+      for (const id in remotePlayers) {
+        const gainNode = peerGainNodes[id];
+        const filterNode = peerFilterNodes[id];
+        const stream = peerStreams[id];
+
+        if (!gainNode || !filterNode || !stream) continue;
+
+        const rp = remotePlayers[id];
+        const isRemoteDead = rp.isDead === true;
+
+        if (isRemoteDead) {
+          stream.getAudioTracks().forEach(track => {
+            if (track.enabled) track.enabled = false;
+          });
+          gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.1);
+          continue;
+        }
+
+        const remoteHeadHeight = rp.mesh.position.clone().setY(rp.mesh.position.y + 0.5);
+        const distance = localHeadHeight.distanceTo(remoteHeadHeight);
+
+        // --- Pausing Out-Of-Range Connections ---
+        if (distance > MAX_HEARING_DISTANCE) {
+          stream.getAudioTracks().forEach(track => {
+            if (track.enabled) track.enabled = false;
+          });
+          gainNode.gain.setTargetAtTime(0, audioContext.currentTime, 0.1);
+          continue;
+        } else {
+          stream.getAudioTracks().forEach(track => {
+            if (!track.enabled) track.enabled = true;
+          });
+        }
+
+        // --- Raycasting to Detect Wall Obstructions ---
+        targetDirection.subVectors(remoteHeadHeight, localHeadHeight).normalize();
+        voiceRaycaster.set(localHeadHeight, targetDirection);
+        voiceRaycaster.far = distance;
+
+        const intersections = voiceRaycaster.intersectObjects(physicalWalls, true);
+        const isObstructed = intersections.length > 0;
+
+        // --- Compute Distance Roll-off ---
+        let volume = 0.0;
+        if (distance <= MIN_HEARING_DISTANCE) {
+          volume = 1.0;
+        } else {
+          const range = MAX_HEARING_DISTANCE - MIN_HEARING_DISTANCE;
+          const progress = (distance - MIN_HEARING_DISTANCE) / range;
+          volume = 1.0 - progress;
+        }
+
+        // --- Wall Low-pass Muffle Dampening ---
+        let cutoffFrequency = 20000;
+        if (isObstructed) {
+          cutoffFrequency = 450;
+          volume *= 0.4;
+        }
+
+        gainNode.gain.setTargetAtTime(volume, audioContext.currentTime, 0.1);
+        filterNode.frequency.setTargetAtTime(cutoffFrequency, audioContext.currentTime, 0.1);
+      }
+    }
+
     let physicalWalls = [];
     let physicsWorld = null;
     let playerBody = null;
 
     function initPhysicsEngine() {
       physicsWorld = new CANNON.World();
-      physicsWorld.gravity.set(0, 0, 0); // Locked strictly to a flat 5.90 plane
+      physicsWorld.gravity.set(0, 0, 0);
 
-      // Smooth sliding setup
       physicsWorld.defaultContactMaterial.friction = 0.0;
       physicsWorld.defaultContactMaterial.restitution = 0.0;
 
-      // Player physical body
       const sphereShape = new CANNON.Sphere(playerRadius);
       playerBody = new CANNON.Body({
         mass: 5,
@@ -1126,7 +1328,6 @@
       });
       physicsWorld.addBody(playerBody);
 
-      // Floor Plane snapped to 5.55
       const floorShape = new CANNON.Plane();
       const floorBody = new CANNON.Body({
         mass: 0,
@@ -1137,7 +1338,6 @@
       physicsWorld.addBody(floorBody);
     }
 
-    // Spawn and track invisible / visible walls loaded from config JSON
     function spawnPhysicalWall(wallData) {
       if (!physicsWorld) return;
 
@@ -1146,7 +1346,7 @@
         color: 0xff4d4d,
         transparent: true,
         opacity: 0.0,
-        visible: false,
+        visible: true,
         wireframe: true
       });
 
@@ -1158,7 +1358,6 @@
       scene.add(mesh);
       physicalWalls.push(mesh);
 
-      // Spawn Static Cannon.js wall representation
       const halfExtents = new CANNON.Vec3(
         wallData.scale[0] / 2,
         wallData.scale[1] / 2,
@@ -1175,9 +1374,6 @@
       physicsWorld.addBody(wallBody);
     }
 
-    // ----------------------------------------------------
-    // INPUT LISTENERS & TRANSLATION
-    // ----------------------------------------------------
     function setupInputListeners() {
       document.addEventListener('keydown', (e) => {
         keysPressed[e.key.toLowerCase()] = true;
@@ -1188,7 +1384,6 @@
     }
 
     function createPlayerMesh(sc, startPos) {
-      // Hemisphere (Dome) geometry sitting flat on the deck
       const playerGeo = new THREE.SphereGeometry(playerRadius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
       const playerMat = new THREE.MeshStandardMaterial({
         color: localColor,
@@ -1232,18 +1427,15 @@
       return worldStep.normalize();
     }
 
-    // ----------------------------------------------------
-    // MULTIPLAYER NETWORKING & PROXIMITY VOICE SIGNALS
-    // ----------------------------------------------------
     function showNotification(text) {
       const oldNotif = document.querySelector('.system-notification');
       if (oldNotif) oldNotif.remove();
-      
+
       const el = document.createElement('div');
       el.className = 'system-notification';
       el.innerText = text;
       document.body.appendChild(el);
-      
+
       setTimeout(() => {
         el.remove();
       }, 3500);
@@ -1257,38 +1449,37 @@
     function updateLobbyUI(roomState) {
       const listEl = document.getElementById('lobby-players-list');
       listEl.innerHTML = '';
-      
+
       currentLobbyPlayers = roomState.players;
-      
+
       document.getElementById('lobby-count-display').innerText = currentLobbyPlayers.length;
       document.getElementById('lobby-code-display').innerText = 'ROOM CODE: ' + roomState.code;
-      
+
       const midJoinText = roomState.settings.allowMidGameJoin ? 'Yes' : 'No';
-      document.getElementById('lobby-settings-display').innerText = 
+      document.getElementById('lobby-settings-display').innerText =
         `Max Players: ${roomState.settings.maxPlayers} | Impostors: ${roomState.settings.impostors} | Mid-Join: ${midJoinText}`;
-      
+
       currentLobbyPlayers.forEach(p => {
         const item = document.createElement('li');
         item.className = 'lobby-player-item';
-        
+
         const dot = document.createElement('div');
         dot.className = 'player-color-dot';
         dot.style.backgroundColor = p.color;
-        
+
         const nameSpan = document.createElement('span');
         nameSpan.innerText = p.username + (p.isHost ? ' (Host)' : '');
         nameSpan.style.color = '#ffffff';
-        
+
         item.appendChild(dot);
         item.appendChild(nameSpan);
         listEl.appendChild(item);
       });
-      
-      // Toggle host start game button vs waiting message
+
       const isHost = roomState.hostId === socket.id;
       const startBtn = document.getElementById('menu-btn-start-game');
       const waitMsg = document.getElementById('lobby-waiting-msg');
-      
+
       if (isHost) {
         startBtn.style.display = 'block';
         waitMsg.style.display = 'none';
@@ -1299,24 +1490,22 @@
     }
 
     function setupMainMenuListeners() {
-      // Toggle screens
       document.getElementById('menu-btn-host-panel').addEventListener('click', () => {
         showMenuPanel('panel-host');
       });
-      
+
       document.getElementById('menu-btn-join-panel').addEventListener('click', () => {
         showMenuPanel('panel-join');
       });
-      
+
       document.getElementById('menu-btn-back-host').addEventListener('click', () => {
         showMenuPanel('panel-main');
       });
-      
+
       document.getElementById('menu-btn-back-join').addEventListener('click', () => {
         showMenuPanel('panel-main');
       });
 
-      // Settings sliders
       const maxPlayersSlider = document.getElementById('host-max-players');
       const maxPlayersVal = document.getElementById('host-max-players-val');
       maxPlayersSlider.addEventListener('input', (e) => {
@@ -1329,16 +1518,16 @@
         impostorsVal.innerText = e.target.value;
       });
 
-      // Create Room
       document.getElementById('menu-btn-create-lobby').addEventListener('click', () => {
         const username = document.getElementById('username-input').value.trim() || 'Host';
         localUsername = username;
-        
+
         const maxP = parseInt(maxPlayersSlider.value);
         const imp = parseInt(impostorsSlider.value);
         const midJ = document.getElementById('host-midjoin').checked;
-        
+
         if (socket && socket.connected) {
+          initLocalVoice();
           socket.emit('create_room', {
             username: username,
             color: localColor,
@@ -1353,20 +1542,20 @@
         }
       });
 
-      // Join Room
       document.getElementById('menu-btn-join-lobby').addEventListener('click', () => {
         const username = document.getElementById('username-input').value.trim() || 'Crewmate';
         localUsername = username;
-        
+
         const codeInput = document.getElementById('join-code-input');
         const code = codeInput.value.trim().toUpperCase();
-        
+
         if (code.length !== 5) {
           showNotification('Room code must be exactly 5 letters.');
           return;
         }
-        
+
         if (socket && socket.connected) {
+          initLocalVoice();
           socket.emit('join_room', {
             roomCode: code,
             username: username,
@@ -1377,7 +1566,6 @@
         }
       });
 
-      // Leave Room
       document.getElementById('menu-btn-leave-lobby').addEventListener('click', () => {
         if (socket && socket.connected) {
           socket.emit('leave_room');
@@ -1386,21 +1574,18 @@
         }
       });
 
-      // Start Game
       document.getElementById('menu-btn-start-game').addEventListener('click', () => {
         if (socket && socket.connected) {
           socket.emit('start_game');
         }
       });
-      
-      // Auto-uppercase join room code input and filter letters
+
       document.getElementById('join-code-input').addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
       });
     }
 
     function initMultiplayerArray() {
-      // Safe guard checking if local socket.io script loaded successfully (supports standalone offline)
       if (typeof io === 'undefined') {
         console.warn('Socket.io library not detected (running offline/single-player mode).');
         document.getElementById('main-menu-overlay').style.display = 'none';
@@ -1410,7 +1595,6 @@
         return;
       }
 
-      // Connect to local Socket.io port automatically
       socket = io();
 
       socket.on('connect', () => {
@@ -1418,22 +1602,49 @@
         localPlayerId = socket.id;
       });
 
+      socket.on('webrtc_signal', async (data) => {
+        const { senderId, signalData } = data;
+        let pc = peerConnections[senderId];
+
+        if (!pc) {
+          pc = createPeerConnection(senderId, false);
+        }
+
+        try {
+          if (signalData.sdp) {
+            await pc.setRemoteDescription(new RTCSessionDescription(signalData.sdp));
+            if (pc.remoteDescription.type === 'offer') {
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              socket.emit('webrtc_signal', {
+                targetId: senderId,
+                signalData: { sdp: pc.localDescription }
+              });
+            }
+          } else if (signalData.candidate) {
+            await pc.addIceCandidate(new RTCIceCandidate(signalData.candidate));
+          }
+        } catch (err) {
+          console.warn("Processing Peer Signal Exception:", err);
+        }
+      });
+
+      socket.on('initiate_peer_connection', (data) => {
+        createPeerConnection(data.senderId, true);
+      });
+
       socket.on('room_created', (data) => {
-        console.log('Lobby Created:', data.roomCode);
         currentRoomCode = data.roomCode;
         updateLobbyUI(data.roomState);
         showMenuPanel('panel-lobby');
       });
 
       socket.on('room_joined', (data) => {
-        console.log('Joined Lobby:', data.roomCode);
         currentRoomCode = data.roomCode;
-        
+
         if (data.roomState.gameStarted) {
-          // Mid-game join: hide menu and launch active scene
           document.getElementById('main-menu-overlay').style.display = 'none';
-          
-          // Clear and spawn current players
+
           for (const id in remotePlayers) {
             removeOtherPlayer(id);
           }
@@ -1442,10 +1653,10 @@
               spawnOtherPlayer(p);
             }
           });
-          
+
           const myProfile = data.roomState.players.find(p => p.id === socket.id);
           localPlayerRole = myProfile ? myProfile.role : 'Crewmate';
-          
+
           if (myProfile && myProfile.assignedTaskSet) {
             initializeTasksAndConfig(myProfile.assignedTaskSet);
           } else {
@@ -1453,8 +1664,7 @@
               initializeTasksAndConfig(fallbackSet);
             });
           }
-          
-          // Enable HUD
+
           document.querySelector('.hud-layer').style.display = 'flex';
           if (document.getElementById('settings-btn')) {
             document.getElementById('settings-btn').parentElement.style.display = 'block';
@@ -1471,7 +1681,6 @@
       });
 
       socket.on('player_joined', (p) => {
-        // If game is started, spawn their mesh. If not, refresh lobby UI
         const room = {
           code: currentRoomCode,
           hostId: currentLobbyPlayers.find(pl => pl.isHost)?.id,
@@ -1482,7 +1691,7 @@
           },
           players: [...currentLobbyPlayers, p]
         };
-        
+
         const summary = document.getElementById('lobby-settings-display').innerText;
         const maxM = summary.match(/Max Players:\s*(\d+)/);
         const impM = summary.match(/Impostors:\s*(\d+)/);
@@ -1495,23 +1704,22 @@
         }
 
         updateLobbyUI(room);
-        
-        // Spawn mesh if game already active
+
         const mainOverlay = document.getElementById('main-menu-overlay');
         if (mainOverlay.style.display === 'none') {
           spawnOtherPlayer(p);
+          socket.emit('initiate_peer_connection', { targetId: p.id });
           showNotification(`${p.username} entered the ship.`);
         } else {
-          playTone(660, 'triangle', 0.1, 0.05); // Subtle join chime
+          playTone(660, 'triangle', 0.1, 0.05);
         }
       });
 
       socket.on('player_left', (data) => {
-        // Remove from list and update lobby UI
         const leftPlayer = currentLobbyPlayers.find(p => p.id === data.id);
         const username = leftPlayer ? leftPlayer.username : 'Someone';
         const updatedList = currentLobbyPlayers.filter(p => p.id !== data.id);
-        
+
         const room = {
           code: currentRoomCode,
           hostId: currentLobbyPlayers.find(pl => pl.isHost)?.id,
@@ -1522,7 +1730,7 @@
           },
           players: updatedList
         };
-        
+
         const summary = document.getElementById('lobby-settings-display').innerText;
         const maxM = summary.match(/Max Players:\s*(\d+)/);
         const impM = summary.match(/Impostors:\s*(\d+)/);
@@ -1535,10 +1743,18 @@
         }
 
         updateLobbyUI(room);
-        
-        // Clean up from 3D scene
         removeOtherPlayer(data.id);
-        
+
+        if (peerConnections[data.id]) {
+          peerConnections[data.id].close();
+          delete peerConnections[data.id];
+        }
+        if (peerGainNodes[data.id]) peerGainNodes[data.id].disconnect();
+        if (peerFilterNodes[data.id]) peerFilterNodes[data.id].disconnect();
+        delete peerGainNodes[data.id];
+        delete peerFilterNodes[data.id];
+        delete peerStreams[data.id];
+
         const mainOverlay = document.getElementById('main-menu-overlay');
         if (mainOverlay.style.display === 'none') {
           showNotification(`${username} departed the ship.`);
@@ -1546,11 +1762,10 @@
       });
 
       socket.on('host_migrated', (data) => {
-        // Find player and update host status
         currentLobbyPlayers.forEach(p => {
           p.isHost = (p.id === data.hostId);
         });
-        
+
         const room = {
           code: currentRoomCode,
           hostId: data.hostId,
@@ -1561,7 +1776,7 @@
           },
           players: currentLobbyPlayers
         };
-        
+
         const summary = document.getElementById('lobby-settings-display').innerText;
         const maxM = summary.match(/Max Players:\s*(\d+)/);
         const impM = summary.match(/Impostors:\s*(\d+)/);
@@ -1569,7 +1784,7 @@
         if (maxM) room.settings.maxPlayers = parseInt(maxM[1]);
         if (impM) room.settings.impostors = parseInt(impM[1]);
         if (midM) room.settings.allowMidGameJoin = (midM[1] === 'Yes');
-        
+
         updateLobbyUI(room);
         showNotification(data.hostId === socket.id ? 'You are now the Host!' : 'Host migrated to another astronaut.');
       });
@@ -1581,27 +1796,23 @@
       });
 
       socket.on('game_started', (data) => {
-        console.log('Game starting. My role is:', data.localRole);
         localPlayerRole = data.localRole;
-        
-        // Hide menu overlay
         document.getElementById('main-menu-overlay').style.display = 'none';
-        
-        // Display role reveal intro screen
+
         const roleOverlay = document.getElementById('role-screen-overlay');
         const roleTitle = document.getElementById('role-title-text');
         const roleDesc = document.getElementById('role-desc-text');
         const impostorList = document.getElementById('impostor-list-text');
-        
+
         roleOverlay.style.display = 'flex';
         roleOverlay.style.opacity = '1';
-        
+
         if (data.localRole === 'Impostor') {
           roleTitle.innerText = 'IMPOSTOR';
           roleTitle.style.color = '#ef4444';
           roleOverlay.style.background = 'radial-gradient(circle, #3f0000 0%, #000000 100%)';
           roleDesc.innerText = 'Sabotage and eliminate the crewmates. Do not get caught!';
-          
+
           const impostors = data.players.filter(p => p.role === 'Impostor');
           if (impostors.length > 0) {
             impostorList.style.display = 'block';
@@ -1609,8 +1820,7 @@
           } else {
             impostorList.style.display = 'none';
           }
-          
-          // Play ominous sound
+
           playTone(150, 'sawtooth', 0.6, 0.2);
           setTimeout(() => playTone(120, 'sawtooth', 0.8, 0.2), 300);
         } else {
@@ -1619,26 +1829,22 @@
           roleOverlay.style.background = 'radial-gradient(circle, #002d3f 0%, #000000 100%)';
           roleDesc.innerText = 'Complete all tasks or vote out the Impostors!';
           impostorList.style.display = 'none';
-          
-          // Play high pitch sci-fi chord
+
           playTone(523.25, 'sine', 0.2, 0.1);
           setTimeout(() => playTone(659.25, 'sine', 0.2, 0.1), 100);
           setTimeout(() => playTone(783.99, 'sine', 0.4, 0.1), 200);
         }
-        
-        // Clean up from previous rounds
+
         for (const id in remotePlayers) {
           removeOtherPlayer(id);
         }
-        
-        // Spawn players returned by server
+
         data.players.forEach(p => {
           if (p.id !== socket.id) {
             spawnOtherPlayer(p);
           }
         });
-        
-        // Initialize tasks checklist
+
         if (data.assignedTaskSet) {
           initializeTasksAndConfig(data.assignedTaskSet);
         } else {
@@ -1646,29 +1852,22 @@
             initializeTasksAndConfig(fallbackSet);
           });
         }
-        
-        // Initialize progress bar
+
         if (typeof data.globalProgress !== 'undefined') {
           updateProgressBar(data.globalProgress);
         }
-        
-        // Wait 4 seconds, then fade out the role reveal screen
+
         setTimeout(() => {
           roleOverlay.style.opacity = '0';
           setTimeout(() => {
             roleOverlay.style.display = 'none';
-            // Enable HUD layers
             document.querySelector('.hud-layer').style.display = 'flex';
             if (document.getElementById('settings-btn')) {
               document.getElementById('settings-btn').parentElement.style.display = 'block';
             }
-            clickPrompt.style.display = 'flex';
-            if (!completed && !devMode) {
-              controls.lock();
-            }
 
-            // ── Combat initialization after role reveal ──────
             isLocalAlive = true;
+            localSpectateTargetId = null;
             localPlayerRole = data.localRole || 'Crewmate';
             killCooldown = killCooldownMax;
 
@@ -1683,7 +1882,6 @@
             if (reportBtn) reportBtn.style.display = 'none';
             if (eliminatedOverlay) eliminatedOverlay.style.display = 'none';
 
-            // Show joystick on touch-capable devices
             const joyContainer = document.getElementById('joystick-container');
             if (joyContainer && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
               joyContainer.style.display = 'block';
@@ -1696,57 +1894,49 @@
         updateOtherPlayer(data);
       });
 
-      // Handle server updates for progress bar
       socket.on('progress_update', (data) => {
         if (typeof data.progress !== 'undefined') {
           updateProgressBar(data.progress);
         }
       });
 
-      // ── COMBAT: kill_player (impostor pressed kill) ─────────────
       socket.on('player_died', (data) => {
-        const { victimId, position } = data;
+        const { victimId, killerId, position } = data;
 
         if (victimId === socket.id) {
-          // ── WE are the victim ─────────────────────────────────
           isLocalAlive = false;
+          localSpectateTargetId = killerId; // Record killer to spectate programmatically
           playerBody.velocity.x = 0;
           playerBody.velocity.z = 0;
 
           if (playerMesh) {
-            playerMesh.rotation.z = Math.PI / 2; // Lay flat
+            playerMesh.rotation.z = Math.PI / 2;
           }
 
           if (eliminatedOverlay) {
             eliminatedOverlay.style.display = 'flex';
           }
 
-          // Hide kill button if we had it
           if (killBtn) killBtn.style.display = 'none';
 
         } else {
-          // ── A remote player was killed ────────────────────────
           const rp = remotePlayers[victimId];
           if (rp) {
             rp.isDead = true;
-            rp.mesh.rotation.z = Math.PI / 2; // Lay the mesh flat
+            rp.mesh.rotation.z = Math.PI / 2;
             if (rp.nameSprite) rp.nameSprite.visible = false;
-            // Register as dead body for proximity report
             deadBodies[victimId] = { mesh: rp.mesh, position: rp.mesh.position };
           }
         }
 
-        // Impostor who killed: start cooldown
         if (localPlayerRole === 'Impostor' && killCooldown > 0) {
           killCooldown = killCooldownMax;
         }
       });
 
-      // ── COMBAT: report_body / meeting_called ─────────────────────
       socket.on('meeting_called', (data) => {
         const { reporterName, reporterColor } = data;
 
-        // Play alarm sound
         for (let i = 0; i < 3; i++) {
           setTimeout(() => {
             playTone(880, 'square', 0.25, 0.3);
@@ -1761,20 +1951,12 @@
           meetingAlarm.style.display = 'flex';
           setTimeout(() => {
             meetingAlarm.style.display = 'none';
-            // Clear dead bodies after meeting starts (new round / vote phase)
             for (const id in deadBodies) delete deadBodies[id];
             if (reportBtn) reportBtn.style.display = 'none';
           }, 4500);
         }
       });
 
-      // ── Player left the room ──────────────────────────────────────
-      socket.on('player_left', (data) => {
-        removeOtherPlayer(data.id);
-        delete deadBodies[data.id];
-      });
-
-      // ── Wire up KILL button click ──────────────────────────────────
       if (killBtn) {
         killBtn.addEventListener('click', () => {
           if (nearestKillTarget && killCooldown <= 0 && isLocalAlive) {
@@ -1785,7 +1967,6 @@
         });
       }
 
-      // ── Wire up REPORT button click ─────────────────────────────────
       if (reportBtn) {
         reportBtn.addEventListener('click', () => {
           if (nearestDeadBody && isLocalAlive) {
@@ -1799,7 +1980,6 @@
         });
       }
 
-      // ── Virtual Joystick Touch Handlers ────────────────────────────
       const joyContainer = document.getElementById('joystick-container');
       const joyStick = document.getElementById('joystick-knob');
       if (joyContainer && joyStick) {
@@ -1828,8 +2008,8 @@
             const knobX = Math.cos(angle) * clamped;
             const knobY = Math.sin(angle) * clamped;
             joyStick.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
-            joystickDelta.x = knobX / JOY_RADIUS;  // -1..1 strafe
-            joystickDelta.y = knobY / JOY_RADIUS;  // -1..1 forward/back
+            joystickDelta.x = knobX / JOY_RADIUS;
+            joystickDelta.y = knobY / JOY_RADIUS;
           }
         }, { passive: false });
 
@@ -1844,35 +2024,28 @@
       }
     }
 
-
     function createNameSprite(username, color = '#ffffff') {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 128;
       const ctx = canvas.getContext('2d');
-      
-      // Clear canvas
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Font settings
       ctx.font = 'bold 44px "Fredoka One", "Lexend Deca", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      
-      // Shadow/Outline
+
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 10;
       ctx.strokeText(username, canvas.width / 2, canvas.height / 2);
-      
-      // Fill
+
       ctx.fillStyle = color;
       ctx.fillText(username, canvas.width / 2, canvas.height / 2);
-      
+
       const texture = new THREE.CanvasTexture(canvas);
       const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
       const sprite = new THREE.Sprite(material);
-      
-      // Scale sprite to fit nicely
+
       sprite.scale.set(1.5, 0.375, 1);
       return sprite;
     }
@@ -1880,7 +2053,6 @@
     function spawnOtherPlayer(p) {
       if (remotePlayers[p.id]) return;
 
-      // Render remote players as hemispherical domes
       const geo = new THREE.SphereGeometry(playerRadius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
       const mat = new THREE.MeshStandardMaterial({
         color: p.color || 0x10b981,
@@ -1892,16 +2064,16 @@
       mesh.position.set(p.position.x, p.position.y, p.position.z);
       scene.add(mesh);
 
-      // Create and attach floating name tag
       const nameSprite = createNameSprite(p.username || 'Crewmate', '#ffffff');
-      nameSprite.position.set(0, 0.7, 0); // Position slightly above player dome
+      nameSprite.position.set(0, 0.7, 0);
       mesh.add(nameSprite);
 
       remotePlayers[p.id] = {
         id: p.id,
         mesh: mesh,
         targetPos: new THREE.Vector3(p.position.x, p.position.y, p.position.z),
-        nameSprite: nameSprite
+        nameSprite: nameSprite,
+        isDead: false
       };
     }
 
@@ -1921,9 +2093,6 @@
       }
     }
 
-    // ----------------------------------------------------
-    // MISSION & INTERFACE SETUP
-    // ----------------------------------------------------
     async function loadActiveTaskSet() {
       try {
         const response = await fetch('/task_sets.json');
@@ -1955,12 +2124,10 @@
       });
     }
 
-    // Spawns and maps task sphere overlays onto HUD Minimap coordinates
     function setupMinimapTasks() {
       const container = document.getElementById('minimap-container');
       if (!container) return;
 
-      // Clear existing overlays
       const oldDots = container.querySelectorAll('.minimap-task-dot');
       oldDots.forEach(d => d.remove());
 
@@ -1996,14 +2163,12 @@
         if (!response.ok) return;
         const config = await response.json();
 
-        // Load 2D HUD map parameters into calculation projection helper
         if (config.map2d) {
           map2DHelper.position.fromArray(config.map2d.position);
           map2DHelper.rotation.fromArray(config.map2d.rotation);
           map2DHelper.scale.fromArray(config.map2d.scale);
           map2DHelper.updateMatrixWorld(true);
         } else {
-          // Hardcoded layout baseline fallback values
           map2DHelper.position.set(5.577, 7.1, -11.557);
           map2DHelper.rotation.set(-Math.PI / 2, 0, 0);
           map2DHelper.scale.set(60.9, 34.5, 1);
@@ -2011,8 +2176,6 @@
         }
 
         const loaderGLTF = new GLTFLoader();
-
-        // Initialize DRACOLoader mesh decoder
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath('https://unpkg.com/three@0.152.2/examples/jsm/libs/draco/');
         loaderGLTF.setDRACOLoader(dracoLoader);
@@ -2038,7 +2201,6 @@
 
         if (config.tasks) {
           config.tasks.forEach(t => {
-            // Find if this specific config task is listed in active checklist set
             const taskMatch = findMatchedTask(t, activeTaskSet);
 
             if (taskMatch) {
@@ -2048,7 +2210,6 @@
               sphere.position.fromArray(t.position);
               sphere.frustumCulled = false;
 
-              // Soft, optimized color-matched point light glow on tasks (subtle glow intensity 0.8)
               const sphereGlow = new THREE.PointLight(0xeab308, 0.8, 6);
               sphere.add(sphereGlow);
 
@@ -2064,7 +2225,6 @@
           });
         }
 
-        // Spawn active tasks on the Minimap HUD
         setupMinimapTasks();
 
       } catch (err) {
@@ -2072,7 +2232,6 @@
       }
     }
 
-    // Dynamic walls loading from JSON
     async function loadInvisibleWalls() {
       try {
         const response = await fetch('/walls.json');
@@ -2082,32 +2241,11 @@
             data.walls.forEach(w => spawnPhysicalWall(w));
           }
         } else {
-          // Fallback wall elements loaded if /walls.json is missing
           const fallbackWalls = [
-            {
-              id: "wall_1",
-              position: [-5.172, 7.017, 3.124],
-              scale: [9.698, 4, 0.202],
-              rotation: [0, 0, 0]
-            },
-            {
-              id: "wall_2",
-              position: [-1.726, 7.017, 0.256],
-              scale: [4.454, 4, 0.202],
-              rotation: [0, 3.100, 0]
-            },
-            {
-              id: "wall_3",
-              position: [1.791, 7.017, 4.819],
-              scale: [4.325, 4, 0.202],
-              rotation: [0, -0.782, 0]
-            },
-            {
-              id: "wall_4",
-              position: [3.823, 7.017, 6.829],
-              scale: [1.251, 4, 0.202],
-              rotation: [0, -0.699, 0]
-            }
+            { id: "wall_1", position: [-5.172, 7.017, 3.124], scale: [9.698, 4, 0.202], rotation: [0, 0, 0] },
+            { id: "wall_2", position: [-1.726, 7.017, 0.256], scale: [4.454, 4, 0.202], rotation: [0, 3.100, 0] },
+            { id: "wall_3", position: [1.791, 7.017, 4.819], scale: [4.325, 4, 0.202], rotation: [0, -0.782, 0] },
+            { id: "wall_4", position: [3.823, 7.017, 6.829], scale: [1.251, 4, 0.202], rotation: [0, -0.699, 0] }
           ];
           fallbackWalls.forEach(w => spawnPhysicalWall(w));
         }
@@ -2116,13 +2254,9 @@
       }
     }
 
-    // ----------------------------------------------------
-    // PROXIMITY DETECTION
-    // ----------------------------------------------------
     function evaluateProximity() {
       if (completed || !isLocalAlive) return;
 
-      // ── Task sphere proximity ──────────────────────────────
       let nearSphere = null;
       let minDist = 3.2;
 
@@ -2162,14 +2296,13 @@
         }
       }
 
-      // ── Impostor: scan for nearby killable crewmates ───────
       if (localPlayerRole === 'Impostor' && killBtn) {
         let bestTarget = null;
-        let bestDist = 2.5; // kill range radius
+        let bestDist = 2.5;
 
         for (const id in remotePlayers) {
           const rp = remotePlayers[id];
-          if (rp.isDead) continue; // skip dead
+          if (rp.isDead) continue;
           const dist = playerPos.distanceTo(rp.mesh.position);
           if (dist < bestDist) {
             bestDist = dist;
@@ -2190,7 +2323,6 @@
         }
       }
 
-      // ── Dead body report proximity scan ────────────────────
       if (reportBtn) {
         let foundBody = null;
         for (const id in deadBodies) {
@@ -2222,7 +2354,6 @@
         const roomMatch = t.room.toLowerCase() === metadata.room.toLowerCase();
         const taskNameClean = t.name.toLowerCase();
         const metaTaskClean = metadata.task.toLowerCase();
-        // Try exact match first, then partial includes in either direction
         const nameMatch = metaTaskClean === taskNameClean ||
           metaTaskClean.includes(taskNameClean) ||
           taskNameClean.includes(metaTaskClean.split(' (')[0]);
@@ -2236,7 +2367,7 @@
       const matchedTaskInSet = findMatchedTask(activeNearSphere.metadata, activeTaskSet);
 
       if (matchedTaskInSet) {
-        currentlyOpenedTask = activeNearSphere; // Cache active task to prevent closure bugs
+        currentlyOpenedTask = activeNearSphere;
         const file = matchedTaskInSet.file;
         const params = matchedTaskInSet.params || '';
 
@@ -2250,11 +2381,8 @@
     function closeModal() {
       modal.style.display = 'none';
       taskIframe.src = 'about:blank';
-
-      // Reset task cache
       currentlyOpenedTask = null;
 
-      // Force return keyboard input focus to player canvas view
       window.focus();
       document.body.focus();
       renderer.domElement.focus();
@@ -2291,9 +2419,6 @@
       }
     }
 
-    // ----------------------------------------------------
-    // SYSTEM ENGINE LOOPS
-    // ----------------------------------------------------
     init();
 
     async function init() {
@@ -2308,7 +2433,6 @@
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
 
-      // Advanced ACES Film grade mapping for realistic dark space lighting
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.0;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -2317,35 +2441,31 @@
 
       container.appendChild(renderer.domElement);
 
-      // Local spotlight attached directly to inside of player capsule (intensity 1.0 default)
       playerLight = new THREE.PointLight(0xffffff, lightStrengthValue, 25);
       scene.add(playerLight);
 
-      // Setup Physics Engine first
       initPhysicsEngine();
 
       controls = new PointerLockControls(camera, renderer.domElement);
 
-      clickPrompt.addEventListener('click', () => {
-        if (modal.style.display !== 'flex' && !devMode) {
+      // Directly acquire cursor pointer lock on canvas clicks
+      renderer.domElement.addEventListener('click', () => {
+        if (modal.style.display !== 'flex' && !devMode && !isTrackingLook) {
           controls.lock();
         }
       });
 
-      controls.addEventListener('lock', () => {
-        clickPrompt.style.display = 'none';
-      });
-
-      controls.addEventListener('unlock', () => {
-        const menu = document.getElementById('main-menu-overlay');
-        const inMenu = menu && menu.style.display !== 'none';
-        if (modal.style.display !== 'flex' && !devMode && !inMenu) {
-          clickPrompt.style.display = 'flex';
+      // Resume sound pipeline on user interaction
+      const resumeAudioFunc = () => {
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume();
         }
-      });
+      };
+      window.addEventListener('click', resumeAudioFunc);
+      window.addEventListener('touchstart', resumeAudioFunc);
 
       playerMesh = createPlayerMesh(scene, playerPos);
-      playerMesh.visible = false; // Hidden normally to prevent culling view issues
+      playerMesh.visible = false;
 
       transformControls = new TransformControls(camera, renderer.domElement);
       transformControls.size = 0.85;
@@ -2355,13 +2475,12 @@
         if (devMode && playerMesh) {
           playerPos.copy(playerMesh.position);
           playerBody.position.copy(playerPos);
-          playerBody.velocity.set(0, 0, 0); // Freeze velocity during direct drags
+          playerBody.velocity.set(0, 0, 0);
           camera.position.copy(playerPos);
           coordLbl.innerText = `COORDINATES: X: ${playerPos.x.toFixed(2)} | Y: ${playerPos.y.toFixed(2)} | Z: ${playerPos.z.toFixed(2)}`;
         }
       });
 
-      // Disable camera movements while dragging Gizmos
       transformControls.addEventListener('dragging-changed', (e) => {
         controls.enabled = !e.value;
       });
@@ -2376,35 +2495,79 @@
         }
       });
 
+      // Mobile Touch Look Handlers
+      window.addEventListener('touchstart', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          // Skip if touch occurs inside the virtual joystick quadrant
+          if (touch.clientX < window.innerWidth / 3 && touch.clientY > window.innerHeight / 2) {
+            continue;
+          }
+          if (!isTrackingLook) {
+            lookTouchId = touch.identifier;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isTrackingLook = true;
+            break;
+          }
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isTrackingLook) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === lookTouchId) {
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+
+            const sensitivity = 0.005;
+            camera.rotation.y -= dx * sensitivity;
+            camera.rotation.x -= dy * sensitivity;
+            camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, camera.rotation.x));
+
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            break;
+          }
+        }
+      }, { passive: true });
+
+      const endLook = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === lookTouchId) {
+            isTrackingLook = false;
+            lookTouchId = null;
+            break;
+          }
+        }
+      };
+      window.addEventListener('touchend', endLook, { passive: true });
+      window.addEventListener('touchcancel', endLook, { passive: true });
+
       setupInputListeners();
       setupSettingsListeners();
       setupMainMenuListeners();
 
-      // Hide HUD & settings drawer triggers until game starts
       document.querySelector('.hud-layer').style.display = 'none';
       if (document.getElementById('settings-btn')) {
         document.getElementById('settings-btn').parentElement.style.display = 'none';
       }
-      clickPrompt.style.display = 'none';
 
-      // Listen for task completion messages from iframe minigames
       window.addEventListener('message', (e) => {
         if (e.data && e.data.type === 'TASK_COMPLETE') {
           resolveTaskCompleted();
         }
       });
 
-      // Retrieve default slider values from HTML inputs on load to prevent refresh mismatch
       playerSpeedSetting = parseFloat(document.getElementById('player-speed-slider').value);
       lightStrengthValue = parseFloat(document.getElementById('strength-slider').value);
       const initialVision = parseInt(document.getElementById('vision-slider').value);
 
       await loadInvisibleWalls();
-
-      // Update vision overlay values
       updateVisionOverlay(initialVision);
 
-      // Connect to multiplayer socket lobby (this will load tasks and configs either from server or offline fallback)
       initMultiplayerArray();
 
       loader.style.display = 'none';
@@ -2414,29 +2577,24 @@
     }
 
     function updatePlayerMovement(deltaTime) {
-      // Safety checks: Skip movement evaluations until physics systems are initialized
       if (!physicsWorld || !playerBody) return;
       if (completed || devMode) return;
       if (modal.style.display === 'flex') return;
 
-      // Dead players cannot move
       if (!isLocalAlive) {
         playerBody.velocity.x = 0;
         playerBody.velocity.z = 0;
         return;
       }
 
-      // Tick kill cooldown
       if (localPlayerRole === 'Impostor' && killCooldown > 0) {
         killCooldown = Math.max(0, killCooldown - deltaTime);
       }
 
-      // Get keyboard direction
       const moveDirection = calculateMovementVec(camera);
       let velX = moveDirection.x * playerSpeedSetting;
       let velZ = moveDirection.z * playerSpeedSetting;
 
-      // Blend in joystick input when no keyboard is pressed and joystick is active
       const joystickActive = joystickDelta.x !== 0 || joystickDelta.y !== 0;
       if (joystickActive && moveDirection.lengthSq() === 0) {
         const cameraForward = new THREE.Vector3();
@@ -2447,7 +2605,6 @@
         const cameraRight = new THREE.Vector3();
         cameraRight.crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
 
-        // joystickDelta.y = forward/back, joystickDelta.x = strafe
         const joyDir = new THREE.Vector3();
         joyDir.addScaledVector(cameraForward, -joystickDelta.y);
         joyDir.addScaledVector(cameraRight, joystickDelta.x);
@@ -2456,7 +2613,6 @@
         velZ = joyDir.z * playerSpeedSetting;
       }
 
-      // Allow movement even if pointerlock is temporarily disengaged (e.g. after modals)
       const menu = document.getElementById('main-menu-overlay');
       const inMenu = menu && menu.style.display !== 'none';
       if (inMenu) {
@@ -2484,7 +2640,6 @@
     }
 
     function resolveTaskCompleted() {
-      // Safe assignment of the active sphere to ensure the modal closes even on culling bugs
       const activeSphere = currentlyOpenedTask || activeNearSphere;
 
       try {
@@ -2501,16 +2656,13 @@
                 item.classList.add('done');
               }
 
-              // Disable Completed Object
               activeSphere.completed = true;
               activeSphere.mesh.material = sphereActiveMaterial;
-              activeSphere.mesh.position.y = -500; // Move underground out of sight
+              activeSphere.mesh.position.y = -500;
 
-              // Remove completed task marker on HUD Minimap
               const dot = document.getElementById(`minimap-task-dot-${activeSphere.id}`);
               if (dot) dot.remove();
 
-              // Send task completion broadcast packet to server (Socket.io)
               if (socket && socket.connected) {
                 socket.emit('task_complete', {
                   username: localUsername,
@@ -2527,12 +2679,10 @@
         console.error('Task closure verification exception:', err);
       }
 
-      // Close modal immediately
       closeModal();
     }
 
     function updateTotalProgress() {
-      // If we are offline or server socket is disconnected, update progress bar locally
       if (!socket || !socket.connected) {
         const total = activeTaskSet.tasks.length;
         const compCount = completedTaskIds.size;
@@ -2550,17 +2700,22 @@
 
     function playTone(freq, type, duration, volume = 0.1) {
       try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
         osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gain.gain.setValueAtTime(volume, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(audioContext.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.stop(audioContext.currentTime + duration);
       } catch (e) { }
     }
 
@@ -2580,7 +2735,6 @@
         playerMarker.style.top = `${(1 - v) * 100}%`;
       }
 
-      // Rotate the facing arrow to match camera Y rotation
       const arrow = document.getElementById('minimap-player-arrow');
       if (arrow && camera) {
         const deg = -(camera.rotation.y * (180 / Math.PI));
@@ -2598,46 +2752,45 @@
       requestAnimationFrame(animate);
       const deltaTime = Math.min(clock.getDelta(), 0.1);
 
-      // ABSOLUTE PROTECTION FOR ASYNC REFRESH CRASHES
       if (!physicsWorld || !playerBody || !playerMesh || !renderer || !scene || !camera) {
         return;
       }
 
-      // Sanity coordinate checks to protect against static collider NaN/Void errors
       if (isNaN(playerBody.position.x) || isNaN(playerBody.position.y) || isNaN(playerBody.position.z)) {
         console.warn("Physics body coordinate error caught. Resetting coordinates.");
         playerBody.position.set(6.79, 5.90, -23.93);
         playerBody.velocity.set(0, 0, 0);
       }
 
-      // Step the Physics World simulation only if active
-      physicsWorld.step(deltaTime);
+      if (isLocalAlive) {
+        physicsWorld.step(deltaTime);
+        playerBody.position.y = 5.90;
+        playerBody.velocity.y = 0;
+        playerPos.copy(playerBody.position);
+      } else if (localSpectateTargetId) {
+        // SPECTATE POV ACTION: Smoothly follow Impostor's mesh movements
+        const specTarget = remotePlayers[localSpectateTargetId];
+        if (specTarget) {
+          playerPos.lerp(specTarget.mesh.position, 0.1);
+          camera.lookAt(specTarget.mesh.position);
+        }
+      }
 
-      // Lock player strictly to the fixed plane Y: 5.90 to disable gravity falls entirely
-      playerBody.position.y = 5.90;
-      playerBody.velocity.y = 0;
-
-      // Sync Player position vectors
-      playerPos.copy(playerBody.position);
       playerMesh.position.copy(playerPos);
       camera.position.copy(playerPos);
 
-      // Sync local spotlight position
       if (playerLight) {
         playerLight.position.copy(playerPos);
-        playerLight.position.y += 0.4; // Slightly elevated waist height
+        playerLight.position.y += 0.4;
       }
 
-      // Sync local player position onto 2D HUD Minimap coordinates
       updateMinimapPosition();
 
-      // Interpolate and smooth other remote player movements on tick
       for (const id in remotePlayers) {
         const op = remotePlayers[id];
         op.mesh.position.lerp(op.targetPos, 0.15);
       }
 
-      // Broadcast position parameters to other players (Socket.io) - throttled at 30Hz tick rate
       const now = performance.now();
       if (now - lastEmitTime >= EMIT_INTERVAL) {
         if (socket && socket.connected) {
@@ -2652,6 +2805,8 @@
       updateAmbientSpheres();
       updatePlayerMovement(deltaTime);
       evaluateProximity();
+
+      updateProximityVoiceVolumes();
 
       renderer.render(scene, camera);
       coordLbl.innerText = `COORDINATES: X: ${playerPos.x.toFixed(2)} | Y: ${playerPos.y.toFixed(2)} | Z: ${playerPos.z.toFixed(2)}`;
@@ -2674,7 +2829,6 @@
       });
     }
 
-    // Toggle Minimap HUD Drawer Visibility
     const miniToggle = document.getElementById('minimap-toggle-btn');
     const miniContainer = document.getElementById('minimap-container');
     if (miniToggle && miniContainer) {
@@ -2688,43 +2842,7 @@
         }
       });
     }
-  </script>
 
-  <!-- Options Drawer -->
-  <div style='position: absolute; bottom: 25px; left: 25px; z-index: 10; pointer-events: auto;'>
-    <button id='settings-btn'
-      style='background: rgba(0, 0, 0, 0.7); border: 3px solid #000; font-family: Lexend Deca, sans-serif; color: #a0aec0; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; box-shadow: 3px 3px 0 #000;'>Settings</button>
-  </div>
-
-  <div id='settings-drawer'
-    style='position: absolute; bottom: 85px; left: 25px; z-index: 15; background: #1e293b; border: 4px solid #000; border-radius: 12px; padding: 15px; width: 220px; display: none; flex-direction: column; gap: 15px; box-shadow: 4px 4px 0px #000; pointer-events: auto;'>
-    <h3
-      style='margin: 0; font-size: 0.85rem; color: #ea580c; text-transform: uppercase; letter-spacing: 1px; font-family: Fredoka One, sans-serif; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;'>
-      Settings</h3>
-
-    <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Player Speed:
-        <span id="speed-val">4.0</span></label>
-      <input type='range' id='player-speed-slider' min='3' max='20' step='0.5' value='4.0'
-        style='cursor: pointer; accent-color: #ea580c;' />
-    </div>
-
-    <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Vision Range:
-        <span id="vision-val">95</span>%</label>
-      <input type='range' id='vision-slider' min='15' max='100' step='5' value='95'
-        style='cursor: pointer; accent-color: #ea580c;' />
-    </div>
-
-    <div style='display: flex; flex-direction: column; gap: 4px;'>
-      <label style='font-size: 0.65rem; color: #a0aec0; font-weight: bold; text-transform: uppercase;'>Light Strength:
-        <span id="strength-val">1.0</span></label>
-      <input type='range' id='strength-slider' min='0.1' max='5' step='0.1' value='1.0'
-        style='cursor: pointer; accent-color: #ea580c;' />
-    </div>
-  </div>
-
-  <script type='module'>
     const sBtn = document.getElementById('settings-btn');
     const sDrawer = document.getElementById('settings-drawer');
 
@@ -2736,6 +2854,27 @@
     sDrawer.addEventListener('mousedown', (e) => {
       e.stopPropagation();
     });
+
+    const muteBtn = document.getElementById('mute-btn');
+    if (muteBtn) {
+      muteBtn.addEventListener('click', () => {
+        if (!isLocalAlive) return;
+
+        isMuted = !isMuted;
+        if (localAudioStream) {
+          localAudioStream.getAudioTracks().forEach(track => {
+            track.enabled = !isMuted;
+          });
+        }
+        if (isMuted) {
+          muteBtn.innerText = "Unmute Mic";
+          muteBtn.style.backgroundColor = "#ef4444";
+        } else {
+          muteBtn.innerText = "Mute Mic";
+          muteBtn.style.backgroundColor = "#10b981";
+        }
+      });
+    }
 
     const speedSlider = document.getElementById('player-speed-slider');
     const visionSlider = document.getElementById('vision-slider');
