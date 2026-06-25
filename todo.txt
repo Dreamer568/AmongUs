@@ -168,4 +168,6 @@ socket.on('player_joined', (p) => {
 player size fix
 multiple spawn add
 sobotages
-game finish logic
+
+
+ok so dude the jaytick is still disable for the dead person and aslo make sure imposter can not kill another imposter and aslo make sure to reset everything when its play again no old body,task,anything and aslo the mute button ahould also reset cuz it creeently show dead for the dead person in previous game and ya make the emmenrgency button red and aslo add fill for kill too and aslo e for doing task or reporting the body and aslo remove the settign button and also add da way to hide the task too

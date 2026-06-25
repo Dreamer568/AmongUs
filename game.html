@@ -855,6 +855,66 @@
       transition: opacity 0.5s ease;
     }
 
+    /* Game Over Splash Screen Overlay */
+    #game-over-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 900;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 20px;
+    }
+
+    .game-over-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 4.5rem;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      animation: floatTitle 4s ease-in-out infinite;
+    }
+
+    .game-over-title.victory {
+      color: #38fedc;
+      text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
+    }
+
+    .game-over-title.defeat {
+      color: #ef4444;
+      text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
+    }
+
+    .game-over-summary-box {
+      background: rgba(15, 23, 42, 0.95);
+      border: 5px solid #000;
+      border-radius: 16px;
+      padding: 25px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 6px 6px 0px #000;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .summary-player-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    /* --- RESPONSIVE MOBILE UI SCALING DRAWERS --- */
     @media (max-width: 768px) {
       .task-card {
         width: 180px;
@@ -903,6 +963,15 @@
         font-size: 0.9rem;
         padding: 8px;
       }
+
+      .game-over-title {
+        font-size: 2.8rem;
+      }
+
+      .game-over-summary-box {
+        padding: 15px;
+        font-size: 0.85rem;
+      }
     }
   </style>
   <script src="/socket.io/socket.io.js"></script>
@@ -949,7 +1018,7 @@
 
         <div class="setting-slider-container">
           <label>Impostors: <span id="host-impostors-val">1</span></label>
-          <input type="range" id="host-impostors" min="1" max="3" value="1"
+          <input type="range" id="host-impostors" min="1" max="1" value="1"
             style="cursor: pointer; accent-color: #ea580c;">
         </div>
 
@@ -1017,6 +1086,24 @@
     <div id="impostors-remaining-text"
       style="font-family: 'Lexend Deca', sans-serif; font-size: 1.2rem; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;">
       1 Impostor remains.</div>
+  </div>
+
+  <!-- End Game Splash Screen Overlay -->
+  <div id="game-over-overlay">
+    <div class="game-over-title" id="game-over-title-text">VICTORY</div>
+    <div class="game-over-summary-box cartoon-panel">
+      <h3 style="margin: 0; font-family: 'Fredoka One', cursive; text-align: center; color: #ea580c;">ROUND RESULTS</h3>
+      <div id="game-over-players-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
+    <div id="play-again-box"
+      style="width: 100%; display: flex; justify-content: center; z-index: 10; pointer-events: auto;">
+      <button id="play-again-btn" class="menu-btn btn-start" style="max-width: 280px; width: 100%; display: none;">PLAY
+        AGAIN</button>
+      <div id="play-again-waiting-msg"
+        style="font-family: 'Fredoka One', cursive; color: #3b82f6; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000; display: block; text-align: center;">
+        Waiting for Host to reset room...</div>
+    </div>
   </div>
 
   <div id="role-screen-overlay">
@@ -1687,12 +1774,25 @@
 
       const maxPlayersSlider = document.getElementById('host-max-players');
       const maxPlayersVal = document.getElementById('host-max-players-val');
-      maxPlayersSlider.addEventListener('input', (e) => {
-        maxPlayersVal.innerText = e.target.value;
-      });
-
       const impostorsSlider = document.getElementById('host-impostors');
       const impostorsVal = document.getElementById('host-impostors-val');
+
+      // BALANCED SLIDERS: Recalculate max allowed Impostors dynamically on max players input
+      maxPlayersSlider.addEventListener('input', (e) => {
+        const maxP = parseInt(e.target.value);
+        maxPlayersVal.innerText = maxP;
+
+        let maxImps = 1;
+        if (maxP >= 8) maxImps = 3;
+        else if (maxP >= 6) maxImps = 2;
+
+        impostorsSlider.max = maxImps;
+        if (parseInt(impostorsSlider.value) > maxImps) {
+          impostorsSlider.value = maxImps;
+          impostorsVal.innerText = maxImps;
+        }
+      });
+
       impostorsSlider.addEventListener('input', (e) => {
         impostorsVal.innerText = e.target.value;
       });
@@ -2137,6 +2237,7 @@
           btn.style.borderLeft = `12px solid ${p.color}`;
           btn.innerHTML = `${p.username} <div class="vote-badge" id="badge-${p.id}">0</div>`;
 
+          // Silent check to make sure deceased players cannot vote
           if (p.isAlive && isLocalAlive) {
             btn.onclick = () => {
               socket.emit('cast_vote', { targetId: p.id });
@@ -2148,6 +2249,23 @@
 
         const status = document.getElementById('voted-status-list');
         status.innerText = "Cast your vote or skip.";
+
+        // Disable skip button if local player is dead
+        const skipBtn = document.getElementById('skip-vote-btn');
+        if (skipBtn) {
+          if (!isLocalAlive) {
+            skipBtn.style.opacity = '0.5';
+            skipBtn.style.cursor = 'not-allowed';
+            skipBtn.onclick = null;
+          } else {
+            skipBtn.style.opacity = '1';
+            skipBtn.style.cursor = 'pointer';
+            skipBtn.onclick = () => {
+              socket.emit('cast_vote', { targetId: 'skip' });
+              disableVotingButtons();
+            };
+          }
+        }
 
         overlay.style.display = 'flex';
       });
@@ -2220,6 +2338,103 @@
             }
           }, 500);
         }, 4000);
+      });
+
+      // Win / Defeat calculations
+      socket.on('game_over', (data) => {
+        controls.unlock();
+        closeModal();
+
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+        const titleText = document.getElementById('game-over-title-text');
+        const playersList = document.getElementById('game-over-players-list');
+
+        // Determine if local player won or lost
+        const amIImpostor = (localPlayerRole === 'Impostor');
+        const impostorsWon = (data.winnerTeam === 'Impostors');
+        const isVictory = (amIImpostor && impostorsWon) || (!amIImpostor && !impostorsWon);
+
+        if (isVictory) {
+          titleText.innerText = "VICTORY";
+          titleText.className = "game-over-title victory";
+          gameOverOverlay.style.background = "radial-gradient(circle, #064e3b 0%, #020617 100%)";
+          playTone(523.25, 'sine', 0.25, 0.15);
+          setTimeout(() => playTone(659.25, 'sine', 0.25, 0.15), 100);
+          setTimeout(() => playTone(783.99, 'sine', 0.5, 0.25), 200);
+        } else {
+          titleText.innerText = "DEFEAT";
+          titleText.className = "game-over-title defeat";
+          gameOverOverlay.style.background = "radial-gradient(circle, #450a0a 0%, #020617 100%)";
+          playTone(150, 'sawtooth', 0.6, 0.2);
+          setTimeout(() => playTone(120, 'sawtooth', 0.8, 0.2), 300);
+        }
+
+        // Render detailed results roster
+        playersList.innerHTML = '';
+        data.players.forEach(p => {
+          const item = document.createElement('div');
+          item.className = "summary-player-item";
+
+          const roleColor = (p.role === 'Impostor') ? '#ef4444' : '#38fedc';
+          item.innerHTML = `
+            <span style="color: ${p.color};">${p.username}</span>
+            <span style="color: ${roleColor}; font-family: 'Fredoka One', cursive;">${p.role.toUpperCase()}</span>
+          `;
+          playersList.appendChild(item);
+        });
+
+        // Show/hide Host reset buttons vs Client waiting states
+        const isHost = currentLobbyPlayers.find(pl => pl.isHost)?.id === socket.id;
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const playAgainWait = document.getElementById('play-again-waiting-msg');
+
+        if (isHost) {
+          playAgainBtn.style.display = 'block';
+          playAgainWait.style.display = 'none';
+        } else {
+          playAgainBtn.style.display = 'none';
+          playAgainWait.style.display = 'block';
+        }
+
+        gameOverOverlay.style.display = 'flex';
+      });
+
+      // Play Again returning trigger
+      socket.on('return_to_lobby', (data) => {
+        // Reset local variables
+        completed = false;
+        completedTaskIds.clear();
+        isLocalAlive = true;
+        activeTaskSet = null;
+        tasksInitialized = false;
+        taskSpheres.forEach(s => scene.remove(s.mesh));
+        taskSpheres = [];
+
+        // Clear local physical wall bodies from world and recreate
+        physicalWalls.forEach(w => scene.remove(w));
+        physicalWalls = [];
+        initPhysicsEngine();
+        loadInvisibleWalls();
+
+        // Restore player position & collider representation
+        playerPos.set(6.79, 5.90, -23.93);
+        if (playerBody) {
+          playerBody.position.set(6.79, 5.90, -23.93);
+          playerBody.velocity.set(0, 0, 0);
+        }
+
+        // Hide gameplay screens
+        document.getElementById('game-over-overlay').style.display = 'none';
+        document.getElementById('voting-overlay').style.display = 'none';
+        document.getElementById('ejected-overlay').style.display = 'none';
+        document.getElementById('eliminated-overlay').style.display = 'none';
+        document.querySelector('.hud-layer').style.display = 'none';
+
+        // Return to lobby main screen
+        const menu = document.getElementById('main-menu-overlay');
+        menu.style.display = 'flex';
+        updateLobbyUI(data.roomState);
+        showMenuPanel('panel-lobby');
       });
 
       socket.on('meeting_called', (data) => {
@@ -2721,19 +2936,12 @@
         btn.style.cursor = 'not-allowed';
         btn.style.opacity = '0.6';
       });
-      const skipBtn = document.getElementById('skip-vote-btn');
-      if (skipBtn) {
-        skipBtn.onclick = null;
-        skipBtn.style.cursor = 'not-allowed';
-        skipBtn.style.opacity = '0.6';
-      }
     }
 
-    // Trigger Skip voting action
-    document.getElementById('skip-vote-btn').onclick = () => {
+    // Host Play Again trigger click handler
+    document.getElementById('play-again-btn').onclick = () => {
       if (socket && socket.connected) {
-        socket.emit('cast_vote', { targetId: 'skip' });
-        disableVotingButtons();
+        socket.emit('play_again');
       }
     };
 
@@ -2945,13 +3153,22 @@
         const moveStep = new THREE.Vector3();
         moveStep.addScaledVector(forward, direction.z);
         moveStep.addScaledVector(right, direction.x);
-        moveStep.normalize();
 
         // Ascent/Descent bounds
         if (keysPressed[' ']) moveStep.y += 0.8;
         if (keysPressed['shift']) moveStep.y -= 0.8;
 
-        playerPos.addScaledVector(moveStep, speed * deltaTime);
+        // JOYSTICK SUPPORT FOR GHOSTS: Ensure virtual joystick acts as primary input if keys are unpressed
+        const joystickActive = joystickDelta.x !== 0 || joystickDelta.y !== 0;
+        if (joystickActive && moveStep.lengthSq() === 0) {
+          moveStep.addScaledVector(forward, -joystickDelta.y);
+          moveStep.addScaledVector(right, joystickDelta.x);
+        }
+
+        if (moveStep.lengthSq() > 0) {
+          moveStep.normalize();
+          playerPos.addScaledVector(moveStep, speed * deltaTime);
+        }
         return;
       }
 

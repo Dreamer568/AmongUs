@@ -22,11 +22,30 @@ app.get('/', (req, res) => {
 const fs = require('fs');
 let taskSets = [];
 try {
-  const fileData = fs.readFileSync(path.join(__dirname, 'task_sets.json'), 'utf8');
-  taskSets = JSON.parse(fileData).task_sets;
-  console.log(`Successfully loaded ${taskSets.length} task sets on startup.`);
+  const filePath = path.join(__dirname, 'task_sets.json');
+  if (fs.existsSync(filePath)) {
+    const fileData = fs.readFileSync(filePath, 'utf8');
+    taskSets = JSON.parse(fileData).task_sets;
+    console.log(`Successfully loaded ${taskSets.length} task sets on startup.`);
+  } else {
+    console.warn("WARNING: task_sets.json was not found. Initializing with fallback task sets.");
+    taskSets = [{
+      name: "Fallback Set",
+      tasks: [
+        { id: "fallback_1", room: "Cafeteria", name: "Fix Wiring", file: "wires.html", params: "" },
+        { id: "fallback_2", room: "MedBay", name: "Scan Body", file: "scan.html", params: "" }
+      ]
+    }];
+  }
 } catch (err) {
-  console.error('CRITICAL: Failed to load task_sets.json:', err);
+  console.error('CRITICAL: Failed to load task_sets.json. Using fallback task sets.', err);
+  taskSets = [{
+    name: "Fallback Set",
+    tasks: [
+      { id: "fallback_1", room: "Cafeteria", name: "Fix Wiring", file: "wires.html", params: "" },
+      { id: "fallback_2", room: "MedBay", name: "Scan Body", file: "scan.html", params: "" }
+    ]
+  }];
 }
 
 /**
@@ -85,6 +104,48 @@ function getRoomProgress(room) {
   });
 
   return totalTasks > 0 ? parseFloat(((completedTasksCount / totalTasks) * 100).toFixed(2)) : 0;
+}
+
+function checkGameEndConditions(room) {
+  if (!room.gameStarted) return;
+
+  const livingImpostors = room.players.filter(p => p.isAlive && p.role === 'Impostor').length;
+  const livingCrewmates = room.players.filter(p => p.isAlive && p.role === 'Crewmate').length;
+  const progress = getRoomProgress(room);
+
+  // Crewmates completed all tasks
+  if (progress >= 100.0) {
+    endActiveGame(room, 'Crewmates');
+    return;
+  }
+
+  // All Impostors are eliminated
+  if (livingImpostors === 0) {
+    endActiveGame(room, 'Crewmates');
+    return;
+  }
+
+  // Impostors outnumber or match the Crewmates count
+  if (livingImpostors >= livingCrewmates) {
+    endActiveGame(room, 'Impostors');
+    return;
+  }
+}
+
+function endActiveGame(room, winningTeam) {
+  room.gameStarted = false;
+  room.inMeeting = false;
+
+  console.log(`Room ${room.code} ended. Winners: ${winningTeam}`);
+  io.to(room.code).emit('game_over', {
+    winnerTeam: winningTeam,
+    players: room.players.map(p => ({
+      id: p.id,
+      username: p.username,
+      color: p.color,
+      role: p.role
+    }))
+  });
 }
 
 // Socket.io Real-Time Pipeline
@@ -226,7 +287,7 @@ io.on('connection', (socket) => {
     if (room.players.length > 1) {
       impostorCount = Math.max(1, Math.min(impostorCount, room.players.length - 1));
     } else {
-      impostorCount = 0; // Solo player cannot be impostor
+      impostorCount = 0;
     }
 
     const shuffledIndex = Array.from({ length: room.players.length }, (_, i) => i);
@@ -317,6 +378,8 @@ io.on('connection', (socket) => {
         io.to(room.code).emit('progress_update', {
           progress: getRoomProgress(room)
         });
+
+        checkGameEndConditions(room);
       }
     }
   });
@@ -386,25 +449,46 @@ io.on('connection', (socket) => {
       if (!room || !room.inMeeting) return;
 
       const voter = room.players.find(p => p.id === socket.id);
-      if (!voter || !voter.isAlive) return;
+      if (!voter || !voter.isAlive) {
+        console.log(`Vote rejected: [${voter?.username || socket.id}] is dead.`);
+        return;
+      }
 
       room.votes[socket.id] = data.targetId; // 'skip' or player target id
       console.log(`Room ${room.code}: [${voter.username}] voted for [${data.targetId}]`);
 
-      // Broadcast update
       io.to(room.code).emit('vote_update', {
         voters: Object.keys(room.votes),
         votes: room.votes
       });
 
-      // Count living players
       const alivePlayers = room.players.filter(p => p.isAlive);
-
-      // End voting early if all living players have cast their ballot
       if (Object.keys(room.votes).length >= alivePlayers.length) {
         processVotingResults(room);
       }
     }
+  });
+
+  // Host resets current lobby state to restart round
+  socket.on('play_again', () => {
+    if (!socket.roomCode) return;
+    const room = rooms.get(socket.roomCode);
+    if (!room || room.hostId !== socket.id) return;
+
+    room.gameStarted = false;
+    room.inMeeting = false;
+    room.votes = {};
+
+    room.players.forEach(p => {
+      p.isAlive = true;
+      p.role = 'Crewmate';
+      p.completedTasks = [];
+      p.assignedTaskSet = null;
+      p.position = { x: 6.79, y: 5.90, z: -23.93 };
+    });
+
+    console.log(`Room ${room.code}: Lobby reset requested by host.`);
+    io.to(room.code).emit('return_to_lobby', { roomState: room });
   });
 
   // Handle manual leave lobby
@@ -436,6 +520,7 @@ io.on('connection', (socket) => {
           io.to(code).emit('progress_update', {
             progress: getRoomProgress(room)
           });
+          checkGameEndConditions(room);
         }
       }
       socket.emit('left_room');
@@ -467,6 +552,7 @@ io.on('connection', (socket) => {
           io.to(code).emit('progress_update', {
             progress: getRoomProgress(room)
           });
+          checkGameEndConditions(room);
         }
       }
     }
@@ -513,9 +599,7 @@ function processVotingResults(room) {
         ejectedId = targetId;
         isTie = false;
       } else if (voteCounts[targetId] === maxVotes) {
-        isObstructed = true;
-        isObstructed = true;
-        isTie = true;
+        isTie = true; // Tie detected
       }
     }
   });
@@ -546,6 +630,9 @@ function processVotingResults(room) {
     } : null,
     remainingImpostors: remainingImpostors
   });
+
+  // Check end condition post meeting ejection
+  checkGameEndConditions(room);
 }
 
 server.listen(PORT, () => {
