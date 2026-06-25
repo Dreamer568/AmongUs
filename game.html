@@ -757,6 +757,47 @@
         opacity: 0;
       }
     }
+
+    /* --- RESPONSIVE MOBILE UI SCALING DRAWERS --- */
+    @media (max-width: 768px) {
+      .task-card {
+        width: 180px;
+        max-height: 25vh;
+        padding: 10px;
+        font-size: 0.75rem;
+      }
+
+      .task-card h2 {
+        font-size: 0.9rem;
+      }
+
+      #minimap-container {
+        width: 140px;
+        height: 80px;
+      }
+
+      #minimap-toggle-btn {
+        font-size: 0.6rem;
+        padding: 4px 8px;
+      }
+
+      .progress-hud {
+        width: 95%;
+        padding: 6px 10px;
+      }
+
+      .use-action-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 0.9rem;
+      }
+
+      .pos-readout {
+        font-size: 0.65rem;
+        left: 20px;
+        bottom: 110px;
+      }
+    }
   </style>
   <script src="/socket.io/socket.io.js"></script>
   <script type='importmap'>
@@ -933,7 +974,7 @@
       ELIMINATED</div>
     <div
       style="font-family: 'Lexend Deca', sans-serif; font-size: 1.3rem; font-weight: bold; color: #94a3b8; margin-top: 15px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center;">
-      You are spectating the Impostor.</div>
+      You have entered 3D Free-Fly Spectate mode.</div>
   </div>
 
   <div class='modal-overlay' id='modal-overlay'>
@@ -1072,7 +1113,6 @@
     const closeBtn = document.getElementById('close-btn');
 
     let isLocalAlive = true;
-    let localSpectateTargetId = null;
     let killCooldown = 0;
     let killCooldownMax = 25;
     let nearestKillTarget = null;
@@ -1110,7 +1150,7 @@
     const voiceRaycaster = new THREE.Raycaster();
     const targetDirection = new THREE.Vector3();
 
-    // Mobile Look Trackers
+    // Mobile Touch Look Trackers
     let touchStartX = 0, touchStartY = 0;
     let isTrackingLook = false;
     let lookTouchId = null;
@@ -1128,6 +1168,17 @@
     const rtcConfig = {
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
     };
+
+    function triggerFullscreen() {
+      try {
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      } catch (err) {
+        console.warn("Fullscreen request blocked or not supported on this browser.", err);
+      }
+    }
 
     function createPeerConnection(targetId, isInitiator) {
       if (peerConnections[targetId]) return peerConnections[targetId];
@@ -1358,11 +1409,12 @@
       scene.add(mesh);
       physicalWalls.push(mesh);
 
-      const halfExtents = new CANNON.Vec3(
-        wallData.scale[0] / 2,
-        wallData.scale[1] / 2,
-        wallData.scale[2] / 2
-      );
+      // Programmatic Wall-tunneling solution: Clamp collider width to a minimum of 0.8
+      const colX = Math.max(wallData.scale[0], 0.8);
+      const colY = wallData.scale[1];
+      const colZ = Math.max(wallData.scale[2], 0.8);
+
+      const halfExtents = new CANNON.Vec3(colX / 2, colY / 2, colZ / 2);
       const wallShape = new CANNON.Box(halfExtents);
       const wallBody = new CANNON.Body({
         mass: 0,
@@ -1491,10 +1543,12 @@
 
     function setupMainMenuListeners() {
       document.getElementById('menu-btn-host-panel').addEventListener('click', () => {
+        triggerFullscreen();
         showMenuPanel('panel-host');
       });
 
       document.getElementById('menu-btn-join-panel').addEventListener('click', () => {
+        triggerFullscreen();
         showMenuPanel('panel-join');
       });
 
@@ -1867,7 +1921,6 @@
             }
 
             isLocalAlive = true;
-            localSpectateTargetId = null;
             localPlayerRole = data.localRole || 'Crewmate';
             killCooldown = killCooldownMax;
 
@@ -1905,12 +1958,10 @@
 
         if (victimId === socket.id) {
           isLocalAlive = false;
-          localSpectateTargetId = killerId; // Record killer to spectate programmatically
-          playerBody.velocity.x = 0;
-          playerBody.velocity.z = 0;
 
-          if (playerMesh) {
-            playerMesh.rotation.z = Math.PI / 2;
+          // Disable Local Player physics collider on elimination to prevent trapping other players
+          if (physicsWorld && playerBody) {
+            physicsWorld.removeBody(playerBody);
           }
 
           if (eliminatedOverlay) {
@@ -1923,14 +1974,14 @@
           const rp = remotePlayers[victimId];
           if (rp) {
             rp.isDead = true;
-            rp.mesh.rotation.z = Math.PI / 2;
+            rp.mesh.rotation.z = Math.PI / 2; // Lay model flat on ground
             if (rp.nameSprite) rp.nameSprite.visible = false;
             deadBodies[victimId] = { mesh: rp.mesh, position: rp.mesh.position };
           }
         }
 
         if (localPlayerRole === 'Impostor' && killCooldown > 0) {
-          killCooldown = killCooldownMax;
+          killCooldown = Math.max(0, killCooldownMax);
         }
       });
 
@@ -2427,6 +2478,7 @@
       scene.fog = new THREE.FogExp2(0x050505, 0.008);
 
       camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.rotation.order = 'YXZ'; // Lock rotation order to resolve screen lookSnaps
       camera.position.copy(playerPos);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -2448,9 +2500,10 @@
 
       controls = new PointerLockControls(camera, renderer.domElement);
 
-      // Directly acquire cursor pointer lock on canvas clicks
+      // Directly acquire cursor pointer lock on canvas clicks (no Start Mission prompt)
       renderer.domElement.addEventListener('click', () => {
-        if (modal.style.display !== 'flex' && !devMode && !isTrackingLook) {
+        triggerFullscreen();
+        if (modal.style.display !== 'flex' && !devMode && !isTrackingLook && isLocalAlive) {
           controls.lock();
         }
       });
@@ -2577,16 +2630,42 @@
     }
 
     function updatePlayerMovement(deltaTime) {
-      if (!physicsWorld || !playerBody) return;
       if (completed || devMode) return;
       if (modal.style.display === 'flex') return;
 
+      // 3D FREE CAMERA FLY GHOST MODE: Allow flying, bypass Cannon-es colliders completely on death
       if (!isLocalAlive) {
-        playerBody.velocity.x = 0;
-        playerBody.velocity.z = 0;
+        const speed = playerSpeedSetting * deltaTime * 1.5;
+        const forwardDir = new THREE.Vector3();
+        camera.getWorldDirection(forwardDir);
+
+        const rightDir = new THREE.Vector3();
+        rightDir.crossVectors(forwardDir, new THREE.Vector3(0, 1, 0)).normalize();
+
+        const moveDir = new THREE.Vector3();
+
+        if (keysPressed['w'] || keysPressed['arrowup']) moveDir.add(forwardDir);
+        if (keysPressed['s'] || keysPressed['arrowdown']) moveDir.sub(forwardDir);
+        if (keysPressed['a'] || keysPressed['arrowleft']) moveDir.sub(rightDir);
+        if (keysPressed['d'] || keysPressed['arrowright']) moveDir.add(rightDir);
+        if (keysPressed[' ']) moveDir.y += 0.8; // Space to ascend
+        if (keysPressed['shift']) moveDir.y -= 0.8; // Shift to descend
+
+        // Virtual Joystick Ghost controls
+        const joystickActive = joystickDelta.x !== 0 || joystickDelta.y !== 0;
+        if (joystickActive && moveDir.lengthSq() === 0) {
+          moveDir.addScaledVector(forwardDir, -joystickDelta.y);
+          moveDir.addScaledVector(rightDir, joystickDelta.x);
+        }
+
+        if (moveDir.lengthSq() > 0) {
+          moveDir.normalize();
+          playerPos.addScaledVector(moveDir, speed);
+        }
         return;
       }
 
+      // Physics-locked movement loops for Alive Players
       if (localPlayerRole === 'Impostor' && killCooldown > 0) {
         killCooldown = Math.max(0, killCooldown - deltaTime);
       }
@@ -2767,13 +2846,6 @@
         playerBody.position.y = 5.90;
         playerBody.velocity.y = 0;
         playerPos.copy(playerBody.position);
-      } else if (localSpectateTargetId) {
-        // SPECTATE POV ACTION: Smoothly follow Impostor's mesh movements
-        const specTarget = remotePlayers[localSpectateTargetId];
-        if (specTarget) {
-          playerPos.lerp(specTarget.mesh.position, 0.1);
-          camera.lookAt(specTarget.mesh.position);
-        }
       }
 
       playerMesh.position.copy(playerPos);

@@ -16,3 +16,156 @@ ok very cool now can u remove the start mission button so
       a ui to their screen and then just change their pov to the imposter
        pov and aslo the arrow in the mini map just make sure the arrow
  is stick to the mini circle player and the circle shoud rotate
+
+
+ o2 empty garbage
+
+
+
+
+ Why Proximity Voice Chat is Failing
+1. Microphone Access Race Condition (No Audio Tracks Added)
+In your lobby setup, when a player clicks "Create Room" or "Join Lobby", initLocalVoice() is called, which immediately triggers the browser's microphone permission prompt:
+code
+JavaScript
+initLocalVoice();
+socket.emit('create_room', ...);
+Because initLocalVoice() is an asynchronous function requesting hardware permissions, the browser takes several seconds to display the prompt and wait for the user to click "Allow."
+In the meantime, the script immediately continues and emits create_room or join_room. When the peer connections are set up shortly after, localAudioStream is still null. As a result, the following check fails:
+code
+JavaScript
+if (localAudioStream) {
+  localAudioStream.getTracks().forEach(track => pc.addTrack(track, localAudioStream));
+}
+Because localAudioStream was not yet available, no audio tracks are attached to the RTCPeerConnection when it is negotiated. Even if the user allows the microphone a second later, the connection is already established with zero audio tracks.
+2. Peer Connections are Never Initiated at Game Start
+In your code, peer connections are only initiated in socket.on('player_joined') if the main menu overlay is already hidden:
+code
+JavaScript
+if (mainOverlay.style.display === 'none') {
+  socket.emit('initiate_peer_connection', { targetId: p.id });
+}
+When players join the pre-game lobby, the menu is still visible, so they skip this connection step. When the host eventually starts the game and game_started is fired, the menu is hidden, but no connection signaling is triggered for the players who were already in the lobby. Only mid-game joiners trigger connections, leaving the initial lobby players unable to hear each other.
+How to Fix the Issue
+To resolve these issues:
+Make the room creation and joining handlers async so they await microphone acquisition before registering on the socket server. This guarantees that your microphone stream is fully ready before any WebRTC peer negotiation starts.
+Trigger the signaling process when the match begins in the game_started event.
+Use a lexicographical ID tie-breaker (socket.id < p.id) to ensure exactly one side initiates the connection, preventing redundant connection negotiations.
+Here are the specific updates needed in your client-side code:
+Step 1: Update the Lobby and Host Button Listeners to Await Microphone Permissions
+Locate the setupMainMenuListeners() function inside your game.html and modify the click events for both Create Room and Join Lobby to be async and await initLocalVoice():
+code
+JavaScript
+// Inside setupMainMenuListeners() in game.html
+
+document.getElementById('menu-btn-create-lobby').addEventListener('click', async () => {
+  const username = document.getElementById('username-input').value.trim() || 'Host';
+  localUsername = username;
+
+  const maxP = parseInt(maxPlayersSlider.value);
+  const imp = parseInt(impostorsSlider.value);
+  const midJ = document.getElementById('host-midjoin').checked;
+
+  if (socket && socket.connected) {
+    // Await microphone access before emitting create_room
+    await initLocalVoice();
+    socket.emit('create_room', {
+      username: username,
+      color: localColor,
+      settings: {
+        maxPlayers: maxP,
+        impostors: imp,
+        allowMidGameJoin: midJ
+      }
+    });
+  } else {
+    showNotification('Offline mode. Cannot create lobby.');
+  }
+});
+
+document.getElementById('menu-btn-join-lobby').addEventListener('click', async () => {
+  const username = document.getElementById('username-input').value.trim() || 'Crewmate';
+  localUsername = username;
+
+  const codeInput = document.getElementById('join-code-input');
+  const code = codeInput.value.trim().toUpperCase();
+
+  if (code.length !== 5) {
+    showNotification('Room code must be exactly 5 letters.');
+    return;
+  }
+
+  if (socket && socket.connected) {
+    // Await microphone access before emitting join_room
+    await initLocalVoice();
+    socket.emit('join_room', {
+      roomCode: code,
+      username: username,
+      color: localColor
+    });
+  } else {
+    showNotification('Offline mode. Cannot join lobby.');
+  }
+});
+Step 2: Establish Peer Connections at Game Start & Update Mid-Game Joins
+Update the client-side socket listeners to handle peer connection initiation using a lexicographical check (socket.id < p.id) to cleanly assign one host-initiator for each peer link:
+code
+JavaScript
+// 1. Inside socket.on('game_started', (data) => { ... })
+data.players.forEach(p => {
+  if (p.id !== socket.id) {
+    spawnOtherPlayer(p);
+    
+    // Lexicographical tie-breaker ensures exactly one client initiates the connection
+    if (socket.id < p.id) {
+      socket.emit('initiate_peer_connection', { targetId: p.id });
+    }
+  }
+});
+code
+JavaScript
+// 2. Inside socket.on('room_joined', (data) => { ... }) - mid-game join handler
+if (data.roomState.gameStarted) {
+  document.getElementById('main-menu-overlay').style.display = 'none';
+
+  for (const id in remotePlayers) {
+    removeOtherPlayer(id);
+  }
+  data.roomState.players.forEach(p => {
+    if (p.id !== socket.id) {
+      spawnOtherPlayer(p);
+      
+      // Connect to existing players in game
+      if (socket.id < p.id) {
+        socket.emit('initiate_peer_connection', { targetId: p.id });
+      }
+    }
+  });
+  // ... rest of join logic
+code
+JavaScript
+// 3. Inside socket.on('player_joined', (p) => { ... }) - mid-game other joined handler
+socket.on('player_joined', (p) => {
+  // ... (keep your existing room state calculations)
+  
+  const mainOverlay = document.getElementById('main-menu-overlay');
+  if (mainOverlay.style.display === 'none') {
+    spawnOtherPlayer(p);
+    
+    // Connect to newly joined mid-game player
+    if (socket.id < p.id) {
+      socket.emit('initiate_peer_connection', { targetId: p.id });
+    }
+    showNotification(`${p.username} entered the ship.`);
+  } else {
+    playTone(660, 'triangle', 0.1, 0.05);
+  }
+});
+
+
+
+
+player size fix
+multiple spawn add
+sobotages
+game finish logic
