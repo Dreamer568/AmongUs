@@ -7,18 +7,14 @@ const PORT = 3000;
 const app = express();
 const server = http.createServer(app);
 
-// Use the universally supported Socket.io instantiation syntax
 const io = socketIo(server);
 
-// Serve static assets directly from root directory
 app.use(express.static(__dirname));
 
-// Route default path to our interactive 3D view
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'game.html'));
 });
 
-// Load task sets on startup from task_sets.json
 const fs = require('fs');
 let taskSets = [];
 try {
@@ -48,28 +44,19 @@ try {
   }];
 }
 
-/**
- * Version-agnostic helper to safely extract connected sockets across Socket.io v2, v3, and v4
- */
 function getConnectedSockets() {
   const namespace = io.of("/");
   if (namespace.sockets instanceof Map) {
-    // Socket.io v3 & v4 (ES6 Map)
     return Array.from(namespace.sockets.values());
   } else if (namespace.sockets && typeof namespace.sockets === 'object') {
-    // Socket.io v2 (Standard Object dictionary)
     return Object.values(namespace.sockets);
   }
   if (namespace.connected && typeof namespace.connected === 'object') {
-    // Legacy fallback
     return Object.values(namespace.connected);
   }
   return [];
 }
 
-/**
- * Room management state mapping room code -> room state object
- */
 const rooms = new Map();
 
 function generateRoomCode() {
@@ -89,9 +76,6 @@ function getUniqueRoomCode() {
   return code;
 }
 
-/**
- * Computes global progress percentage for a specific room
- */
 function getRoomProgress(room) {
   let totalTasks = 0;
   let completedTasksCount = 0;
@@ -113,19 +97,16 @@ function checkGameEndConditions(room) {
   const livingCrewmates = room.players.filter(p => p.isAlive && p.role === 'Crewmate').length;
   const progress = getRoomProgress(room);
 
-  // Crewmates completed all tasks
   if (progress >= 100.0) {
     endActiveGame(room, 'Crewmates');
     return;
   }
 
-  // All Impostors are eliminated
   if (livingImpostors === 0) {
     endActiveGame(room, 'Crewmates');
     return;
   }
 
-  // Impostors outnumber or match the Crewmates count
   if (livingImpostors >= livingCrewmates) {
     endActiveGame(room, 'Impostors');
     return;
@@ -148,11 +129,9 @@ function endActiveGame(room, winningTeam) {
   });
 }
 
-// Socket.io Real-Time Pipeline
 io.on('connection', (socket) => {
   console.log('Astronaut linked via Socket.io secure connection.');
 
-  // Relay WebRTC signaling messages between peers
   socket.on('webrtc_signal', (data) => {
     if (socket.roomCode) {
       io.to(data.targetId).emit('webrtc_signal', {
@@ -162,14 +141,12 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Let other players know they should initiate a peer connection with a newly joined player
   socket.on('initiate_peer_connection', (data) => {
     io.to(data.targetId).emit('initiate_peer_connection', {
       senderId: socket.id
     });
   });
 
-  // Host creates a room
   socket.on('create_room', (data) => {
     const roomCode = getUniqueRoomCode();
 
@@ -214,7 +191,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Player joins a room
   socket.on('join_room', (data) => {
     const code = (data.roomCode || '').trim().toUpperCase();
     const room = rooms.get(code);
@@ -234,7 +210,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Set up profile
     socket.roomCode = code;
     socket.playerProfile = {
       id: socket.id,
@@ -277,7 +252,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Host starts the game
   socket.on('start_game', () => {
     if (!socket.roomCode) return;
     const room = rooms.get(socket.roomCode);
@@ -344,7 +318,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Player movement inside a room
   socket.on('move', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       socket.playerProfile.position = data.position;
@@ -358,7 +331,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Track task completions per room
   socket.on('task_complete', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
@@ -384,7 +356,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Emergency Button Meeting Trigger
   socket.on('call_emergency_meeting', () => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
@@ -398,7 +369,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Combat actions: Kill player (Server-side validation)
   socket.on('kill_player', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
@@ -408,7 +378,12 @@ io.on('connection', (socket) => {
       if (!killer || killer.role !== 'Impostor' || !killer.isAlive) return;
 
       const victim = room.players.find(p => p.id === data.victimId);
-      if (!victim || victim.role !== 'Crewmate' || !victim.isAlive) return;
+      if (!victim || !victim.isAlive) return;
+
+      if (victim.role === 'Impostor') {
+        console.log(`Rejected kill: Impostor ${killer.username} tried to eliminate teammate Impostor ${victim.username}`);
+        return;
+      }
 
       const now = Date.now();
       if (killer.lastKillTime && (now - killer.lastKillTime < 25000)) {
@@ -428,7 +403,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Combat actions: Report body / emergency meeting (Server-side validation)
   socket.on('report_body', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
@@ -442,7 +416,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Cast meeting vote
   socket.on('cast_vote', (data) => {
     if (socket.roomCode && socket.playerProfile) {
       const room = rooms.get(socket.roomCode);
@@ -454,7 +427,7 @@ io.on('connection', (socket) => {
         return;
       }
 
-      room.votes[socket.id] = data.targetId; // 'skip' or player target id
+      room.votes[socket.id] = data.targetId;
       console.log(`Room ${room.code}: [${voter.username}] voted for [${data.targetId}]`);
 
       io.to(room.code).emit('vote_update', {
@@ -469,7 +442,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Host resets current lobby state to restart round
   socket.on('play_again', () => {
     if (!socket.roomCode) return;
     const room = rooms.get(socket.roomCode);
@@ -485,13 +457,13 @@ io.on('connection', (socket) => {
       p.completedTasks = [];
       p.assignedTaskSet = null;
       p.position = { x: 6.79, y: 5.90, z: -23.93 };
+      p.lastKillTime = 0;
     });
 
     console.log(`Room ${room.code}: Lobby reset requested by host.`);
     io.to(room.code).emit('return_to_lobby', { roomState: room });
   });
 
-  // Handle manual leave lobby
   socket.on('leave_room', () => {
     if (socket.roomCode) {
       const code = socket.roomCode;
@@ -527,7 +499,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Disconnection handler
   socket.on('disconnect', () => {
     if (socket.roomCode) {
       const code = socket.roomCode;
@@ -563,7 +534,6 @@ function triggerMeetingSequence(room, reporterName, reporterColor) {
   room.inMeeting = true;
   room.votes = {};
 
-  // Teleport all players to Spawn on Server records
   room.players.forEach(p => {
     p.position = { x: 6.79, y: 5.90, z: -23.93 };
   });
@@ -590,7 +560,6 @@ function processVotingResults(room) {
   let ejectedId = null;
   let isTie = false;
 
-  // Tally votes
   Object.values(room.votes).forEach(targetId => {
     if (targetId !== 'skip') {
       voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
@@ -599,7 +568,7 @@ function processVotingResults(room) {
         ejectedId = targetId;
         isTie = false;
       } else if (voteCounts[targetId] === maxVotes) {
-        isTie = true; // Tie detected
+        isTie = true;
       }
     }
   });
@@ -608,7 +577,7 @@ function processVotingResults(room) {
   if (skipCount >= maxVotes) {
     ejectedId = null;
   } else if (isTie) {
-    ejectedId = null; // Tie results in skipped ejection
+    ejectedId = null;
   }
 
   let ejectedPlayer = null;
@@ -619,7 +588,6 @@ function processVotingResults(room) {
     }
   }
 
-  // Count remaining Impostors
   const remainingImpostors = room.players.filter(p => p.isAlive && p.role === 'Impostor').length;
 
   io.to(room.code).emit('meeting_ended', {
@@ -631,7 +599,6 @@ function processVotingResults(room) {
     remainingImpostors: remainingImpostors
   });
 
-  // Check end condition post meeting ejection
   checkGameEndConditions(room);
 }
 
